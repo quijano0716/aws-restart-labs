@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lab Report: Introduction to Amazon EC2</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --bg-soft: #111827;
+      --card: rgba(255, 255, 255, 0.08);
+      --card-strong: rgba(255, 255, 255, 0.12);
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --accent: #ff9900;
+      --accent-2: #38bdf8;
+      --ok: #22c55e;
+      --warn: #f59e0b;
+      --border: rgba(255, 255, 255, 0.12);
+      --shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+      --radius: 22px;
+      --max: 1120px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(255, 153, 0, 0.16), transparent 28%),
+        radial-gradient(circle at top right, rgba(56, 189, 248, 0.14), transparent 24%),
+        linear-gradient(180deg, #020617 0%, #0f172a 48%, #111827 100%);
+      color: var(--text);
+      line-height: 1.65;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .container {
+      width: min(var(--max), calc(100% - 2rem));
+      margin: 0 auto;
+    }
+
+    /* ── Nav ── */
+    .nav {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      backdrop-filter: blur(16px);
+      background: rgba(2, 6, 23, 0.72);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .nav-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.9rem 0;
+      gap: 1rem;
+    }
+
+    .brand {
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+    }
+
+    .brand-badge {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, var(--accent), #ffb84d);
+      color: #111827;
+      font-weight: 900;
+      box-shadow: var(--shadow);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .nav-links a:hover {
+      color: var(--text);
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      color: var(--muted);
+      font-size: 0.9rem;
+      transition: color 0.2s;
+    }
+
+    .back-link:hover {
+      color: var(--accent);
+    }
+
+    /* ── Hero ── */
+    .hero {
+      padding: 4.8rem 0 2rem;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 1.5rem;
+      align-items: stretch;
+    }
+
+    .panel {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.05));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .hero-main {
+      padding: 2rem;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.45rem 0.8rem;
+      border-radius: 999px;
+      background: rgba(255, 153, 0, 0.12);
+      color: #ffd28a;
+      border: 1px solid rgba(255, 153, 0, 0.25);
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+    }
+
+    h1,
+    h2,
+    h3 {
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+      margin: 0;
+    }
+
+    h1 {
+      font-size: clamp(2rem, 4vw, 3.7rem);
+      margin-bottom: 0.9rem;
+    }
+
+    .hero-main p {
+      margin: 0;
+      color: #cbd5e1;
+      font-size: 1.05rem;
+      max-width: 65ch;
+    }
+
+    .hero-side {
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .hero-side .callout {
+      padding: 1rem 1.1rem;
+      border-radius: 18px;
+      border: 1px solid rgba(56, 189, 248, 0.18);
+      background: rgba(56, 189, 248, 0.08);
+    }
+
+    .hero-side .callout strong {
+      display: block;
+      margin-bottom: 0.35rem;
+    }
+
+    .tech-stack {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.55rem;
+    }
+
+    .chip {
+      padding: 0.45rem 0.75rem;
+      border-radius: 999px;
+      font-size: 0.88rem;
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #dbeafe;
+    }
+
+    .small {
+      font-size: 0.92rem;
+      color: var(--muted);
+    }
+
+    /* ── Sections ── */
+    section {
+      padding: 1rem 0 0.4rem;
+    }
+
+    .section-title {
+      margin-bottom: 1rem;
+      font-size: clamp(1.5rem, 2vw, 2.2rem);
+    }
+
+    .section-subtitle {
+      color: var(--muted);
+      margin-top: 0.45rem;
+      max-width: 75ch;
+    }
+
+    /* ── Grids ── */
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .card {
+      padding: 1.3rem;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+    }
+
+    .card h3 {
+      font-size: 1.05rem;
+      margin-bottom: 0.6rem;
+    }
+
+    .card p {
+      margin: 0;
+      color: #cbd5e1;
+    }
+
+    /* ── Timeline ── */
+    .timeline {
+      display: grid;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .step {
+      display: grid;
+      grid-template-columns: 90px 1fr;
+      gap: 1rem;
+      align-items: start;
+      padding: 1.25rem;
+      border-radius: 22px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: var(--shadow);
+    }
+
+    .step-num {
+      width: 72px;
+      height: 72px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, rgba(255, 153, 0, 0.18), rgba(56, 189, 248, 0.18));
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      display: grid;
+      place-items: center;
+      font-size: 1.1rem;
+      font-weight: 900;
+      color: #fff;
+    }
+
+    .step h3 {
+      margin-bottom: 0.55rem;
+      font-size: 1.2rem;
+    }
+
+    .step ul {
+      margin: 0.3rem 0 0;
+      padding-left: 1.1rem;
+      color: #dbe4f0;
+    }
+
+    .step li+li {
+      margin-top: 0.4rem;
+    }
+
+    .highlight {
+      color: #ffd28a;
+      font-weight: 700;
+    }
+
+    /* ── Screenshots ── */
+    .screenshot-gallery {
+      display: grid;
+      gap: 0.8rem;
+      margin-top: 1rem;
+    }
+
+    .screenshot-gallery.cols-2 {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .screenshot-fig {
+      margin: 0;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(2, 6, 23, 0.5);
+    }
+
+    .screenshot-fig img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .screenshot-fig figcaption {
+      padding: 0.6rem 0.8rem;
+      color: var(--muted);
+      font-size: 0.84rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    /* ── Callouts ── */
+    .insight {
+      padding: 1.15rem 1.2rem;
+      border-left: 4px solid var(--accent);
+      border-radius: 16px;
+      background: rgba(255, 153, 0, 0.08);
+      color: #fde7c2;
+    }
+
+    .info {
+      border-left-color: var(--accent-2);
+      background: rgba(56, 189, 248, 0.08);
+      color: #d8f3ff;
+    }
+
+    /* ── Checklist ── */
+    .checklist {
+      display: grid;
+      gap: 0.7rem;
+      margin-top: 1rem;
+    }
+
+    .check {
+      display: flex;
+      gap: 0.75rem;
+      align-items: flex-start;
+      padding: 0.9rem 1rem;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+    }
+
+    .check-mark {
+      flex: 0 0 auto;
+      width: 28px;
+      height: 28px;
+      display: grid;
+      place-items: center;
+      border-radius: 999px;
+      background: rgba(34, 197, 94, 0.15);
+      color: #86efac;
+      font-weight: 800;
+    }
+
+    /* ── Footer ── */
+    .footer {
+      padding: 2.2rem 0 3.5rem;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 920px) {
+
+      .hero-grid,
+      .grid-3,
+      .grid-2,
+      .screenshot-gallery.cols-2 {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 680px) {
+      .nav-inner {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .step {
+        grid-template-columns: 1fr;
+      }
+
+      .step-num {
+        width: 60px;
+        height: 60px;
+        border-radius: 16px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <nav class="nav">
+    <div class="container nav-inner">
+      <div class="brand">
+        <div class="brand-badge">AWS</div>
+        <div>Lab Report · Amazon EC2</div>
+      </div>
+      <div class="nav-links">
+        <a href="../index.html" class="back-link">← All Labs</a>
+        <a href="#summary">Summary</a>
+        <a href="#services">Services</a>
+        <a href="#walkthrough">Walkthrough</a>
+        <a href="#learnings">Learnings</a>
+      </div>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <div class="container hero-grid">
+      <div class="panel hero-main">
+        <div class="eyebrow">AWS re/Start Lab · Amazon EC2</div>
+        <h1>Introduction to Amazon EC2</h1>
+        <p>
+          This report covers the full lifecycle of an EC2 instance: launching with a User Data script,
+          monitoring its health, configuring firewall rules for HTTP access, resizing compute and storage
+          resources, and testing termination protection as a safety mechanism.
+        </p>
+      </div>
+
+      <aside class="panel hero-side">
+        <div class="callout">
+          <strong>Lab Objective</strong>
+          Deploy an EC2 instance running a basic web server, observe its state, open HTTP access,
+          modify resources, and verify that termination protection works as expected.
+        </div>
+
+        <div>
+          <div class="small" style="margin-bottom:0.7rem;">Services & Concepts</div>
+          <div class="tech-stack">
+            <span class="chip">EC2</span>
+            <span class="chip">AMI</span>
+            <span class="chip">Security Groups</span>
+            <span class="chip">User Data</span>
+            <span class="chip">EBS</span>
+            <span class="chip">CloudWatch</span>
+            <span class="chip">Termination Protection</span>
+          </div>
+        </div>
+
+        <div class="callout" style="border-color: rgba(34,197,94,0.2); background: rgba(34,197,94,0.08);">
+          <strong>Key Insight</strong>
+          An instance isn't truly operational just because it's running. It must also be accessible,
+          monitored, properly secured, and ready to scale.
+        </div>
+      </aside>
+    </div>
+  </header>
+
+  <main>
+    <section id="summary">
+      <div class="container">
+        <h2 class="section-title">Lab Summary</h2>
+        <p class="section-subtitle">
+          An EC2 instance named <span class="highlight">Web Server</span> was created using
+          Amazon Linux 2023, type <span class="highlight">t3.micro</span>, with no key pair and a
+          lab VPC. A <span class="highlight">User Data</span> script automated Apache installation
+          to serve a basic web page.
+        </p>
+
+        <div class="grid-3" style="margin-top:1rem;">
+          <article class="card">
+            <h3>Initial Provisioning</h3>
+            <p>Configured the instance name, AMI, instance type, network, storage, and User Data script
+              to bootstrap a simple web server.</p>
+          </article>
+          <article class="card">
+            <h3>Operation & Access</h3>
+            <p>Verified status checks, reviewed CloudWatch metrics, took an instance screenshot, and
+              enabled HTTP traffic through an inbound security group rule.</p>
+          </article>
+          <article class="card">
+            <h3>Scaling & Protection</h3>
+            <p>Stopped the instance to upgrade from t3.micro to t3.small, expanded the EBS volume from
+              8 GiB to 10 GiB, and validated termination protection behavior.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="services">
+      <div class="container">
+        <h2 class="section-title">AWS Services Used</h2>
+        <p class="section-subtitle">
+          Each service played a specific role in the lab workflow.
+        </p>
+        <div class="grid-2" style="margin-top:1rem;">
+          <article class="card">
+            <h3>Amazon EC2</h3>
+            <p>Core service used to create the virtual machine that hosted the web server.</p>
+          </article>
+          <article class="card">
+            <h3>Amazon Machine Image (AMI)</h3>
+            <p>Base OS template selected to launch the instance: Amazon Linux 2023.</p>
+          </article>
+          <article class="card">
+            <h3>Security Groups</h3>
+            <p>Virtual firewall that controlled inbound traffic. The page was unreachable
+              until HTTP on port 80 was allowed.</p>
+          </article>
+          <article class="card">
+            <h3>Amazon EBS</h3>
+            <p>Persistent block storage attached to the instance. Its size was increased
+              from 8 GiB to 10 GiB during the resize task.</p>
+          </article>
+          <article class="card">
+            <h3>Amazon CloudWatch</h3>
+            <p>Source of monitoring metrics visible from the instance's Monitoring tab.</p>
+          </article>
+          <article class="card">
+            <h3>User Data & Termination Protection</h3>
+            <p>User Data automated the web server installation at boot. Termination protection
+              prevented accidental deletion during testing.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="walkthrough">
+      <div class="container">
+        <h2 class="section-title">Step-by-Step Walkthrough</h2>
+        <p class="section-subtitle">
+          Detailed record of each task, with screenshots showing exactly what was configured at every step.
+        </p>
+
+        <div class="timeline">
+
+          <!-- ══════ TASK 1 ══════ -->
+          <article class="step">
+            <div class="step-num">01</div>
+            <div>
+              <h3>Launching the EC2 Instance</h3>
+              <ul>
+                <li>Opened the <strong>EC2</strong> service and started creating a new instance.
+                  In the <strong>Name and tags</strong> section, the instance was named
+                  <strong>Web Server</strong>.
+                </li>
+              </ul>
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/01-name-and-tags.png" alt="Name and tags configuration" loading="lazy" />
+                  <figcaption>Name and tags: Instance named "web server"</figcaption>
+                </figure>
+              </div>
+
+              <ul>
+                <li>The default <strong>Amazon Linux 2023</strong> AMI was kept as the base operating
+                  system, a modern, general-purpose Linux image optimized for AWS.</li>
+              </ul>
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/02-ami-selection.png" alt="AMI Selection" loading="lazy" />
+                  <figcaption>AMI: Amazon Linux 2023 selected (Free tier eligible)</figcaption>
+                </figure>
+              </div>
+
+              <ul>
+                <li>Selected <strong>t3.micro</strong> as the instance type (2 vCPU, 1 GiB memory).
+                  No key pair was configured since the lab didn't require SSH access.</li>
+              </ul>
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/03-instance-type-keypair.png" alt="Instance type and key pair"
+                    loading="lazy" />
+                  <figcaption>Instance type (t3.micro) and key pair (none) configuration</figcaption>
+                </figure>
+              </div>
+
+              <ul>
+                <li>In <strong>Network settings</strong>, selected <strong>Lab VPC</strong> and created
+                  a new security group named <strong>Web Server security group</strong>. The default
+                  SSH inbound rule was removed to improve security.</li>
+              </ul>
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/04-network-settings.png" alt="Network settings" loading="lazy" />
+                  <figcaption>Network: Lab VPC, new security group, no inbound rules</figcaption>
+                </figure>
+              </div>
+
+              <ul>
+                <li>The default <strong>8 GiB gp3</strong> root volume was kept as the boot disk for
+                  the instance.</li>
+              </ul>
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/05-storage-config.png" alt="Storage configuration" loading="lazy" />
+                  <figcaption>Storage: 8 GiB gp3 root volume (default)</figcaption>
+                </figure>
+              </div>
+
+              <ul>
+                <li>Under <strong>Advanced details</strong>, <strong>Termination protection</strong>
+                  was enabled to prevent accidental deletion.</li>
+              </ul>
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/06-termination-protection.png" alt="Termination protection enabled"
+                    loading="lazy" />
+                  <figcaption>Termination protection: Enabled</figcaption>
+                </figure>
+              </div>
+
+              <ul>
+                <li>A <strong>User Data</strong> bash script was added to automatically install Apache,
+                  enable it on boot, and publish a basic HTML page.</li>
+              </ul>
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/07-user-data-script.png" alt="User Data script" loading="lazy" />
+                  <figcaption>User Data: Bash script installing httpd and creating index page</figcaption>
+                </figure>
+              </div>
+
+              <ul>
+                <li>The instance was launched successfully. AWS confirmed the creation with the
+                  instance ID.</li>
+              </ul>
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/08-launch-success.png" alt="Launch success" loading="lazy" />
+                  <figcaption>Launch: Successfully initiated, instance ID assigned</figcaption>
+                </figure>
+              </div>
+            </div>
+          </article>
+
+          <!-- ══════ TASK 2 ══════ -->
+          <article class="step">
+            <div class="step-num">02</div>
+            <div>
+              <h3>Monitoring the Instance</h3>
+              <ul>
+                <li>Verified the instance reached <strong>Running</strong> state. The <strong>Details</strong>
+                  tab showed the public IPv4 address, instance type (t3.micro), VPC, and subnet
+                  information.</li>
+              </ul>
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/09-instance-running.png" alt="Instance running" loading="lazy" />
+                  <figcaption>Instance running: Details tab with public IP and metadata</figcaption>
+                </figure>
+              </div>
+
+              <ul>
+                <li>In the <strong>Status checks</strong> tab, all system, instance, and EBS
+                  checks passed, confirming the instance was fully operational.</li>
+              </ul>
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/10-status-checks.png" alt="Status checks passed" loading="lazy" />
+                  <figcaption>Status checks: System, Instance, and EBS checks all passed</figcaption>
+                </figure>
+              </div>
+
+              <ul>
+                <li>The <strong>Monitoring</strong> tab displayed CloudWatch metrics including CPU
+                  utilization, network traffic (in/out), and packet counts.</li>
+              </ul>
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/11-monitoring-cloudwatch.png" alt="CloudWatch monitoring"
+                    loading="lazy" />
+                  <figcaption>Monitoring: CloudWatch metrics (CPU, network, metadata)</figcaption>
+                </figure>
+              </div>
+
+              <ul>
+                <li>Used <strong>Actions → Monitor and troubleshoot → Get Instance Screenshot</strong>
+                  to capture the console output. This is useful for diagnosing boot issues when SSH is
+                  unavailable.</li>
+              </ul>
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/12-instance-screenshot.png" alt="Instance console screenshot"
+                    loading="lazy" />
+                  <figcaption>Instance Screenshot: Amazon Linux 2023 boot confirmation</figcaption>
+                </figure>
+              </div>
+
+              <div class="insight info" style="margin-top:1rem;">
+                Monitoring confirmed that a running instance still requires additional validation
+                (status checks, metrics, console access) before it can be considered truly operational.
+              </div>
+            </div>
+          </article>
+
+          <!-- ══════ TASK 3 ══════ -->
+          <article class="step">
+            <div class="step-num">03</div>
+            <div>
+              <h3>Updating the Security Group & Accessing the Web Server</h3>
+              <ul>
+                <li>Copied the <strong>Public IPv4 address</strong> and attempted to access the web
+                  server in a browser. The page failed to load because the security group had no
+                  inbound rule for HTTP traffic.</li>
+                <li>Navigated to <strong>Security Groups</strong>, selected the
+                  <strong>Web Server security group</strong>, and added an inbound rule:
+                  <strong>Type: HTTP</strong>, <strong>Source: Anywhere-IPv4 (0.0.0.0/0)</strong>.
+                </li>
+              </ul>
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/13-security-group-http.png" alt="HTTP rule added" loading="lazy" />
+                  <figcaption>Security Group: HTTP inbound rule added (port 80, 0.0.0.0/0)</figcaption>
+                </figure>
+              </div>
+
+              <ul>
+                <li>After saving the rule and refreshing the browser, the web page loaded successfully
+                  displaying <strong>"Hello From Your Web Server!"</strong></li>
+              </ul>
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/15-hello-web-server.png" alt="Web server accessible" loading="lazy" />
+                  <figcaption>Browser: Web server responding with "Hello From Your Web Server!"</figcaption>
+                </figure>
+              </div>
+
+              <div class="insight" style="margin-top:1rem;">
+                This step clearly demonstrated that deploying software inside an instance does not
+                guarantee external access. Network rules and firewall policies must be explicitly
+                configured. Security groups act as the gatekeeper.
+              </div>
+            </div>
+          </article>
+
+          <!-- ══════ TASK 4 ══════ -->
+          <article class="step">
+            <div class="step-num">04</div>
+            <div>
+              <h3>Resizing the Instance Type and EBS Volume</h3>
+              <ul>
+                <li>The instance was <strong>stopped</strong> first, since resizing requires the
+                  instance to be in a stopped state. No charges apply for a stopped EC2 instance,
+                  but EBS storage costs remain.</li>
+              </ul>
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/14-instance-stopping.png" alt="Instance stopping" loading="lazy" />
+                  <figcaption>Instance state: Stopping initiated successfully</figcaption>
+                </figure>
+              </div>
+
+              <ul>
+                <li>Via <strong>Actions → Instance Settings → Change Instance Type</strong>, the
+                  instance type was changed from <strong>t3.micro</strong> to
+                  <strong>t3.small</strong>, doubling the available memory from 1 GiB to 2 GiB.
+                </li>
+              </ul>
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/16-change-instance-type.png" alt="Change instance type" loading="lazy" />
+                  <figcaption>Instance type: Changed from t3.micro (1 GiB) to t3.small (2 GiB)</figcaption>
+                </figure>
+              </div>
+
+              <ul>
+                <li>Under <strong>Elastic Block Store → Volumes</strong>, the root volume was modified
+                  from <strong>8 GiB</strong> to <strong>10 GiB</strong> while keeping the gp3 type.</li>
+              </ul>
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/17-modify-volume.png" alt="Modify EBS volume" loading="lazy" />
+                  <figcaption>EBS Volume: Modified from 8 GiB to 10 GiB (gp3, 3000 IOPS)</figcaption>
+                </figure>
+              </div>
+
+              <ul>
+                <li>The instance was restarted with the new configuration, now with more compute power
+                  and more storage available.</li>
+              </ul>
+            </div>
+          </article>
+
+          <!-- ══════ TASK 5 ══════ -->
+          <article class="step">
+            <div class="step-num">05</div>
+            <div>
+              <h3>Testing Termination Protection</h3>
+              <ul>
+                <li>Attempted to terminate the instance while <strong>termination protection</strong>
+                  was still enabled. AWS returned a red error message:
+                  <em>"Failed to terminate. The instance may not be terminated."</em>
+                </li>
+              </ul>
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/18-termination-failed.png" alt="Termination failed" loading="lazy" />
+                  <figcaption>Termination blocked: Red error banner confirms protection is active</figcaption>
+                </figure>
+              </div>
+
+              <ul>
+                <li>Via <strong>Actions → Instance Settings → Change Termination Protection</strong>,
+                  the protection was disabled. The instance was then terminated successfully.</li>
+              </ul>
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/19-termination-complete.png" alt="Termination sequence" loading="lazy" />
+                  <figcaption>Full sequence: Stop, failed terminate, protection removed, successful termination
+                  </figcaption>
+                </figure>
+              </div>
+
+              <div class="insight info" style="margin-top:1rem;">
+                This test highlighted the difference between having permission to perform an action
+                and having the resource actually allow it based on its protection settings.
+              </div>
+            </div>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+    <section id="learnings">
+      <div class="container">
+        <h2 class="section-title">Key Learnings</h2>
+        <div class="grid-2">
+          <div class="card">
+            <h3>What Was Actually Learned</h3>
+            <div class="checklist">
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>How to launch an EC2 instance with controlled, step-by-step configuration.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>How to automate boot tasks using <strong>User Data</strong> scripts.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>How to validate instance health through status checks and CloudWatch metrics.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>How <strong>Security Groups</strong> control real access to a service, not just deployment.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>How to scale compute and storage resources based on workload needs.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>How <strong>termination protection</strong> works as an operational safety layer.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Technical Conclusion</h3>
+            <p>
+              This lab covered the fundamental lifecycle of an EC2 instance: creation, configuration,
+              monitoring, access control, resource modification, and secure termination. Beyond the
+              console interface, the key takeaway was connecting each action to its operational impact:
+              availability, security, scalability, and administrative control.
+            </p>
+            <p style="margin-top: 1rem;">
+              The most valuable lesson was understanding that a "running" instance is not the same as
+              a "production-ready" instance. Proper network rules, monitoring, and protection mechanisms
+              must be in place before an instance can be considered fully operational.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      Lab report documenting the AWS EC2 introductory lab · AWS re/Start Program
+    </div>
+  </footer>
+</body>
+
+</html>
