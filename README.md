@@ -6,8 +6,6 @@ Technical documentation of hands-on labs completed during the **AWS re/Start** p
 
 👉 **[Open Lab Reports](https://quijano0716.github.io/aws-restart-labs/.)**
 
-> Replace `<your-username>` with your GitHub username once Pages is configured.
-
 ## 📋 Labs
 
 | #  | Lab                           | Status       |
