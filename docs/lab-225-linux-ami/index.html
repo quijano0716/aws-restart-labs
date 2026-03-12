@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lab Report: Introduction to Amazon Linux AMI</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --bg-soft: #111827;
+      --card: rgba(255, 255, 255, 0.08);
+      --card-strong: rgba(255, 255, 255, 0.12);
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --accent: #ff9900;
+      --accent-2: #38bdf8;
+      --ok: #22c55e;
+      --warn: #f59e0b;
+      --border: rgba(255, 255, 255, 0.12);
+      --shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+      --radius: 22px;
+      --max: 1120px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(255, 153, 0, 0.16), transparent 28%),
+        radial-gradient(circle at top right, rgba(56, 189, 248, 0.14), transparent 24%),
+        linear-gradient(180deg, #020617 0%, #0f172a 48%, #111827 100%);
+      color: var(--text);
+      line-height: 1.65;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .container {
+      width: min(var(--max), calc(100% - 2rem));
+      margin: 0 auto;
+    }
+
+    /* ── Nav ── */
+    .nav {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      backdrop-filter: blur(16px);
+      background: rgba(2, 6, 23, 0.72);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .nav-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.9rem 0;
+      gap: 1rem;
+    }
+
+    .brand {
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+    }
+
+    .brand-badge {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, var(--accent), #ffb84d);
+      color: #111827;
+      font-weight: 900;
+      box-shadow: var(--shadow);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .nav-links a:hover {
+      color: var(--text);
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      color: var(--muted);
+      font-size: 0.9rem;
+      transition: color 0.2s;
+    }
+
+    .back-link:hover {
+      color: var(--accent);
+    }
+
+    /* ── Hero ── */
+    .hero {
+      padding: 4.8rem 0 2rem;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 1.5rem;
+      align-items: stretch;
+    }
+
+    .panel {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.05));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .hero-main {
+      padding: 2rem;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.45rem 0.8rem;
+      border-radius: 999px;
+      background: rgba(255, 153, 0, 0.12);
+      color: #ffd28a;
+      border: 1px solid rgba(255, 153, 0, 0.25);
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+    }
+
+    h1,
+    h2,
+    h3 {
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+      margin: 0;
+    }
+
+    h1 {
+      font-size: clamp(2rem, 4vw, 3.7rem);
+      margin-bottom: 0.9rem;
+    }
+
+    .hero-main p {
+      margin: 0;
+      color: #cbd5e1;
+      font-size: 1.05rem;
+      max-width: 65ch;
+    }
+
+    .hero-side {
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .hero-side .callout {
+      padding: 1rem 1.1rem;
+      border-radius: 18px;
+      border: 1px solid rgba(56, 189, 248, 0.18);
+      background: rgba(56, 189, 248, 0.08);
+    }
+
+    .hero-side .callout strong {
+      display: block;
+      margin-bottom: 0.35rem;
+    }
+
+    .tech-stack {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.55rem;
+    }
+
+    .chip {
+      padding: 0.45rem 0.75rem;
+      border-radius: 999px;
+      font-size: 0.88rem;
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #dbeafe;
+    }
+
+    .small {
+      font-size: 0.92rem;
+      color: var(--muted);
+    }
+
+    /* ── Sections ── */
+    section {
+      padding: 1rem 0 0.4rem;
+    }
+
+    .section-title {
+      margin-bottom: 1rem;
+      font-size: clamp(1.5rem, 2vw, 2.2rem);
+    }
+
+    .section-subtitle {
+      color: var(--muted);
+      margin-top: 0.45rem;
+      max-width: 75ch;
+    }
+
+    /* ── Grids ── */
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .card {
+      padding: 1.3rem;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+    }
+
+    .card h3 {
+      font-size: 1.05rem;
+      margin-bottom: 0.6rem;
+    }
+
+    .card p {
+      margin: 0;
+      color: #cbd5e1;
+    }
+
+    /* ── Timeline ── */
+    .timeline {
+      display: grid;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .step {
+      display: grid;
+      grid-template-columns: 90px 1fr;
+      gap: 1rem;
+      align-items: start;
+      padding: 1.25rem;
+      border-radius: 22px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: var(--shadow);
+    }
+
+    .step-num {
+      width: 72px;
+      height: 72px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, rgba(255, 153, 0, 0.18), rgba(56, 189, 248, 0.18));
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      display: grid;
+      place-items: center;
+      font-size: 1.1rem;
+      font-weight: 900;
+      color: #fff;
+    }
+
+    .step h3 {
+      margin-bottom: 0.55rem;
+      font-size: 1.2rem;
+    }
+
+    .step ul {
+      margin: 0.3rem 0 0;
+      padding-left: 1.1rem;
+      color: #dbe4f0;
+    }
+
+    .step li+li {
+      margin-top: 0.4rem;
+    }
+
+    .highlight {
+      color: #ffd28a;
+      font-weight: 700;
+    }
+
+    /* ── Screenshots ── */
+    .screenshot-gallery {
+      display: grid;
+      gap: 0.8rem;
+      margin-top: 1rem;
+    }
+
+    .screenshot-gallery.cols-2 {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .screenshot-fig {
+      margin: 0;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(2, 6, 23, 0.5);
+    }
+
+    .screenshot-fig img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .screenshot-fig figcaption {
+      padding: 0.6rem 0.8rem;
+      color: var(--muted);
+      font-size: 0.84rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    /* ── Callouts ── */
+    .insight {
+      padding: 1.15rem 1.2rem;
+      border-left: 4px solid var(--accent);
+      border-radius: 16px;
+      background: rgba(255, 153, 0, 0.08);
+      color: #fde7c2;
+    }
+
+    .info {
+      border-left-color: var(--accent-2);
+      background: rgba(56, 189, 248, 0.08);
+      color: #d8f3ff;
+    }
+
+    /* ── Checklist ── */
+    .checklist {
+      display: grid;
+      gap: 0.7rem;
+      margin-top: 1rem;
+    }
+
+    .check {
+      display: flex;
+      gap: 0.75rem;
+      align-items: flex-start;
+      padding: 0.9rem 1rem;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+    }
+
+    .check-mark {
+      flex: 0 0 auto;
+      width: 28px;
+      height: 28px;
+      display: grid;
+      place-items: center;
+      border-radius: 999px;
+      background: rgba(34, 197, 94, 0.15);
+      color: #86efac;
+      font-weight: 800;
+    }
+
+    /* ── Code ── */
+    code {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 0.15rem 0.4rem;
+      border-radius: 6px;
+      font-size: 0.9em;
+      font-family: "Cascadia Code", "Fira Code", monospace;
+    }
+
+    /* ── Footer ── */
+    .footer {
+      padding: 2.2rem 0 3.5rem;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 920px) {
+
+      .hero-grid,
+      .grid-3,
+      .grid-2,
+      .screenshot-gallery.cols-2 {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 680px) {
+      .nav-inner {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .step {
+        grid-template-columns: 1fr;
+      }
+
+      .step-num {
+        width: 60px;
+        height: 60px;
+        border-radius: 16px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <nav class="nav">
+    <div class="container nav-inner">
+      <div class="brand">
+        <div class="brand-badge">AWS</div>
+        <div>Lab Report · Linux</div>
+      </div>
+      <div class="nav-links">
+        <a href="../index.html" class="back-link">← All Labs</a>
+        <a href="#summary">Summary</a>
+        <a href="#walkthrough">Walkthrough</a>
+        <a href="#commands">Commands</a>
+        <a href="#learnings">Learnings</a>
+      </div>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <div class="container hero-grid">
+      <div class="panel hero-main">
+        <div class="eyebrow">AWS re/Start Lab · Linux</div>
+        <h1>Introduction to Amazon Linux AMI</h1>
+        <p>
+          This foundational lab establishes the standard workflow for connecting to an Amazon Linux EC2 instance 
+          using PuTTY on Windows. It also introduces the Linux command line interface (CLI) and the standard help system.
+        </p>
+      </div>
+
+      <aside class="panel hero-side">
+        <div class="callout">
+          <strong>Lab Objective</strong>
+          Use SSH to securely access an Amazon Linux AMI and explore the built-in manual pages.
+        </div>
+
+        <div>
+          <div class="small" style="margin-bottom:0.7rem;">Tools & Concepts</div>
+          <div class="tech-stack">
+            <span class="chip">Amazon Linux</span>
+            <span class="chip">EC2</span>
+            <span class="chip">SSH / PuTTY</span>
+            <span class="chip">Linux CLI</span>
+            <span class="chip">man command</span>
+          </div>
+        </div>
+
+        <div class="callout" style="border-color: rgba(34,197,94,0.2); background: rgba(34,197,94,0.08);">
+          <strong>Key Insight</strong>
+          The <code>man</code> command is the definitive reference manual for Linux, allowing you to learn 
+          about any command directly from the terminal without external resources.
+        </div>
+      </aside>
+    </div>
+  </header>
+
+  <main>
+    <section id="summary">
+      <div class="container">
+        <h2 class="section-title">Lab Summary</h2>
+        <p class="section-subtitle">
+          Established an SSH connection to a <span class="highlight">Command Host</span> running on 
+          Amazon EC2 via <span class="highlight">PuTTY</span> using a downloaded PPK key. After logging in as 
+          <span class="highlight">ec2-user</span>, utilized the <code>man</code> command to search and examine 
+          manual page headers and sections.
+        </p>
+
+        <div class="grid-2" style="margin-top:1rem;">
+          <article class="card">
+            <h3>SSH Connection Setup</h3>
+            <p>Downloaded the necessary credentials (.ppk file) and configured PuTTY with the instance's 
+              public IP to securely connect from a Windows environment.</p>
+          </article>
+          <article class="card">
+            <h3>Linux Manual Exploration</h3>
+            <p>Navigated the standard Linux help system, identifying major headers like SYNOPSIS and DESCRIPTION 
+              and understanding the separation of manual sections.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="walkthrough">
+      <div class="container">
+        <h2 class="section-title">Step-by-Step Walkthrough</h2>
+        <p class="section-subtitle">
+          Detailed documentation of the tasks. Note: This SSH setup process using PuTTY serves as the 
+          reference workflow for all subsequent Linux labs.
+        </p>
+
+        <div class="timeline">
+
+          <!-- ══════ TASK 1 ══════ -->
+          <article class="step">
+            <div class="step-num">01</div>
+            <div>
+              <h3>Use SSH to connect to an Amazon Linux EC2 instance (Windows)</h3>
+              <ul>
+                <li>Accessed the Vocareum lab environment and launched the lab. Selected <strong>Details &gt; Show</strong> to open the Credentials window.</li>
+                <li>Chosen the <strong>Download PPK</strong> button and saved the <strong>labsuser.ppk</strong> authentication key.</li>
+                <li>Copied the <strong>PublicIP address</strong>/DNS from the credentials panel (e.g., <code>ec2-54-245-186-15.us-west-2.compute.amazonaws.com</code>).</li>
+                <li>Opened the <strong>PuTTY</strong> application and pasted the copied address into the Host Name field, keeping the port at <strong>22</strong> and connection type as <strong>SSH</strong>.</li>
+                <li>Loaded the downloaded <code>.ppk</code> key file into the Auth section to enable secure, password-less login.</li>
+              </ul>
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/01-putty-ssh-config.png" alt="PuTTY SSH configuration" loading="lazy" />
+                  <figcaption>PuTTY: Standard session configuration using public DNS and SSH key</figcaption>
+                </figure>
+              </div>
+
+              <ul>
+                <li>Selected <strong>Open</strong> to initiate the connection and accepted the server's host key.</li>
+                <li>At the <code>login as:</code> prompt, entered the default Amazon Linux username: <strong>ec2-user</strong>.</li>
+                <li>Successfully logged into the Amazon EC2 Command Host.</li>
+              </ul>
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/02-ssh-login-success.png" alt="SSH login successful" loading="lazy" />
+                  <figcaption>Terminal: Authenticated with public key and logged in as ec2-user</figcaption>
+                </figure>
+              </div>
+
+              <div class="insight info" style="margin-top:1rem;">
+                <strong>Reference:</strong> This exact PuTTY setup process will be used to access the Command Host in all future Linux labs.
+              </div>
+            </div>
+          </article>
+
+          <!-- ══════ TASK 2 ══════ -->
+          <article class="step">
+            <div class="step-num">02</div>
+            <div>
+              <h3>Explore the Linux man pages</h3>
+              <ul>
+                <li>Executed the <code>man man</code> command to display the manual page for the standard help system itself.</li>
+                <li>Paging through the document, located the important headers that structure a man page, including <strong>NAME</strong>, <strong>SYNOPSIS</strong>, <strong>DESCRIPTION</strong>, <strong>OPTIONS</strong>, and <strong>SEE ALSO</strong>.</li>
+                <li>Examined the <strong>DESCRIPTION</strong> section closely, which outlines the <strong>9 distinct section numbers</strong> of the manual (e.g., section 1 for Executable programs, section 8 for System administration commands).</li>
+                <li>Pressed <strong>q</strong> to exit the manual pager and return to the bash prompt.</li>
+              </ul>
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/03-man-page-sections.png" alt="man man output showing sections" loading="lazy" />
+                  <figcaption>man man: Exploring the DESCRIPTION header to identify the 9 numbered manual sections</figcaption>
+                </figure>
+              </div>
+            </div>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+    <section id="commands">
+      <div class="container">
+        <h2 class="section-title">Command Reference</h2>
+        <p class="section-subtitle">Quick reference of the commands executed in the terminal.</p>
+
+        <div class="timeline">
+
+          <article class="step">
+            <div class="step-num" style="font-size:0.85rem;">cmd</div>
+            <div>
+              <h3><code>man</code></h3>
+              <p>Interfaces with the system's reference manuals.</p>
+              <ul>
+                <li><code>man &lt;command_name&gt;</code> : Opens the manual page for a specific utility.</li>
+                <li><strong>Interactive Keys:</strong></li>
+                <li><code>space</code> or <code>down arrow</code> : Scroll down</li>
+                <li><code>up arrow</code> : Scroll up</li>
+                <li><code>q</code> : Quit the manual page viewer</li>
+              </ul>
+            </div>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+    <section id="learnings">
+      <div class="container">
+        <h2 class="section-title">Key Learnings</h2>
+        <div class="grid-2">
+          <div class="card">
+            <h3>What Was Actually Learned</h3>
+            <div class="checklist">
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>How to retrieve authentication credentials from the lab environment.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>How to configure and connect via <strong>SSH</strong> using <strong>PuTTY</strong> on Windows.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>The correct default username for connecting to an Amazon Linux AMI (<strong>ec2-user</strong>).</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>How to access the built-in system documentation using the <strong>man</strong> command.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Technical Conclusion</h3>
+            <p>
+              This lab established the essential prerequisites for working within a remote Linux environment. 
+              By successfully configuring an SSH client (PuTTY) with public key authentication, a secure 
+              connection was made to a cloud-hosted virtual machine. 
+            </p>
+            <p style="margin-top: 1rem;">
+              Furthermore, exploring the <code>man</code> pages demonstrated how to independently research 
+              commands, understand their syntax, and identify available options, which is a critical skill 
+              for navigating any Unix-based system.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      Lab report documenting the Introduction to Amazon Linux AMI lab · AWS re/Start Program
+    </div>
+  </footer>
+</body>
+
+</html>

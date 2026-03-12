@@ -2,6 +2,11 @@
 *.docx
 *.doc
 
+# Internal working files
+ignoredocs/
+lab_drafts.md
+LAB_STRUCTURE_GUIDE.md
+
 # OS files
 Thumbs.db
 .DS_Store
@@ -9,3 +14,11 @@ Thumbs.db
 # Editor folders
 .vscode/
 .idea/
+
+# Skills and agents
+.agents/
+
+# Node
+node_modules/
+package.json
+package-lock.json

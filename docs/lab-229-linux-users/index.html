@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lab Report: Managing Users and Groups</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --bg-soft: #111827;
+      --card: rgba(255, 255, 255, 0.08);
+      --card-strong: rgba(255, 255, 255, 0.12);
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --accent: #ff9900;
+      --accent-2: #38bdf8;
+      --ok: #22c55e;
+      --warn: #f59e0b;
+      --border: rgba(255, 255, 255, 0.12);
+      --shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+      --radius: 22px;
+      --max: 1120px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(255, 153, 0, 0.16), transparent 28%),
+        radial-gradient(circle at top right, rgba(56, 189, 248, 0.14), transparent 24%),
+        linear-gradient(180deg, #020617 0%, #0f172a 48%, #111827 100%);
+      color: var(--text);
+      line-height: 1.65;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .container {
+      width: min(var(--max), calc(100% - 2rem));
+      margin: 0 auto;
+    }
+
+    .nav {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      backdrop-filter: blur(16px);
+      background: rgba(2, 6, 23, 0.72);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .nav-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.9rem 0;
+      gap: 1rem;
+    }
+
+    .brand {
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+    }
+
+    .brand-badge {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, var(--accent), #ffb84d);
+      color: #111827;
+      font-weight: 900;
+      box-shadow: var(--shadow);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .nav-links a:hover {
+      color: var(--text);
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      color: var(--muted);
+      font-size: 0.9rem;
+      transition: color 0.2s;
+    }
+
+    .back-link:hover {
+      color: var(--accent);
+    }
+
+    .hero {
+      padding: 4.8rem 0 2rem;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 1.5rem;
+      align-items: stretch;
+    }
+
+    .panel {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.05));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .hero-main {
+      padding: 2rem;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.45rem 0.8rem;
+      border-radius: 999px;
+      background: rgba(255, 153, 0, 0.12);
+      color: #ffd28a;
+      border: 1px solid rgba(255, 153, 0, 0.25);
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+    }
+
+    h1,
+    h2,
+    h3 {
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+      margin: 0;
+    }
+
+    h1 {
+      font-size: clamp(2rem, 4vw, 3.7rem);
+      margin-bottom: 0.9rem;
+    }
+
+    .hero-main p {
+      margin: 0;
+      color: #cbd5e1;
+      font-size: 1.05rem;
+      max-width: 65ch;
+    }
+
+    .hero-side {
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .hero-side .callout {
+      padding: 1rem 1.1rem;
+      border-radius: 18px;
+      border: 1px solid rgba(56, 189, 248, 0.18);
+      background: rgba(56, 189, 248, 0.08);
+    }
+
+    .hero-side .callout strong {
+      display: block;
+      margin-bottom: 0.35rem;
+    }
+
+    .tech-stack {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.55rem;
+    }
+
+    .chip {
+      padding: 0.45rem 0.75rem;
+      border-radius: 999px;
+      font-size: 0.88rem;
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #dbeafe;
+    }
+
+    .small {
+      font-size: 0.92rem;
+      color: var(--muted);
+    }
+
+    section {
+      padding: 1rem 0 0.4rem;
+    }
+
+    .section-title {
+      margin-bottom: 1rem;
+      font-size: clamp(1.5rem, 2vw, 2.2rem);
+    }
+
+    .section-subtitle {
+      color: var(--muted);
+      margin-top: 0.45rem;
+      max-width: 75ch;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .card {
+      padding: 1.3rem;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+    }
+
+    .card h3 {
+      font-size: 1.05rem;
+      margin-bottom: 0.6rem;
+    }
+
+    .card p {
+      margin: 0;
+      color: #cbd5e1;
+    }
+
+    .timeline {
+      display: grid;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .step {
+      display: grid;
+      grid-template-columns: 90px 1fr;
+      gap: 1rem;
+      align-items: start;
+      padding: 1.25rem;
+      border-radius: 22px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: var(--shadow);
+    }
+
+    .step-num {
+      width: 72px;
+      height: 72px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, rgba(255, 153, 0, 0.18), rgba(56, 189, 248, 0.18));
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      display: grid;
+      place-items: center;
+      font-size: 1.1rem;
+      font-weight: 900;
+      color: #fff;
+    }
+
+    .step h3 {
+      margin-bottom: 0.55rem;
+      font-size: 1.2rem;
+    }
+
+    .step ul {
+      margin: 0.3rem 0 0;
+      padding-left: 1.1rem;
+      color: #dbe4f0;
+    }
+
+    .step li+li {
+      margin-top: 0.4rem;
+    }
+
+    .highlight {
+      color: #ffd28a;
+      font-weight: 700;
+    }
+
+    .screenshot-gallery {
+      display: grid;
+      gap: 0.8rem;
+      margin-top: 1rem;
+    }
+
+    .screenshot-gallery.cols-2 {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .screenshot-fig {
+      margin: 0;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(2, 6, 23, 0.5);
+    }
+
+    .screenshot-fig img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .screenshot-fig figcaption {
+      padding: 0.6rem 0.8rem;
+      color: var(--muted);
+      font-size: 0.84rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .insight {
+      padding: 1.15rem 1.2rem;
+      border-left: 4px solid var(--accent);
+      border-radius: 16px;
+      background: rgba(255, 153, 0, 0.08);
+      color: #fde7c2;
+    }
+
+    .info {
+      border-left-color: var(--accent-2);
+      background: rgba(56, 189, 248, 0.08);
+      color: #d8f3ff;
+    }
+
+    .checklist {
+      display: grid;
+      gap: 0.7rem;
+      margin-top: 1rem;
+    }
+
+    .check {
+      display: flex;
+      gap: 0.75rem;
+      align-items: flex-start;
+      padding: 0.9rem 1rem;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+    }
+
+    .check-mark {
+      flex: 0 0 auto;
+      width: 28px;
+      height: 28px;
+      display: grid;
+      place-items: center;
+      border-radius: 999px;
+      background: rgba(34, 197, 94, 0.15);
+      color: #86efac;
+      font-weight: 800;
+    }
+
+    code {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 0.15rem 0.4rem;
+      border-radius: 6px;
+      font-size: 0.9em;
+      font-family: "Cascadia Code", "Fira Code", monospace;
+    }
+
+    /* ── Data Table ── */
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 0.8rem;
+      font-size: 0.88rem;
+    }
+
+    .data-table th {
+      text-align: left;
+      padding: 0.6rem 0.8rem;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--muted);
+      font-weight: 700;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .data-table td {
+      padding: 0.5rem 0.8rem;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: #dbe4f0;
+    }
+
+    .data-table tbody tr:hover {
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .footer {
+      padding: 2.2rem 0 3.5rem;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    @media (max-width: 920px) {
+
+      .hero-grid,
+      .grid-3,
+      .grid-2,
+      .screenshot-gallery.cols-2 {
+        grid-template-columns: 1fr;
+      }
+
+      .data-table {
+        font-size: 0.8rem;
+      }
+    }
+
+    @media (max-width: 680px) {
+      .nav-inner {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .step {
+        grid-template-columns: 1fr;
+      }
+
+      .step-num {
+        width: 60px;
+        height: 60px;
+        border-radius: 16px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <nav class="nav">
+    <div class="container nav-inner">
+      <div class="brand">
+        <div class="brand-badge">AWS</div>
+        <div>Lab Report · Linux</div>
+      </div>
+      <div class="nav-links">
+        <a href="../index.html" class="back-link">← All Labs</a>
+        <a href="#summary">Summary</a>
+        <a href="#walkthrough">Walkthrough</a>
+        <a href="#commands">Commands</a>
+        <a href="#learnings">Learnings</a>
+      </div>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <div class="container hero-grid">
+      <div class="panel hero-main">
+        <div class="eyebrow">AWS re/Start Lab · Linux</div>
+        <h1>Managing Users and Groups</h1>
+        <p>
+          Create Linux users with default passwords, organize them into groups based on job roles,
+          and test permissions by logging in as different users.
+        </p>
+      </div>
+
+      <aside class="panel hero-side">
+        <div class="callout">
+          <strong>Lab Objective</strong>
+          Create users, assign them to groups, and understand the difference between regular users
+          and sudoers.
+        </div>
+
+        <div>
+          <div class="small" style="margin-bottom:0.7rem;">Tools & Concepts</div>
+          <div class="tech-stack">
+            <span class="chip">useradd</span>
+            <span class="chip">passwd</span>
+            <span class="chip">groupadd</span>
+            <span class="chip">usermod</span>
+            <span class="chip">su</span>
+            <span class="chip">sudo</span>
+          </div>
+        </div>
+
+        <div class="callout" style="border-color: rgba(34,197,94,0.2); background: rgba(34,197,94,0.08);">
+          <strong>Key Insight</strong>
+          Users without sudoers privileges cannot run administrative commands, and any
+          attempt to do so is logged in <code>/var/log/secure</code>.
+        </div>
+      </aside>
+    </div>
+  </header>
+
+  <main>
+    <section id="summary">
+      <div class="container">
+        <h2 class="section-title">Lab Summary</h2>
+        <p class="section-subtitle">
+          Connected via PuTTY
+          (as described in <a href="../lab-225-linux-ami/index.html"
+            style="color:var(--accent-2);text-decoration:underline;">Lab 225</a>).
+          Created <span class="highlight">10 users</span> with default passwords, organized them
+          into <span class="highlight">7 groups</span> based on job roles, and tested permissions by
+          switching users with <span class="highlight">su</span> and attempting
+          <span class="highlight">sudo</span> commands.
+        </p>
+
+        <div class="grid-3" style="margin-top:1rem;">
+          <article class="card">
+            <h3>User Creation</h3>
+            <p>Created 10 users with <code>useradd</code> and set their passwords
+              with <code>passwd</code>.</p>
+          </article>
+          <article class="card">
+            <h3>Group Management</h3>
+            <p>Created 7 groups and assigned users based on their job roles using
+              <code>usermod -a -G</code>.</p>
+          </article>
+          <article class="card">
+            <h3>Permissions & Sudoers</h3>
+            <p>Logged in as a non-sudo user and observed how unauthorized <code>sudo</code>
+              attempts are denied and logged.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="walkthrough">
+      <div class="container">
+        <h2 class="section-title">Step-by-Step Walkthrough</h2>
+        <p class="section-subtitle">
+          Detailed record of each task performed during the lab.
+        </p>
+
+        <div class="timeline">
+
+          <!-- ══════ TASK 1 ══════ -->
+          <article class="step">
+            <div class="step-num">01</div>
+            <div>
+              <h3>SSH Connection</h3>
+              <ul>
+                <li>Connected to the EC2 instance via PuTTY following the process described in
+                  <a href="../lab-225-linux-ami/index.html"
+                    style="color:var(--accent-2);text-decoration:underline;">Lab 225</a>.
+                </li>
+              </ul>
+            </div>
+          </article>
+
+          <!-- ══════ TASK 2 ══════ -->
+          <article class="step">
+            <div class="step-num">02</div>
+            <div>
+              <h3>Create Users</h3>
+              <ul>
+                <li>Ran <code>pwd</code> to confirm the current directory was
+                  <code>/home/ec2-user</code>.
+                </li>
+                <li>Created the first user with <code>sudo useradd arosalez</code>
+                  and set the password with <code>sudo passwd arosalez</code>
+                  using <code>P@ssword1234!</code>.</li>
+                <li>Repeated for all 10 users from the table below.</li>
+                <li>Verified all users were created with
+                  <code>sudo cat /etc/passwd | cut -d: -f1</code>.
+                </li>
+              </ul>
+
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>First Name</th>
+                    <th>Last Name</th>
+                    <th>User ID</th>
+                    <th>Job Role</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><td>Alejandro</td><td>Rosalez</td><td><code>arosalez</code></td><td>Sales Manager</td></tr>
+                  <tr><td>Efua</td><td>Owusu</td><td><code>eowusu</code></td><td>Shipping</td></tr>
+                  <tr><td>Jane</td><td>Doe</td><td><code>jdoe</code></td><td>Shipping</td></tr>
+                  <tr><td>Li</td><td>Juan</td><td><code>ljuan</code></td><td>HR Manager</td></tr>
+                  <tr><td>Mary</td><td>Major</td><td><code>mmajor</code></td><td>Finance Manager</td></tr>
+                  <tr><td>Mateo</td><td>Jackson</td><td><code>mjackson</code></td><td>CEO</td></tr>
+                  <tr><td>Nikki</td><td>Wolf</td><td><code>nwolf</code></td><td>Sales Representative</td></tr>
+                  <tr><td>Paulo</td><td>Santos</td><td><code>psantos</code></td><td>Shipping</td></tr>
+                  <tr><td>Sofia</td><td>Martinez</td><td><code>smartinez</code></td><td>HR Specialist</td></tr>
+                  <tr><td>Saanvi</td><td>Sarkar</td><td><code>ssarkar</code></td><td>Finance Specialist</td></tr>
+                </tbody>
+              </table>
+
+              <div class="insight info" style="margin-top:1rem;">
+                Each password was <code>P@ssword1234!</code>. When typing the password, nothing
+                appears on screen — this is normal Linux behavior for password inputs.
+              </div>
+            </div>
+          </article>
+
+          <!-- ══════ TASK 3 ══════ -->
+          <article class="step">
+            <div class="step-num">03</div>
+            <div>
+              <h3>Create Groups and Assign Users</h3>
+              <ul>
+                <li>Created the Sales group with <code>sudo groupadd Sales</code>
+                  and verified it with <code>cat /etc/group</code>.</li>
+                <li>Repeated for the remaining groups: <code>HR</code>, <code>Finance</code>,
+                  <code>Shipping</code>, <code>Managers</code>, and <code>CEO</code>.
+                </li>
+              </ul>
+
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/01-groups-created.png"
+                    alt="Terminal showing all groups created" loading="lazy" />
+                  <figcaption>Terminal: All 7 groups created, verified with cat /etc/group</figcaption>
+                </figure>
+              </div>
+
+              <ul>
+                <li>Added users to groups with <code>sudo usermod -a -G Sales arosalez</code>
+                  and repeated for all users according to the group assignments below.</li>
+                <li>Added <code>ec2-user</code> to all groups.</li>
+                <li>Verified all assignments with <code>sudo cat /etc/group</code>.</li>
+              </ul>
+
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Group</th>
+                    <th>Members</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><td>Sales</td><td><code>arosalez</code>, <code>nwolf</code></td></tr>
+                  <tr><td>HR</td><td><code>ljuan</code>, <code>smartinez</code></td></tr>
+                  <tr><td>Finance</td><td><code>mmajor</code>, <code>ssarkar</code></td></tr>
+                  <tr><td>Shipping</td><td><code>eowusu</code>, <code>jdoe</code>, <code>psantos</code></td></tr>
+                  <tr><td>Managers</td><td><code>arosalez</code>, <code>ljuan</code>, <code>mmajor</code></td></tr>
+                  <tr><td>CEO</td><td><code>mjackson</code></td></tr>
+                </tbody>
+              </table>
+
+              <div class="insight" style="margin-top:1rem;">
+                Some users belong to multiple groups. For example, <code>arosalez</code> is in
+                both Sales and Managers because managers are personnel but not all personnel
+                are managers.
+              </div>
+
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/02-users-in-groups.png"
+                    alt="Terminal showing groups with assigned users" loading="lazy" />
+                  <figcaption>Terminal: Groups with users assigned, verified with sudo cat /etc/group</figcaption>
+                </figure>
+              </div>
+            </div>
+          </article>
+
+          <!-- ══════ TASK 4 ══════ -->
+          <article class="step">
+            <div class="step-num">04</div>
+            <div>
+              <h3>Log In as a Different User</h3>
+              <ul>
+                <li>Switched to user <code>arosalez</code> with <code>su arosalez</code>
+                  and entered the password <code>P@ssword1234!</code>.</li>
+                <li>Ran <code>pwd</code> to confirm the current directory was still
+                  <code>/home/ec2-user</code>.
+                </li>
+                <li>Ran <code>touch myFile.txt</code> — received <strong>Permission denied</strong>
+                  because <code>arosalez</code> cannot write to the <code>ec2-user</code> home folder.</li>
+                <li>Ran <code>sudo touch myFile.txt</code> — received the message
+                  "<strong>arosalez is not in the sudoers file. This incident will be reported.</strong>"</li>
+              </ul>
+
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/03-permission-denied-sudoers.png"
+                    alt="Terminal showing permission denied and sudoers error" loading="lazy" />
+                  <figcaption>Terminal: touch denied, sudo attempt denied — user not in sudoers file</figcaption>
+                </figure>
+              </div>
+
+              <ul>
+                <li>Ran <code>exit</code> to return to <code>ec2-user</code>.</li>
+                <li>Ran <code>sudo cat /var/log/secure</code> to view the security log.
+                  Confirmed the unauthorized sudo attempt was logged with the user, command,
+                  and timestamp.</li>
+              </ul>
+
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/04-secure-log.png"
+                    alt="Terminal showing /var/log/secure with logged sudo attempt" loading="lazy" />
+                  <figcaption>Terminal: /var/log/secure showing the logged sudo denial for arosalez</figcaption>
+                </figure>
+              </div>
+            </div>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+    <section id="commands">
+      <div class="container">
+        <h2 class="section-title">Command Reference</h2>
+        <p class="section-subtitle">Commands used in this lab for user and group management.</p>
+
+        <div class="timeline">
+
+          <article class="step">
+            <div class="step-num" style="font-size:0.85rem;">cmd</div>
+            <div>
+              <h3><code>useradd</code></h3>
+              <p>Creates a new user account.</p>
+              <ul>
+                <li><code>sudo useradd &lt;username&gt;</code> : Create a user with default settings</li>
+              </ul>
+            </div>
+          </article>
+
+          <article class="step">
+            <div class="step-num" style="font-size:0.85rem;">cmd</div>
+            <div>
+              <h3><code>passwd</code></h3>
+              <p>Sets or changes a user's password.</p>
+              <ul>
+                <li><code>sudo passwd &lt;username&gt;</code> : Set the password for a specific user</li>
+              </ul>
+            </div>
+          </article>
+
+          <article class="step">
+            <div class="step-num" style="font-size:0.85rem;">cmd</div>
+            <div>
+              <h3><code>groupadd</code></h3>
+              <p>Creates a new group.</p>
+              <ul>
+                <li><code>sudo groupadd &lt;group&gt;</code> : Create a group</li>
+              </ul>
+            </div>
+          </article>
+
+          <article class="step">
+            <div class="step-num" style="font-size:0.85rem;">cmd</div>
+            <div>
+              <h3><code>usermod</code></h3>
+              <p>Modifies a user account, including group memberships.</p>
+              <ul>
+                <li><code>-a</code> : Append the user to the group (don't remove from other groups)</li>
+                <li><code>-G &lt;group&gt;</code> : Specify the group to add the user to</li>
+              </ul>
+            </div>
+          </article>
+
+          <article class="step">
+            <div class="step-num" style="font-size:0.85rem;">cmd</div>
+            <div>
+              <h3><code>su</code></h3>
+              <p>Switches to another user account.</p>
+              <ul>
+                <li><code>su &lt;username&gt;</code> : Switch to the specified user (prompts for password)</li>
+              </ul>
+            </div>
+          </article>
+
+          <article class="step">
+            <div class="step-num" style="font-size:0.85rem;">cmd</div>
+            <div>
+              <h3><code>cat</code></h3>
+              <p>Displays the contents of a file.</p>
+              <ul>
+                <li><code>cat /etc/passwd</code> : View all user accounts</li>
+                <li><code>cat /etc/group</code> : View all groups and their members</li>
+                <li><code>cat /var/log/secure</code> : View the security/authentication log</li>
+              </ul>
+            </div>
+          </article>
+
+          <article class="step">
+            <div class="step-num" style="font-size:0.85rem;">cmd</div>
+            <div>
+              <h3><code>touch</code></h3>
+              <p>Creates an empty file or updates the timestamp of an existing file.</p>
+            </div>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+    <section id="learnings">
+      <div class="container">
+        <h2 class="section-title">Key Learnings</h2>
+        <div class="grid-2">
+          <div class="card">
+            <h3>What Was Learned</h3>
+            <div class="checklist">
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>How to create users with <code>useradd</code> and set passwords
+                  with <code>passwd</code>.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>How to create groups with <code>groupadd</code> and assign users
+                  with <code>usermod -a -G</code>.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>Users can belong to multiple groups simultaneously.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>Non-sudoer users cannot run <code>sudo</code> commands, and
+                  attempts are logged in <code>/var/log/secure</code>.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>The <code>/etc/passwd</code> and <code>/etc/group</code> files store
+                  user and group information respectively.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Technical Conclusion</h3>
+            <p>
+              This lab covered the fundamentals of user and group management in Linux.
+              The key takeaway is the relationship between users, groups, and permissions:
+              organizing users into groups simplifies access control, and the sudoers
+              mechanism ensures only authorized users can perform administrative tasks.
+            </p>
+            <p style="margin-top: 1rem;">
+              The security logging in <code>/var/log/secure</code> demonstrates how Linux
+              tracks authentication events and unauthorized privilege escalation attempts.
+              This is essential for system auditing and troubleshooting access issues.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      Lab report documenting the Managing Users and Groups lab · AWS re/Start Program
+    </div>
+  </footer>
+</body>
+
+</html>

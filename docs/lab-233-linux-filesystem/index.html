@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lab Report: Working with the File System</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --bg-soft: #111827;
+      --card: rgba(255, 255, 255, 0.08);
+      --card-strong: rgba(255, 255, 255, 0.12);
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --accent: #ff9900;
+      --accent-2: #38bdf8;
+      --ok: #22c55e;
+      --warn: #f59e0b;
+      --border: rgba(255, 255, 255, 0.12);
+      --shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+      --radius: 22px;
+      --max: 1120px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(255, 153, 0, 0.16), transparent 28%),
+        radial-gradient(circle at top right, rgba(56, 189, 248, 0.14), transparent 24%),
+        linear-gradient(180deg, #020617 0%, #0f172a 48%, #111827 100%);
+      color: var(--text);
+      line-height: 1.65;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    .container {
+      width: min(var(--max), calc(100% - 2rem));
+      margin: 0 auto;
+    }
+
+    .nav {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      backdrop-filter: blur(16px);
+      background: rgba(2, 6, 23, 0.72);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .nav-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.9rem 0;
+      gap: 1rem;
+    }
+
+    .brand {
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+    }
+
+    .brand-badge {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, var(--accent), #ffb84d);
+      color: #111827;
+      font-weight: 900;
+      box-shadow: var(--shadow);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .nav-links a:hover { color: var(--text); }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      color: var(--muted);
+      font-size: 0.9rem;
+      transition: color 0.2s;
+    }
+
+    .back-link:hover { color: var(--accent); }
+    .hero { padding: 4.8rem 0 2rem; }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 1.5rem;
+      align-items: stretch;
+    }
+
+    .panel {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.05));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .hero-main { padding: 2rem; }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.45rem 0.8rem;
+      border-radius: 999px;
+      background: rgba(255, 153, 0, 0.12);
+      color: #ffd28a;
+      border: 1px solid rgba(255, 153, 0, 0.25);
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+    }
+
+    h1, h2, h3 {
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+      margin: 0;
+    }
+
+    h1 {
+      font-size: clamp(2rem, 4vw, 3.7rem);
+      margin-bottom: 0.9rem;
+    }
+
+    .hero-main p {
+      margin: 0;
+      color: #cbd5e1;
+      font-size: 1.05rem;
+      max-width: 65ch;
+    }
+
+    .hero-side {
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .hero-side .callout {
+      padding: 1rem 1.1rem;
+      border-radius: 18px;
+      border: 1px solid rgba(56, 189, 248, 0.18);
+      background: rgba(56, 189, 248, 0.08);
+    }
+
+    .hero-side .callout strong {
+      display: block;
+      margin-bottom: 0.35rem;
+    }
+
+    .tech-stack {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.55rem;
+    }
+
+    .chip {
+      padding: 0.45rem 0.75rem;
+      border-radius: 999px;
+      font-size: 0.88rem;
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #dbeafe;
+    }
+
+    .small {
+      font-size: 0.92rem;
+      color: var(--muted);
+    }
+
+    section { padding: 1rem 0 0.4rem; }
+
+    .section-title {
+      margin-bottom: 1rem;
+      font-size: clamp(1.5rem, 2vw, 2.2rem);
+    }
+
+    .section-subtitle {
+      color: var(--muted);
+      margin-top: 0.45rem;
+      max-width: 75ch;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .card {
+      padding: 1.3rem;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+    }
+
+    .card h3 {
+      font-size: 1.05rem;
+      margin-bottom: 0.6rem;
+    }
+
+    .card p {
+      margin: 0;
+      color: #cbd5e1;
+    }
+
+    .timeline {
+      display: grid;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .step {
+      display: grid;
+      grid-template-columns: 90px 1fr;
+      gap: 1rem;
+      align-items: start;
+      padding: 1.25rem;
+      border-radius: 22px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: var(--shadow);
+    }
+
+    .step-num {
+      width: 72px;
+      height: 72px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, rgba(255, 153, 0, 0.18), rgba(56, 189, 248, 0.18));
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      display: grid;
+      place-items: center;
+      font-size: 1.1rem;
+      font-weight: 900;
+      color: #fff;
+    }
+
+    .step h3 {
+      margin-bottom: 0.55rem;
+      font-size: 1.2rem;
+    }
+
+    .step ul {
+      margin: 0.3rem 0 0;
+      padding-left: 1.1rem;
+      color: #dbe4f0;
+    }
+
+    .step li+li { margin-top: 0.4rem; }
+
+    .highlight {
+      color: #ffd28a;
+      font-weight: 700;
+    }
+
+    .screenshot-gallery {
+      display: grid;
+      gap: 0.8rem;
+      margin-top: 1rem;
+    }
+
+    .screenshot-gallery.cols-2 {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .screenshot-fig {
+      margin: 0;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(2, 6, 23, 0.5);
+    }
+
+    .screenshot-fig img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .screenshot-fig figcaption {
+      padding: 0.6rem 0.8rem;
+      color: var(--muted);
+      font-size: 0.84rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .insight {
+      padding: 1.15rem 1.2rem;
+      border-left: 4px solid var(--accent);
+      border-radius: 16px;
+      background: rgba(255, 153, 0, 0.08);
+      color: #fde7c2;
+    }
+
+    .info {
+      border-left-color: var(--accent-2);
+      background: rgba(56, 189, 248, 0.08);
+      color: #d8f3ff;
+    }
+
+    .checklist {
+      display: grid;
+      gap: 0.7rem;
+      margin-top: 1rem;
+    }
+
+    .check {
+      display: flex;
+      gap: 0.75rem;
+      align-items: flex-start;
+      padding: 0.9rem 1rem;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+    }
+
+    .check-mark {
+      flex: 0 0 auto;
+      width: 28px;
+      height: 28px;
+      display: grid;
+      place-items: center;
+      border-radius: 999px;
+      background: rgba(34, 197, 94, 0.15);
+      color: #86efac;
+      font-weight: 800;
+    }
+
+    code {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 0.15rem 0.4rem;
+      border-radius: 6px;
+      font-size: 0.9em;
+      font-family: "Cascadia Code", "Fira Code", monospace;
+    }
+
+    .footer {
+      padding: 2.2rem 0 3.5rem;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    @media (max-width: 920px) {
+      .hero-grid,
+      .grid-3,
+      .grid-2,
+      .screenshot-gallery.cols-2 {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 680px) {
+      .nav-inner {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .step {
+        grid-template-columns: 1fr;
+      }
+
+      .step-num {
+        width: 60px;
+        height: 60px;
+        border-radius: 16px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <nav class="nav">
+    <div class="container nav-inner">
+      <div class="brand">
+        <div class="brand-badge">AWS</div>
+        <div>Lab Report · Linux</div>
+      </div>
+      <div class="nav-links">
+        <a href="../index.html" class="back-link">← All Labs</a>
+        <a href="#summary">Summary</a>
+        <a href="#walkthrough">Walkthrough</a>
+        <a href="#commands">Commands</a>
+        <a href="#learnings">Learnings</a>
+      </div>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <div class="container hero-grid">
+      <div class="panel hero-main">
+        <div class="eyebrow">AWS re/Start Lab · Linux</div>
+        <h1>Working with the File System</h1>
+        <p>
+          Create a company folder structure with directories and files, then reorganize
+          it by copying, moving, and deleting files and directories.
+        </p>
+      </div>
+
+      <aside class="panel hero-side">
+        <div class="callout">
+          <strong>Lab Objective</strong>
+          Create a folder structure, create files inside it, and reorganize the structure
+          by copying, moving, and deleting files and directories.
+        </div>
+
+        <div>
+          <div class="small" style="margin-bottom:0.7rem;">Tools & Concepts</div>
+          <div class="tech-stack">
+            <span class="chip">mkdir</span>
+            <span class="chip">touch</span>
+            <span class="chip">cd</span>
+            <span class="chip">cp</span>
+            <span class="chip">mv</span>
+            <span class="chip">rm</span>
+            <span class="chip">rmdir</span>
+            <span class="chip">ls -laR</span>
+          </div>
+        </div>
+
+        <div class="callout" style="border-color: rgba(34,197,94,0.2); background: rgba(34,197,94,0.08);">
+          <strong>Key Insight</strong>
+          <code>rmdir</code> only removes empty directories. To remove a directory with
+          contents, delete the files first or use <code>rm -r</code>.
+        </div>
+      </aside>
+    </div>
+  </header>
+
+  <main>
+    <section id="summary">
+      <div class="container">
+        <h2 class="section-title">Lab Summary</h2>
+        <p class="section-subtitle">
+          Connected via PuTTY
+          (as described in <a href="../lab-225-linux-ami/index.html"
+            style="color:var(--accent-2);text-decoration:underline;">Lab 225</a>).
+          Built a <span class="highlight">CompanyA</span> folder structure with three
+          departments (<span class="highlight">Finance</span>,
+          <span class="highlight">HR</span>,
+          <span class="highlight">Management</span>) and their files.
+          Then reorganized the structure by moving Finance and Management under HR,
+          and creating a new <span class="highlight">Employees</span> folder.
+        </p>
+
+        <div class="grid-2" style="margin-top:1rem;">
+          <article class="card">
+            <h3>Build the Structure</h3>
+            <p>Created the <code>CompanyA</code> directory with three subdirectories
+              and six CSV files using <code>mkdir</code> and <code>touch</code>.</p>
+          </article>
+          <article class="card">
+            <h3>Reorganize</h3>
+            <p>Moved <code>Finance</code> and <code>Management</code> under
+              <code>HR</code>, created <code>Employees</code>, and relocated files
+              using <code>cp</code>, <code>mv</code>, <code>rm</code>, and <code>rmdir</code>.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="walkthrough">
+      <div class="container">
+        <h2 class="section-title">Step-by-Step Walkthrough</h2>
+        <p class="section-subtitle">
+          Detailed record of each task performed during the lab.
+        </p>
+
+        <div class="timeline">
+
+          <!-- Task 1 -->
+          <article class="step">
+            <div class="step-num">01</div>
+            <div>
+              <h3>SSH Connection</h3>
+              <ul>
+                <li>Connected to the EC2 instance via PuTTY following the process described in
+                  <a href="../lab-225-linux-ami/index.html"
+                    style="color:var(--accent-2);text-decoration:underline;">Lab 225</a>.
+                </li>
+              </ul>
+            </div>
+          </article>
+
+          <!-- Task 2 -->
+          <article class="step">
+            <div class="step-num">02</div>
+            <div>
+              <h3>Create the Folder Structure</h3>
+              <ul>
+                <li>Ran <code>pwd</code> to confirm the current directory was
+                  <code>/home/ec2-user</code>.
+                </li>
+                <li>Created the top-level folder with <code>mkdir CompanyA</code>.</li>
+                <li>Changed to it with <code>cd CompanyA</code>.</li>
+                <li>Created all subdirectories at once with
+                  <code>mkdir Finance HR Management</code>.
+                </li>
+                <li>Verified with <code>ls</code>: Finance, HR, Management.</li>
+              </ul>
+
+              <ul>
+                <li>Changed to HR with <code>cd HR</code> and created files with
+                  <code>touch Assessments.csv TrialPeriod.csv</code>.
+                </li>
+                <li>Navigated to Finance with <code>cd ../Finance</code> and created
+                  <code>touch Salary.csv ProfitAndLossStatements.csv</code>.
+                </li>
+                <li>Went back to CompanyA with <code>cd ..</code> and created files in
+                  Management using relative paths:
+                  <code>touch Management/Managers.csv Management/Schedule.csv</code>.
+                </li>
+                <li>Verified the entire structure with <code>ls -laR</code>.</li>
+              </ul>
+
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/01-folder-structure-created.jpg"
+                    alt="Terminal showing complete folder structure with ls -laR" loading="lazy" />
+                  <figcaption>Terminal: Full CompanyA structure verified with ls -laR</figcaption>
+                </figure>
+              </div>
+
+              <div class="insight info" style="margin-top:1rem;">
+                The <code>touch</code> and <code>ls</code> commands can be used two ways:
+                directly in the current folder, or with a relative path (e.g.,
+                <code>touch Management/Managers.csv</code> from the parent directory).
+              </div>
+            </div>
+          </article>
+
+          <!-- Task 3 -->
+          <article class="step">
+            <div class="step-num">03</div>
+            <div>
+              <h3>Delete and Reorganize Folders</h3>
+              <ul>
+                <li>Confirmed location with <code>pwd</code>:
+                  <code>/home/ec2-user/CompanyA</code>.
+                </li>
+                <li>Copied Finance into HR with <code>cp -r Finance HR</code>.</li>
+                <li>Verified the copy with <code>ls HR/Finance</code>.</li>
+                <li>Attempted to remove Finance with <code>rmdir Finance</code>,
+                  which failed because the directory was not empty.</li>
+                <li>Removed the files inside Finance with
+                  <code>rm Finance/ProfitAndLossStatements.csv Finance/Salary.csv</code>.
+                </li>
+                <li>Successfully removed the empty directory with
+                  <code>rmdir Finance</code>.
+                </li>
+                <li>Verified with <code>ls</code>: only HR and Management remained.</li>
+              </ul>
+
+              <ul>
+                <li>Moved Management into HR with <code>mv Management HR</code>.</li>
+                <li>Verified with <code>ls . HR/Management</code>.</li>
+                <li>Changed to HR with <code>cd HR</code>.</li>
+                <li>Created the Employees folder with <code>mkdir Employees</code>.</li>
+                <li>Moved the assessment files with
+                  <code>mv Assessments.csv TrialPeriod.csv Employees</code>.
+                </li>
+                <li>Verified the final structure with <code>ls . Employees</code>:
+                  HR now contains Employees, Finance, and Management.</li>
+              </ul>
+
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/02-reorganized-structure.jpg"
+                    alt="Terminal showing reorganized folder structure" loading="lazy" />
+                  <figcaption>Terminal: Reorganized structure with Finance and Management under HR</figcaption>
+                </figure>
+              </div>
+
+              <div class="insight" style="margin-top:1rem;">
+                The <code>rmdir</code> command only works on empty directories.
+                To remove a non-empty directory, either delete its contents first
+                or use <code>rm -r</code> to recursively remove everything.
+              </div>
+            </div>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+    <section id="commands">
+      <div class="container">
+        <h2 class="section-title">Command Reference</h2>
+        <p class="section-subtitle">Commands used in this lab for file system management.</p>
+
+        <div class="timeline">
+
+          <article class="step">
+            <div class="step-num" style="font-size:0.85rem;">cmd</div>
+            <div>
+              <h3><code>mkdir</code></h3>
+              <p>Creates one or more directories.</p>
+              <ul>
+                <li><code>mkdir folder1 folder2</code> : Create multiple directories at once</li>
+              </ul>
+            </div>
+          </article>
+
+          <article class="step">
+            <div class="step-num" style="font-size:0.85rem;">cmd</div>
+            <div>
+              <h3><code>touch</code></h3>
+              <p>Creates empty files or updates timestamps of existing files.</p>
+              <ul>
+                <li><code>touch file1.csv file2.csv</code> : Create multiple files at once</li>
+                <li><code>touch folder/file.csv</code> : Create a file using a relative path</li>
+              </ul>
+            </div>
+          </article>
+
+          <article class="step">
+            <div class="step-num" style="font-size:0.85rem;">cmd</div>
+            <div>
+              <h3><code>cp</code></h3>
+              <p>Copies files or directories.</p>
+              <ul>
+                <li><code>-r</code> : Copy recursively (required for directories)</li>
+              </ul>
+            </div>
+          </article>
+
+          <article class="step">
+            <div class="step-num" style="font-size:0.85rem;">cmd</div>
+            <div>
+              <h3><code>mv</code></h3>
+              <p>Moves or renames files and directories.</p>
+              <ul>
+                <li><code>mv source destination</code> : Move a file or directory</li>
+                <li><code>mv file1 file2 folder/</code> : Move multiple items at once</li>
+              </ul>
+            </div>
+          </article>
+
+          <article class="step">
+            <div class="step-num" style="font-size:0.85rem;">cmd</div>
+            <div>
+              <h3><code>rm</code></h3>
+              <p>Removes files.</p>
+              <ul>
+                <li><code>rm file1 file2</code> : Remove specific files</li>
+                <li><code>-r</code> : Remove directories and their contents recursively</li>
+              </ul>
+            </div>
+          </article>
+
+          <article class="step">
+            <div class="step-num" style="font-size:0.85rem;">cmd</div>
+            <div>
+              <h3><code>rmdir</code></h3>
+              <p>Removes empty directories only. Fails if the directory contains files.</p>
+            </div>
+          </article>
+
+          <article class="step">
+            <div class="step-num" style="font-size:0.85rem;">cmd</div>
+            <div>
+              <h3><code>ls -laR</code></h3>
+              <p>Lists all files recursively with detailed information (permissions, owner, size, date).</p>
+            </div>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+    <section id="learnings">
+      <div class="container">
+        <h2 class="section-title">Key Learnings</h2>
+        <div class="grid-2">
+          <div class="card">
+            <h3>What Was Learned</h3>
+            <div class="checklist">
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>How to create directory structures with <code>mkdir</code>
+                  and populate them with files using <code>touch</code>.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>How to copy directories recursively with <code>cp -r</code>
+                  and move files with <code>mv</code>.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>The difference between <code>rmdir</code> (empty directories only)
+                  and <code>rm -r</code> (recursive removal).</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>How to use relative paths with commands like <code>touch</code>
+                  and <code>ls</code> to work with files in other directories.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Technical Conclusion</h3>
+            <p>
+              This lab covered the essential file system operations in Linux: creating,
+              copying, moving, and deleting files and directories. These are fundamental
+              skills for organizing and maintaining file structures on Linux servers.
+            </p>
+            <p style="margin-top: 1rem;">
+              The key distinction between <code>rmdir</code> and <code>rm -r</code>
+              is a safety feature: <code>rmdir</code> prevents accidental deletion of
+              directories that still contain data, while <code>rm -r</code> is more
+              powerful but requires caution.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      Lab report documenting the Working with the File System lab · AWS re/Start Program
+    </div>
+  </footer>
+</body>
+
+</html>
