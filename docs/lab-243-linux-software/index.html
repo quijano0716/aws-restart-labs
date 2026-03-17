@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lab Report: Software Management</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --bg-soft: #111827;
+      --card: rgba(255, 255, 255, 0.08);
+      --card-strong: rgba(255, 255, 255, 0.12);
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --accent: #ff9900;
+      --accent-2: #38bdf8;
+      --ok: #22c55e;
+      --warn: #f59e0b;
+      --border: rgba(255, 255, 255, 0.12);
+      --shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+      --radius: 22px;
+      --max: 1120px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(255, 153, 0, 0.16), transparent 28%),
+        radial-gradient(circle at top right, rgba(56, 189, 248, 0.14), transparent 24%),
+        linear-gradient(180deg, #020617 0%, #0f172a 48%, #111827 100%);
+      color: var(--text);
+      line-height: 1.65;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    .container {
+      width: min(var(--max), calc(100% - 2rem));
+      margin: 0 auto;
+    }
+
+    .nav {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      backdrop-filter: blur(16px);
+      background: rgba(2, 6, 23, 0.72);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .nav-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.9rem 0;
+      gap: 1rem;
+    }
+
+    .brand {
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+    }
+
+    .brand-badge {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, var(--accent), #ffb84d);
+      color: #111827;
+      font-weight: 900;
+      box-shadow: var(--shadow);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .nav-links a:hover { color: var(--text); }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      color: var(--muted);
+      font-size: 0.9rem;
+      transition: color 0.2s;
+    }
+
+    .back-link:hover { color: var(--accent); }
+    .hero { padding: 4.8rem 0 2rem; }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 1.5rem;
+      align-items: stretch;
+    }
+
+    .panel {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.05));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .hero-main { padding: 2rem; }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.45rem 0.8rem;
+      border-radius: 999px;
+      background: rgba(255, 153, 0, 0.12);
+      color: #ffd28a;
+      border: 1px solid rgba(255, 153, 0, 0.25);
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+    }
+
+    h1, h2, h3 {
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+      margin: 0;
+    }
+
+    h1 {
+      font-size: clamp(2rem, 4vw, 3.7rem);
+      margin-bottom: 0.9rem;
+    }
+
+    .hero-main p {
+      margin: 0;
+      color: #cbd5e1;
+      font-size: 1.05rem;
+      max-width: 65ch;
+    }
+
+    .hero-side {
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .hero-side .callout {
+      padding: 1rem 1.1rem;
+      border-radius: 18px;
+      border: 1px solid rgba(56, 189, 248, 0.18);
+      background: rgba(56, 189, 248, 0.08);
+    }
+
+    .hero-side .callout strong {
+      display: block;
+      margin-bottom: 0.35rem;
+    }
+
+    .tech-stack {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.55rem;
+    }
+
+    .chip {
+      padding: 0.45rem 0.75rem;
+      border-radius: 999px;
+      font-size: 0.88rem;
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #dbeafe;
+    }
+
+    .small {
+      font-size: 0.92rem;
+      color: var(--muted);
+    }
+
+    section { padding: 1rem 0 0.4rem; }
+
+    .section-title {
+      margin-bottom: 1rem;
+      font-size: clamp(1.5rem, 2vw, 2.2rem);
+    }
+
+    .section-subtitle {
+      color: var(--muted);
+      margin-top: 0.45rem;
+      max-width: 75ch;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .card {
+      padding: 1.3rem;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+    }
+
+    .card h3 {
+      font-size: 1.05rem;
+      margin-bottom: 0.6rem;
+    }
+
+    .card p {
+      margin: 0;
+      color: #cbd5e1;
+    }
+
+    .timeline {
+      display: grid;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .step {
+      display: grid;
+      grid-template-columns: 90px 1fr;
+      gap: 1rem;
+      align-items: start;
+      padding: 1.25rem;
+      border-radius: 22px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: var(--shadow);
+    }
+
+    .step-num {
+      width: 72px;
+      height: 72px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, rgba(255, 153, 0, 0.18), rgba(56, 189, 248, 0.18));
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      display: grid;
+      place-items: center;
+      font-size: 1.1rem;
+      font-weight: 900;
+      color: #fff;
+    }
+
+    .step h3 {
+      margin-bottom: 0.55rem;
+      font-size: 1.2rem;
+    }
+
+    .step ul {
+      margin: 0.3rem 0 0;
+      padding-left: 1.1rem;
+      color: #dbe4f0;
+    }
+
+    .step li+li { margin-top: 0.4rem; }
+
+    .highlight {
+      color: #ffd28a;
+      font-weight: 700;
+    }
+
+    .screenshot-gallery {
+      display: grid;
+      gap: 0.8rem;
+      margin-top: 1rem;
+    }
+
+    .screenshot-gallery.cols-2 {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .screenshot-fig {
+      margin: 0;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(2, 6, 23, 0.5);
+    }
+
+    .screenshot-fig img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .screenshot-fig figcaption {
+      padding: 0.6rem 0.8rem;
+      color: var(--muted);
+      font-size: 0.84rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .insight {
+      padding: 1.15rem 1.2rem;
+      border-left: 4px solid var(--accent);
+      border-radius: 16px;
+      background: rgba(255, 153, 0, 0.08);
+      color: #fde7c2;
+    }
+
+    .info {
+      border-left-color: var(--accent-2);
+      background: rgba(56, 189, 248, 0.08);
+      color: #d8f3ff;
+    }
+
+    .checklist {
+      display: grid;
+      gap: 0.7rem;
+      margin-top: 1rem;
+    }
+
+    .check {
+      display: flex;
+      gap: 0.75rem;
+      align-items: flex-start;
+      padding: 0.9rem 1rem;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+    }
+
+    .check-mark {
+      flex: 0 0 auto;
+      width: 28px;
+      height: 28px;
+      display: grid;
+      place-items: center;
+      border-radius: 999px;
+      background: rgba(34, 197, 94, 0.15);
+      color: #86efac;
+      font-weight: 800;
+    }
+
+    code {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 0.15rem 0.4rem;
+      border-radius: 6px;
+      font-size: 0.9em;
+      font-family: "Cascadia Code", "Fira Code", monospace;
+    }
+
+    .footer {
+      padding: 2.2rem 0 3.5rem;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    @media (max-width: 920px) {
+      .hero-grid,
+      .grid-3,
+      .grid-2,
+      .screenshot-gallery.cols-2 {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 680px) {
+      .nav-inner {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .step {
+        grid-template-columns: 1fr;
+      }
+
+      .step-num {
+        width: 60px;
+        height: 60px;
+        border-radius: 16px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <nav class="nav">
+    <div class="container nav-inner">
+      <div class="brand">
+        <div class="brand-badge">AWS</div>
+        <div>Lab Report · Linux</div>
+      </div>
+      <div class="nav-links">
+        <a href="../index.html" class="back-link">← All Labs</a>
+        <a href="#summary">Summary</a>
+        <a href="#walkthrough">Walkthrough</a>
+        <a href="#commands">Commands</a>
+        <a href="#learnings">Learnings</a>
+      </div>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <div class="container hero-grid">
+      <div class="panel hero-main">
+        <div class="eyebrow">AWS re/Start Lab · Linux</div>
+        <h1>Software Management</h1>
+        <p>
+          Master the yum package manager by upgrading local software, rolling back 
+          installations using the history tool, and manually configuring the AWS CLI.
+        </p>
+      </div>
+
+      <aside class="panel hero-side">
+        <div class="callout">
+          <strong>Lab Objective</strong>
+          Update the Linux machine using the package manager, rollback or downgrade a 
+          previously updated package, and install the AWS Command Line Interface.
+        </div>
+
+        <div>
+          <div class="small" style="margin-bottom:0.7rem;">Tools & Concepts</div>
+          <div class="tech-stack">
+            <span class="chip">yum</span>
+            <span class="chip">yum history</span>
+            <span class="chip">curl</span>
+            <span class="chip">AWS CLI</span>
+            <span class="chip">aws configure</span>
+          </div>
+        </div>
+
+        <div class="callout" style="border-color: rgba(34,197,94,0.2); background: rgba(34,197,94,0.08);">
+          <strong>Key Insight</strong>
+          The <code>yum history</code> command provides a transactional ledger of all package 
+          changes, enabling targeted rollbacks via the <code>history undo</code> argument.
+        </div>
+      </aside>
+    </div>
+  </header>
+
+  <main>
+    <section id="summary">
+      <div class="container">
+        <h2 class="section-title">Lab Summary</h2>
+        <p class="section-subtitle">
+          Connected via PuTTY
+          (as described in <a href="../lab-225-linux-ami/index.html"
+            style="color:var(--accent-2);text-decoration:underline;">Lab 225</a>).
+          Invoked the <span class="highlight">yum</span> package manager to apply critical 
+          security updates and install the HTTP daemon. Utilized <span class="highlight">history undo</span> 
+          to roll back changes. Finally, installed the <span class="highlight">AWS CLI</span> manually 
+          using cURL, and configured local credentials files to retrieve backend EC2 attributes.
+        </p>
+
+        <div class="grid-3" style="margin-top:1rem;">
+          <article class="card">
+            <h3>Package Updates</h3>
+            <p>Executed comprehensive security upgrades and installed new software binaries using 
+              the standard package repository.</p>
+          </article>
+          <article class="card">
+            <h3>History Rollbacks</h3>
+            <p>Leveraged transaction IDs within yum's history log to cleanly undo a previous 
+              installation action.</p>
+          </article>
+          <article class="card">
+            <h3>CLI Integration</h3>
+            <p>Setup AWS CLI V2 via downloaded archives, configuring credentials to execute 
+              authenticated cloud queries locally.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="walkthrough">
+      <div class="container">
+        <h2 class="section-title">Step-by-Step Walkthrough</h2>
+        <p class="section-subtitle">
+          Detailed record of each task performed during the lab.
+        </p>
+
+        <div class="timeline">
+
+          <!-- Task 1 -->
+          <article class="step">
+            <div class="step-num">01</div>
+            <div>
+              <h3>SSH Connection</h3>
+              <ul>
+                <li>Connected to the EC2 instance via PuTTY following the process described in
+                  <a href="../lab-225-linux-ami/index.html"
+                    style="color:var(--accent-2);text-decoration:underline;">Lab 225</a>.
+                </li>
+              </ul>
+            </div>
+          </article>
+
+          <!-- Task 2 -->
+          <article class="step">
+            <div class="step-num">02</div>
+            <div>
+              <h3>Update the Linux Machine</h3>
+              <ul>
+                <li>Navigated to the companyA home folder using <code>cd companyA</code>.</li>
+                <li>Queried available repository updates with <code>sudo yum -y check-update</code>.</li>
+                <li>Applied only security-related updates via <code>sudo yum update --security</code>.</li>
+                <li>Updated all remaining local packages using <code>sudo yum -y upgrade</code>.</li>
+                <li>Installed the Apache Server package to populate the transaction history further 
+                  using <code>sudo yum install httpd -y</code>.</li>
+              </ul>
+
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/01-yum-install-httpd.jpg"
+                    alt="Terminal displaying successful installation of httpd via yum" loading="lazy" />
+                  <figcaption>Terminal: Utilizing yum install to deploy httpd along with its dependencies</figcaption>
+                </figure>
+              </div>
+
+              <div class="insight info" style="margin-top:1rem;">
+                The <code>-y</code> flag is used across yum commands to assert "yes" to all interactive prompts, 
+                making it ideal for automated updates.
+              </div>
+            </div>
+          </article>
+
+          <!-- Task 3 -->
+          <article class="step">
+            <div class="step-num">03</div>
+            <div>
+              <h3>Roll Back a Package</h3>
+              <ul>
+                <li>Requested the transaction history of yum via <code>sudo yum history list</code>, 
+                  and observed the numeric ID representing the <code>httpd</code> install.</li>
+                <li>Obtained deep reporting regarding this transaction using <code>sudo yum history info &lt;#&gt;</code>.</li>
+                <li>Initiated a rollback on that exact transaction ID with <code>sudo yum -y history undo &lt;#&gt;</code>.</li>
+              </ul>
+
+              <div class="screenshot-gallery cols-2">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/02-yum-history-info.jpg"
+                    alt="Terminal showing detailed transaction info for yum history" loading="lazy" />
+                  <figcaption>Terminal: Identifying the exact packages affected during a previous install</figcaption>
+                </figure>
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/03-yum-history-undo.jpg"
+                    alt="Terminal executing a yum history undo rollback" loading="lazy" />
+                  <figcaption>Terminal: Cleanly reversing the operation, removing the software dependencies</figcaption>
+                </figure>
+              </div>
+            </div>
+          </article>
+
+          <!-- Task 4 -->
+          <article class="step">
+            <div class="step-num">04</div>
+            <div>
+              <h3>Install the AWS CLI</h3>
+              <ul>
+                <li>Verified Python requirements (<code>python3 --version</code>). Detected that <code>pip</code> was missing.</li>
+                <li>Instead of utilizing pip, downloaded the compiled ZIP distribution via cURL: 
+                  <code>curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"</code>.</li>
+                <li>Extracted the archive through <code>unzip awscliv2.zip</code>.</li>
+                <li>Ran the installation executable: <code>sudo ./aws/install</code>.</li>
+                <li>Re-verified functionality by requesting CLI native help: <code>aws help</code>.</li>
+              </ul>
+
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/04-aws-cli-install.jpg"
+                    alt="Terminal showing confirmation of AWS CLI deployment and help verification" loading="lazy" />
+                  <figcaption>Terminal: Confirming the AWS CLI commands are natively recognized by the shell</figcaption>
+                </figure>
+              </div>
+            </div>
+          </article>
+
+          <!-- Task 5 -->
+          <article class="step">
+            <div class="step-num">05</div>
+            <div>
+              <h3>Configure AWS CLI Profile</h3>
+              <ul>
+                <li>Ran the interactive <code>aws configure</code> tool, defining <code>us-west-2</code> as the default Region 
+                  and <code>json</code> as the default output format. Left keys blank initially.</li>
+                <li>Opened the credentials file via Nano text editor: <code>sudo nano ~/.aws/credentials</code>.</li>
+                <li>Pasted a pre-generated Access Key ID, Secret Access Key, and Session Token manually into 
+                  the <code>[default]</code> profile block, saving the file.</li>
+                <li>Searched the AWS Console instances pane to identify the unique Instance ID.</li>
+                <li>Attempted an authenticated API query to confirm privileges are active: 
+                  <code>aws ec2 describe-instance-attribute --instance-id &lt;id&gt; --attribute instanceType</code>.</li>
+              </ul>
+
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/05-aws-cli-describe.jpg"
+                    alt="Terminal validating valid IAM credentials by fetching EC2 attributes via AWS CLI" loading="lazy" />
+                  <figcaption>Terminal: Returning JSON telemetry from the EC2 backend resolving the describe-instance API call</figcaption>
+                </figure>
+              </div>
+            </div>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+    <section id="commands">
+      <div class="container">
+        <h2 class="section-title">Command Reference</h2>
+        <p class="section-subtitle">Commands utilized during package operations.</p>
+
+        <div class="timeline">
+
+          <article class="step">
+            <div class="step-num" style="font-size:0.85rem;">cmd</div>
+            <div>
+              <h3><code>yum</code></h3>
+              <p>The primary package-management utility for RHEL system derivations.</p>
+              <ul>
+                <li><code>update --security</code> : Injects only critical security patches without upgrading full packages</li>
+                <li><code>history list</code> : Outputs an enumerated ledger of installed software transactions</li>
+                <li><code>history undo</code> : Safely rewinds a transaction, pruning the exact binaries applied</li>
+              </ul>
+            </div>
+          </article>
+
+          <article class="step">
+            <div class="step-num" style="font-size:0.85rem;">cmd</div>
+            <div>
+              <h3><code>curl</code></h3>
+              <p>Transfers data from internet endpoints without browser intervention.</p>
+              <ul>
+                <li><code>-o</code> : Directs the downloaded output payload directly into a specified local file</li>
+              </ul>
+            </div>
+          </article>
+
+          <article class="step">
+            <div class="step-num" style="font-size:0.85rem;">cmd</div>
+            <div>
+              <h3><code>aws configure</code></h3>
+              <p>Bootstraps the local environment building the ~/.aws/credentials and ~/.aws/config files.</p>
+            </div>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+    <section id="learnings">
+      <div class="container">
+        <h2 class="section-title">Key Learnings</h2>
+        <div class="grid-2">
+          <div class="card">
+            <h3>What Was Learned</h3>
+            <div class="checklist">
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>Differences between applying <code>--security</code> updates and doing a full package upgrade.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>The power of <code>yum history undo</code> which guarantees clean rollbacks without orphaned dependencies.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>How to manually bootstrap the <code>AWS CLI v2</code> utilizing cURL and unzip instead of relying on package managers.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>Editing local AWS credentials configurations manually to load ephemeral session tokens.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Technical Conclusion</h3>
+            <p>
+              Operating enterprise infrastructure necessitates a flawless rollback strategy. The precision of 
+              <code>yum history</code> prevents administrators from guessing which dependency packages caused 
+              an instable update resulting in more predictable maintenance cycles. 
+            </p>
+            <p style="margin-top: 1rem;">
+              Understanding manual shell integration via tools like cURL ensures critical infrastructural engines 
+              like the AWS CLI can be installed securely on headless servers even when standard packet managers fail.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      Lab report documenting the Linux Software Management lab · AWS re/Start Program
+    </div>
+  </footer>
+</body>
+
+</html>

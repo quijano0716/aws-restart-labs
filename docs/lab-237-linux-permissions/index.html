@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lab Report: Managing File Permissions</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --bg-soft: #111827;
+      --card: rgba(255, 255, 255, 0.08);
+      --card-strong: rgba(255, 255, 255, 0.12);
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --accent: #ff9900;
+      --accent-2: #38bdf8;
+      --ok: #22c55e;
+      --warn: #f59e0b;
+      --border: rgba(255, 255, 255, 0.12);
+      --shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+      --radius: 22px;
+      --max: 1120px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(255, 153, 0, 0.16), transparent 28%),
+        radial-gradient(circle at top right, rgba(56, 189, 248, 0.14), transparent 24%),
+        linear-gradient(180deg, #020617 0%, #0f172a 48%, #111827 100%);
+      color: var(--text);
+      line-height: 1.65;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    .container {
+      width: min(var(--max), calc(100% - 2rem));
+      margin: 0 auto;
+    }
+
+    .nav {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      backdrop-filter: blur(16px);
+      background: rgba(2, 6, 23, 0.72);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .nav-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.9rem 0;
+      gap: 1rem;
+    }
+
+    .brand {
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+    }
+
+    .brand-badge {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, var(--accent), #ffb84d);
+      color: #111827;
+      font-weight: 900;
+      box-shadow: var(--shadow);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .nav-links a:hover { color: var(--text); }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      color: var(--muted);
+      font-size: 0.9rem;
+      transition: color 0.2s;
+    }
+
+    .back-link:hover { color: var(--accent); }
+    .hero { padding: 4.8rem 0 2rem; }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 1.5rem;
+      align-items: stretch;
+    }
+
+    .panel {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.05));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .hero-main { padding: 2rem; }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.45rem 0.8rem;
+      border-radius: 999px;
+      background: rgba(255, 153, 0, 0.12);
+      color: #ffd28a;
+      border: 1px solid rgba(255, 153, 0, 0.25);
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+    }
+
+    h1, h2, h3 {
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+      margin: 0;
+    }
+
+    h1 {
+      font-size: clamp(2rem, 4vw, 3.7rem);
+      margin-bottom: 0.9rem;
+    }
+
+    .hero-main p {
+      margin: 0;
+      color: #cbd5e1;
+      font-size: 1.05rem;
+      max-width: 65ch;
+    }
+
+    .hero-side {
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .hero-side .callout {
+      padding: 1rem 1.1rem;
+      border-radius: 18px;
+      border: 1px solid rgba(56, 189, 248, 0.18);
+      background: rgba(56, 189, 248, 0.08);
+    }
+
+    .hero-side .callout strong {
+      display: block;
+      margin-bottom: 0.35rem;
+    }
+
+    .tech-stack {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.55rem;
+    }
+
+    .chip {
+      padding: 0.45rem 0.75rem;
+      border-radius: 999px;
+      font-size: 0.88rem;
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #dbeafe;
+    }
+
+    .small {
+      font-size: 0.92rem;
+      color: var(--muted);
+    }
+
+    section { padding: 1rem 0 0.4rem; }
+
+    .section-title {
+      margin-bottom: 1rem;
+      font-size: clamp(1.5rem, 2vw, 2.2rem);
+    }
+
+    .section-subtitle {
+      color: var(--muted);
+      margin-top: 0.45rem;
+      max-width: 75ch;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .card {
+      padding: 1.3rem;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+    }
+
+    .card h3 {
+      font-size: 1.05rem;
+      margin-bottom: 0.6rem;
+    }
+
+    .card p {
+      margin: 0;
+      color: #cbd5e1;
+    }
+
+    .timeline {
+      display: grid;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .step {
+      display: grid;
+      grid-template-columns: 90px 1fr;
+      gap: 1rem;
+      align-items: start;
+      padding: 1.25rem;
+      border-radius: 22px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: var(--shadow);
+    }
+
+    .step-num {
+      width: 72px;
+      height: 72px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, rgba(255, 153, 0, 0.18), rgba(56, 189, 248, 0.18));
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      display: grid;
+      place-items: center;
+      font-size: 1.1rem;
+      font-weight: 900;
+      color: #fff;
+    }
+
+    .step h3 {
+      margin-bottom: 0.55rem;
+      font-size: 1.2rem;
+    }
+
+    .step ul {
+      margin: 0.3rem 0 0;
+      padding-left: 1.1rem;
+      color: #dbe4f0;
+    }
+
+    .step li+li { margin-top: 0.4rem; }
+
+    .highlight {
+      color: #ffd28a;
+      font-weight: 700;
+    }
+
+    .screenshot-gallery {
+      display: grid;
+      gap: 0.8rem;
+      margin-top: 1rem;
+    }
+
+    .screenshot-gallery.cols-2 {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .screenshot-fig {
+      margin: 0;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(2, 6, 23, 0.5);
+    }
+
+    .screenshot-fig img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .screenshot-fig figcaption {
+      padding: 0.6rem 0.8rem;
+      color: var(--muted);
+      font-size: 0.84rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .insight {
+      padding: 1.15rem 1.2rem;
+      border-left: 4px solid var(--accent);
+      border-radius: 16px;
+      background: rgba(255, 153, 0, 0.08);
+      color: #fde7c2;
+    }
+
+    .info {
+      border-left-color: var(--accent-2);
+      background: rgba(56, 189, 248, 0.08);
+      color: #d8f3ff;
+    }
+
+    .checklist {
+      display: grid;
+      gap: 0.7rem;
+      margin-top: 1rem;
+    }
+
+    .check {
+      display: flex;
+      gap: 0.75rem;
+      align-items: flex-start;
+      padding: 0.9rem 1rem;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+    }
+
+    .check-mark {
+      flex: 0 0 auto;
+      width: 28px;
+      height: 28px;
+      display: grid;
+      place-items: center;
+      border-radius: 999px;
+      background: rgba(34, 197, 94, 0.15);
+      color: #86efac;
+      font-weight: 800;
+    }
+
+    code {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 0.15rem 0.4rem;
+      border-radius: 6px;
+      font-size: 0.9em;
+      font-family: "Cascadia Code", "Fira Code", monospace;
+    }
+
+    .footer {
+      padding: 2.2rem 0 3.5rem;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    @media (max-width: 920px) {
+      .hero-grid,
+      .grid-3,
+      .grid-2,
+      .screenshot-gallery.cols-2 {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 680px) {
+      .nav-inner {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .step {
+        grid-template-columns: 1fr;
+      }
+
+      .step-num {
+        width: 60px;
+        height: 60px;
+        border-radius: 16px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <nav class="nav">
+    <div class="container nav-inner">
+      <div class="brand">
+        <div class="brand-badge">AWS</div>
+        <div>Lab Report · Linux</div>
+      </div>
+      <div class="nav-links">
+        <a href="../index.html" class="back-link">← All Labs</a>
+        <a href="#summary">Summary</a>
+        <a href="#walkthrough">Walkthrough</a>
+        <a href="#commands">Commands</a>
+        <a href="#learnings">Learnings</a>
+      </div>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <div class="container hero-grid">
+      <div class="panel hero-main">
+        <div class="eyebrow">AWS re/Start Lab · Linux</div>
+        <h1>Managing File Permissions</h1>
+        <p>
+          Learn to manage file and folder ownership matching a company's group structure,
+          and change file permissions using both symbolic and absolute modes.
+        </p>
+      </div>
+
+      <aside class="panel hero-side">
+        <div class="callout">
+          <strong>Lab Objective</strong>
+          Change folder and file permissions to match group structures, and modify
+          file permissions for users using <code>chown</code> and <code>chmod</code>.
+        </div>
+
+        <div>
+          <div class="small" style="margin-bottom:0.7rem;">Tools & Concepts</div>
+          <div class="tech-stack">
+            <span class="chip">chown</span>
+            <span class="chip">chmod</span>
+            <span class="chip">ls -laR</span>
+            <span class="chip">symbolic mode</span>
+            <span class="chip">absolute mode</span>
+          </div>
+        </div>
+
+        <div class="callout" style="border-color: rgba(34,197,94,0.2); background: rgba(34,197,94,0.08);">
+          <strong>Key Insight</strong>
+          The <code>chmod</code> command can manipulate permissions via symbolic mode
+          (e.g., <code>g+w</code> for group add write) or absolute mode (e.g., <code>764</code>).
+        </div>
+      </aside>
+    </div>
+  </header>
+
+  <main>
+    <section id="summary">
+      <div class="container">
+        <h2 class="section-title">Lab Summary</h2>
+        <p class="section-subtitle">
+          Connected via PuTTY
+          (as described in <a href="../lab-225-linux-ami/index.html"
+            style="color:var(--accent-2);text-decoration:underline;">Lab 225</a>).
+          Modified ownership of folders like <span class="highlight">companyA</span>,
+          <span class="highlight">HR</span>, and <span class="highlight">Finance</span>
+          using <span class="highlight">chown</span>. Created files and updated permissions
+          with both symbolic and absolute <span class="highlight">chmod</span> modes.
+        </p>
+
+        <div class="grid-2" style="margin-top:1rem;">
+          <article class="card">
+            <h3>Ownership Management</h3>
+            <p>Used <code>chown -R</code> to recursively set the correct user and group
+              owners for the entire company directory structure.</p>
+          </article>
+          <article class="card">
+            <h3>Permission Modes</h3>
+            <p>Changed file permissions using symbolic letters (<code>g+w</code>) and
+              absolute octal numbers (<code>764</code>).</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="walkthrough">
+      <div class="container">
+        <h2 class="section-title">Step-by-Step Walkthrough</h2>
+        <p class="section-subtitle">
+          Detailed record of each task performed during the lab.
+        </p>
+
+        <div class="timeline">
+
+          <!-- Task 1 -->
+          <article class="step">
+            <div class="step-num">01</div>
+            <div>
+              <h3>SSH Connection</h3>
+              <ul>
+                <li>Connected to the EC2 instance via PuTTY following the process described in
+                  <a href="../lab-225-linux-ami/index.html"
+                    style="color:var(--accent-2);text-decoration:underline;">Lab 225</a>.
+                </li>
+              </ul>
+            </div>
+          </article>
+
+          <!-- Task 2 -->
+          <article class="step">
+            <div class="step-num">02</div>
+            <div>
+              <h3>Change File and Folder Ownership</h3>
+              <ul>
+                <li>Navigated to the company directory with <code>cd companyA</code>.</li>
+                <li>Changed ownership of companyA to the CEO and Personnel group:
+                  <code>sudo chown -R mjackson:Personnel /home/ec2-user/companyA</code>.</li>
+                <li>Changed ownership of the HR folder:
+                  <code>sudo chown -R ljuan:HR HR</code>.</li>
+                <li>Changed ownership of the Finance folder inside HR:
+                  <code>sudo chown -R mmajor:Finance HR/Finance</code>.</li>
+                <li>Checked the recursive permissions with <code>ls -laR</code>.</li>
+              </ul>
+
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/01-chown-recursive.jpg"
+                    alt="Terminal showing ls -laR output with updated folder ownership" loading="lazy" />
+                  <figcaption>Terminal: ls -laR output displaying new group and user ownership</figcaption>
+                </figure>
+              </div>
+
+              <div class="insight info" style="margin-top:1rem;">
+                The <code>-R</code> flag used with <code>chown</code> means recursive, ensuring
+                both the folder and all its contents get their permissions updated together.
+              </div>
+            </div>
+          </article>
+
+          <!-- Task 3 -->
+          <article class="step">
+            <div class="step-num">03</div>
+            <div>
+              <h3>Change Permission Modes</h3>
+              <ul>
+                <li>Created a new file using <code>sudo vi symbolic_mode_file</code>, saved and quit.</li>
+                <li>Modified permissions using symbolic mode to add write access for the group:
+                  <code>sudo chmod g+w symbolic_mode_file</code>.</li>
+                <li>Created another file using <code>sudo vi absolute_mode_file</code>.</li>
+                <li>Assigned permissions using absolute octal numbers (read, write, execute):
+                  <code>sudo chmod 764 absolute_mode_file</code>.</li>
+                <li>Verified both changes with <code>ls -l</code>.</li>
+              </ul>
+
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/02-chmod-modes.jpg"
+                    alt="Terminal showing ls -l output confirming chmod changes" loading="lazy" />
+                  <figcaption>Terminal: Confirming file permissions modified by chmod</figcaption>
+                </figure>
+              </div>
+
+              <div class="insight" style="margin-top:1rem;">
+                In the absolute mode <code>764</code>, the 7 grants the owner full permissions
+                (4+2+1), the 6 grants the group read+write (4+2), and the 4 grants others
+                read-only permissions.
+              </div>
+            </div>
+          </article>
+
+          <!-- Task 4 -->
+          <article class="step">
+            <div class="step-num">04</div>
+            <div>
+              <h3>Assign Remaining Permissions</h3>
+              <ul>
+                <li>Changed ownership of the Shipping folder:
+                  <code>sudo chown -R eowusu:Shipping Shipping</code>.</li>
+                <li>Changed ownership of the Sales folder:
+                  <code>sudo chown -R nwolf:Sales Sales</code>.</li>
+                <li>Validated the changes using <code>ls -laR Shipping</code> and
+                  <code>ls -laR Sales</code>.</li>
+              </ul>
+
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/03-chown-shipping-sales.jpg"
+                    alt="Terminal showing output of assigning ownership to Shipping and Sales" loading="lazy" />
+                  <figcaption>Terminal: Successfully updated user and group owners for Shipping and Sales</figcaption>
+                </figure>
+              </div>
+            </div>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+    <section id="commands">
+      <div class="container">
+        <h2 class="section-title">Command Reference</h2>
+        <p class="section-subtitle">Commands used in this lab for permission management.</p>
+
+        <div class="timeline">
+
+          <article class="step">
+            <div class="step-num" style="font-size:0.85rem;">cmd</div>
+            <div>
+              <h3><code>chown</code></h3>
+              <p>Changes the ownership of a file or directory for both the user and the group.</p>
+              <ul>
+                <li><code>-R</code> : Applies the changes recursively to directories and their contents</li>
+                <li><code>user:group</code> : Defines the target user and group in that exact format</li>
+              </ul>
+            </div>
+          </article>
+
+          <article class="step">
+            <div class="step-num" style="font-size:0.85rem;">cmd</div>
+            <div>
+              <h3><code>chmod</code></h3>
+              <p>Changes the file mode bits (read, write, execute permissions).</p>
+              <ul>
+                <li><code>g+w</code> : Symbolic mode adding write (w) to the group (g)</li>
+                <li><code>764</code> : Absolute mode granting Owner(7), Group(6), Others(4) permissions</li>
+              </ul>
+            </div>
+          </article>
+
+          <article class="step">
+            <div class="step-num" style="font-size:0.85rem;">cmd</div>
+            <div>
+              <h3><code>ls</code></h3>
+              <p>Lists directory contents.</p>
+              <ul>
+                <li><code>-l</code> : Uses a long listing format displaying permissions, owners, and size</li>
+                <li><code>-aR</code> : Lists all files (including hidden) recursively</li>
+              </ul>
+            </div>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+    <section id="learnings">
+      <div class="container">
+        <h2 class="section-title">Key Learnings</h2>
+        <div class="grid-2">
+          <div class="card">
+            <h3>What Was Learned</h3>
+            <div class="checklist">
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>How to change directory logic to match organizational structures
+                  assigning group owners using <code>chown</code>.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>The use of the <code>-R</code> flag to aggressively change permissions
+                  across nested folders recursively.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>How to add specific permissions leveraging symbolic mode syntax such
+                  as <code>g+w</code> on <code>chmod</code>.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>The math behind octal absolute permission arrays like <code>764</code>.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Technical Conclusion</h3>
+            <p>
+              Proper execution of permissions determines the overall security profile of any Linux environment.
+              Permissions regulate reading, writing, and executing operations for standard users, their respective
+              groups, and unauthorized observers.
+            </p>
+            <p style="margin-top: 1rem;">
+              Understanding both symbolic and absolute permission modes empowers administrators with
+              the flexibility needed to solve multiple authorization challenges.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      Lab report documenting the Linux Managing File Permissions lab · AWS re/Start Program
+    </div>
+  </footer>
+</body>
+
+</html>

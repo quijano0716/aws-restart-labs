@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lab Report: Managing Processes</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --bg-soft: #111827;
+      --card: rgba(255, 255, 255, 0.08);
+      --card-strong: rgba(255, 255, 255, 0.12);
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --accent: #ff9900;
+      --accent-2: #38bdf8;
+      --ok: #22c55e;
+      --warn: #f59e0b;
+      --border: rgba(255, 255, 255, 0.12);
+      --shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+      --radius: 22px;
+      --max: 1120px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(255, 153, 0, 0.16), transparent 28%),
+        radial-gradient(circle at top right, rgba(56, 189, 248, 0.14), transparent 24%),
+        linear-gradient(180deg, #020617 0%, #0f172a 48%, #111827 100%);
+      color: var(--text);
+      line-height: 1.65;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    .container {
+      width: min(var(--max), calc(100% - 2rem));
+      margin: 0 auto;
+    }
+
+    .nav {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      backdrop-filter: blur(16px);
+      background: rgba(2, 6, 23, 0.72);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .nav-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.9rem 0;
+      gap: 1rem;
+    }
+
+    .brand {
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+    }
+
+    .brand-badge {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, var(--accent), #ffb84d);
+      color: #111827;
+      font-weight: 900;
+      box-shadow: var(--shadow);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .nav-links a:hover { color: var(--text); }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      color: var(--muted);
+      font-size: 0.9rem;
+      transition: color 0.2s;
+    }
+
+    .back-link:hover { color: var(--accent); }
+    .hero { padding: 4.8rem 0 2rem; }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 1.5rem;
+      align-items: stretch;
+    }
+
+    .panel {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.05));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .hero-main { padding: 2rem; }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.45rem 0.8rem;
+      border-radius: 999px;
+      background: rgba(255, 153, 0, 0.12);
+      color: #ffd28a;
+      border: 1px solid rgba(255, 153, 0, 0.25);
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+    }
+
+    h1, h2, h3 {
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+      margin: 0;
+    }
+
+    h1 {
+      font-size: clamp(2rem, 4vw, 3.7rem);
+      margin-bottom: 0.9rem;
+    }
+
+    .hero-main p {
+      margin: 0;
+      color: #cbd5e1;
+      font-size: 1.05rem;
+      max-width: 65ch;
+    }
+
+    .hero-side {
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .hero-side .callout {
+      padding: 1rem 1.1rem;
+      border-radius: 18px;
+      border: 1px solid rgba(56, 189, 248, 0.18);
+      background: rgba(56, 189, 248, 0.08);
+    }
+
+    .hero-side .callout strong {
+      display: block;
+      margin-bottom: 0.35rem;
+    }
+
+    .tech-stack {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.55rem;
+    }
+
+    .chip {
+      padding: 0.45rem 0.75rem;
+      border-radius: 999px;
+      font-size: 0.88rem;
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #dbeafe;
+    }
+
+    .small {
+      font-size: 0.92rem;
+      color: var(--muted);
+    }
+
+    section { padding: 1rem 0 0.4rem; }
+
+    .section-title {
+      margin-bottom: 1rem;
+      font-size: clamp(1.5rem, 2vw, 2.2rem);
+    }
+
+    .section-subtitle {
+      color: var(--muted);
+      margin-top: 0.45rem;
+      max-width: 75ch;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .card {
+      padding: 1.3rem;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+    }
+
+    .card h3 {
+      font-size: 1.05rem;
+      margin-bottom: 0.6rem;
+    }
+
+    .card p {
+      margin: 0;
+      color: #cbd5e1;
+    }
+
+    .timeline {
+      display: grid;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .step {
+      display: grid;
+      grid-template-columns: 90px 1fr;
+      gap: 1rem;
+      align-items: start;
+      padding: 1.25rem;
+      border-radius: 22px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: var(--shadow);
+    }
+
+    .step-num {
+      width: 72px;
+      height: 72px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, rgba(255, 153, 0, 0.18), rgba(56, 189, 248, 0.18));
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      display: grid;
+      place-items: center;
+      font-size: 1.1rem;
+      font-weight: 900;
+      color: #fff;
+    }
+
+    .step h3 {
+      margin-bottom: 0.55rem;
+      font-size: 1.2rem;
+    }
+
+    .step ul {
+      margin: 0.3rem 0 0;
+      padding-left: 1.1rem;
+      color: #dbe4f0;
+    }
+
+    .step li+li { margin-top: 0.4rem; }
+
+    .highlight {
+      color: #ffd28a;
+      font-weight: 700;
+    }
+
+    .screenshot-gallery {
+      display: grid;
+      gap: 0.8rem;
+      margin-top: 1rem;
+    }
+
+    .screenshot-gallery.cols-2 {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .screenshot-fig {
+      margin: 0;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(2, 6, 23, 0.5);
+    }
+
+    .screenshot-fig img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .screenshot-fig figcaption {
+      padding: 0.6rem 0.8rem;
+      color: var(--muted);
+      font-size: 0.84rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .insight {
+      padding: 1.15rem 1.2rem;
+      border-left: 4px solid var(--accent);
+      border-radius: 16px;
+      background: rgba(255, 153, 0, 0.08);
+      color: #fde7c2;
+    }
+
+    .info {
+      border-left-color: var(--accent-2);
+      background: rgba(56, 189, 248, 0.08);
+      color: #d8f3ff;
+    }
+
+    .checklist {
+      display: grid;
+      gap: 0.7rem;
+      margin-top: 1rem;
+    }
+
+    .check {
+      display: flex;
+      gap: 0.75rem;
+      align-items: flex-start;
+      padding: 0.9rem 1rem;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+    }
+
+    .check-mark {
+      flex: 0 0 auto;
+      width: 28px;
+      height: 28px;
+      display: grid;
+      place-items: center;
+      border-radius: 999px;
+      background: rgba(34, 197, 94, 0.15);
+      color: #86efac;
+      font-weight: 800;
+    }
+
+    code {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 0.15rem 0.4rem;
+      border-radius: 6px;
+      font-size: 0.9em;
+      font-family: "Cascadia Code", "Fira Code", monospace;
+    }
+
+    .footer {
+      padding: 2.2rem 0 3.5rem;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    @media (max-width: 920px) {
+      .hero-grid,
+      .grid-3,
+      .grid-2,
+      .screenshot-gallery.cols-2 {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 680px) {
+      .nav-inner {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .step {
+        grid-template-columns: 1fr;
+      }
+
+      .step-num {
+        width: 60px;
+        height: 60px;
+        border-radius: 16px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <nav class="nav">
+    <div class="container nav-inner">
+      <div class="brand">
+        <div class="brand-badge">AWS</div>
+        <div>Lab Report · Linux</div>
+      </div>
+      <div class="nav-links">
+        <a href="../index.html" class="back-link">← All Labs</a>
+        <a href="#summary">Summary</a>
+        <a href="#walkthrough">Walkthrough</a>
+        <a href="#commands">Commands</a>
+        <a href="#learnings">Learnings</a>
+      </div>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <div class="container hero-grid">
+      <div class="panel hero-main">
+        <div class="eyebrow">AWS re/Start Lab · Linux</div>
+        <h1>Managing Processes</h1>
+        <p>
+          Monitor system performance, list running processes, and automate repetitive tasks
+          by configuring a scheduled cron job.
+        </p>
+      </div>
+
+      <aside class="panel hero-side">
+        <div class="callout">
+          <strong>Lab Objective</strong>
+          Create a log file for process listings, use the <code>top</code> command to review system
+          performance, and establish a recurring task through <code>crontab</code>.
+        </div>
+
+        <div>
+          <div class="small" style="margin-bottom:0.7rem;">Tools & Concepts</div>
+          <div class="tech-stack">
+            <span class="chip">ps</span>
+            <span class="chip">grep</span>
+            <span class="chip">top</span>
+            <span class="chip">crontab</span>
+            <span class="chip">cron daemon</span>
+            <span class="chip">tee</span>
+          </div>
+        </div>
+
+        <div class="callout" style="border-color: rgba(34,197,94,0.2); background: rgba(34,197,94,0.08);">
+          <strong>Key Insight</strong>
+          Cron jobs are essential for automating audits or backups. Using <code>crontab -e</code>
+          opens the editor to define what command runs and how often.
+        </div>
+      </aside>
+    </div>
+  </header>
+
+  <main>
+    <section id="summary">
+      <div class="container">
+        <h2 class="section-title">Lab Summary</h2>
+        <p class="section-subtitle">
+          Connected via PuTTY
+          (as described in <a href="../lab-225-linux-ami/index.html"
+            style="color:var(--accent-2);text-decoration:underline;">Lab 225</a>).
+          Generated a filtered log file of system processes using <span class="highlight">ps</span> and
+          <span class="highlight">grep</span>. Examined the real-time resource utilization via
+          <span class="highlight">top</span>. Established an automated auditing task with
+          <span class="highlight">crontab</span>.
+        </p>
+
+        <div class="grid-3" style="margin-top:1rem;">
+          <article class="card">
+            <h3>Process Listing</h3>
+            <p>Used <code>ps -aux</code> filtered by <code>grep -v root</code> to log non-root
+              processes into a CSV file via <code>tee</code>.</p>
+          </article>
+          <article class="card">
+            <h3>Performance Monitoring</h3>
+            <p>Executed <code>top</code> to observe real-time CPU, memory, and thread metrics,
+              identifying the number of active, sleeping, and zombie tasks.</p>
+          </article>
+          <article class="card">
+            <h3>Cron Jobs</h3>
+            <p>Configured a repetitive task in the cron tab to run a file filtering
+              script automatically.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="walkthrough">
+      <div class="container">
+        <h2 class="section-title">Step-by-Step Walkthrough</h2>
+        <p class="section-subtitle">
+          Detailed record of each task performed during the lab.
+        </p>
+
+        <div class="timeline">
+
+          <!-- Task 1 -->
+          <article class="step">
+            <div class="step-num">01</div>
+            <div>
+              <h3>SSH Connection</h3>
+              <ul>
+                <li>Connected to the EC2 instance via PuTTY following the process described in
+                  <a href="../lab-225-linux-ami/index.html"
+                    style="color:var(--accent-2);text-decoration:underline;">Lab 225</a>.
+                </li>
+              </ul>
+            </div>
+          </article>
+
+          <!-- Task 2 -->
+          <article class="step">
+            <div class="step-num">02</div>
+            <div>
+              <h3>Create List of Processes</h3>
+              <ul>
+                <li>Ensured the working directory was <code>/home/ec2-user/companyA</code>.</li>
+                <li>Piped the output of all system processes directly into a log file, filtering
+                  out the root user:
+                  <code>sudo ps -aux | grep -v root | sudo tee SharedFolders/processes.csv</code>.</li>
+                <li>Verified the file was properly generated using:
+                  <code>cat SharedFolders/processes.csv</code>.</li>
+              </ul>
+
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/01-ps-processes.jpg"
+                    alt="Terminal showing the output of process listing command redirected to a file" loading="lazy" />
+                  <figcaption>Terminal: Filtered ps output saved to processes.csv showing active applications</figcaption>
+                </figure>
+              </div>
+
+              <div class="insight info" style="margin-top:1rem;">
+                The <code>grep -v</code> argument implements an inverse match. By searching for
+                <code>root</code> with this flag enabled, it removes every row containing that word.
+              </div>
+            </div>
+          </article>
+
+          <!-- Task 3 -->
+          <article class="step">
+            <div class="step-num">03</div>
+            <div>
+              <h3>List Processes via top</h3>
+              <ul>
+                <li>Ran the <code>top</code> command to view dynamic, real-time metrics of the system.</li>
+                <li>Analyzed the Tasks output on the second line. Noted that out of 93 total tasks, there was 1 running, 48 sleeping, 0 stopped, and 0 zombie tasks.</li>
+                <li>Gained insights regarding CPU, physical memory (RAM), and swap space utilization.</li>
+                <li>Pressed <code>q</code> to exit the dynamic monitoring interface.</li>
+                <li>Ran <code>top -hv</code> to find usage and version information.</li>
+              </ul>
+
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/02-top-running-tasks.jpg"
+                    alt="Terminal running the top command displaying live utilization" loading="lazy" />
+                  <figcaption>Terminal: The top command interface confirming 1 running task among sleeping processes</figcaption>
+                </figure>
+              </div>
+            </div>
+          </article>
+
+          <!-- Task 4 -->
+          <article class="step">
+            <div class="step-num">04</div>
+            <div>
+              <h3>Establish a Cron Job</h3>
+              <ul>
+                <li>Used <code>sudo crontab -e</code> to securely edit the scheduled tasks file
+                  using the default text editor (usually Vim).</li>
+                <li>Configured the <code>SHELL</code>, <code>PATH</code>, and <code>MAILTO</code> environment variables.</li>
+                <li>Added a scheduled command at the bottom:
+                  <code>0 * * * * ls -la $(find .) | sed -e 's/..csv/#####.csv/g' &gt; /home/ec2-user/companyA/SharedFolders/filteredAudit.csv</code>.</li>
+                <li>Saved and closed the file utilizing <code>:wq</code>.</li>
+                <li>Validated the schedule creation with <code>sudo crontab -l</code>, which lists the installed cron jobs.</li>
+              </ul>
+
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/03-crontab-job.jpg"
+                    alt="Terminal displaying the successfully installed and validated cron job" loading="lazy" />
+                  <figcaption>Terminal: The output of crontab -l verifying the auditing script is queued</figcaption>
+                </figure>
+              </div>
+
+              <div class="insight" style="margin-top:1rem;">
+                The six characters <code>0 * * * *</code> determine when the job runs: minute, hour, day of month, month, and day of week.
+                This syntax schedules the script to run exactly at the top of every hour.
+              </div>
+            </div>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+    <section id="commands">
+      <div class="container">
+        <h2 class="section-title">Command Reference</h2>
+        <p class="section-subtitle">Commands utilized in this lab.</p>
+
+        <div class="timeline">
+
+          <article class="step">
+            <div class="step-num" style="font-size:0.85rem;">cmd</div>
+            <div>
+              <h3><code>ps</code></h3>
+              <p>Reports a snapshot of the current processes running locally.</p>
+              <ul>
+                <li><code>-aux</code> : Lists all processes owned by all users (-a), user-oriented format (-u), including those without a terminal (-x)</li>
+              </ul>
+            </div>
+          </article>
+
+          <article class="step">
+            <div class="step-num" style="font-size:0.85rem;">cmd</div>
+            <div>
+              <h3><code>grep</code></h3>
+              <p>Searches input text strictly matching a predefined pattern.</p>
+              <ul>
+                <li><code>-v</code> : Inverts the match, returning everything except queries aligning with the pattern</li>
+              </ul>
+            </div>
+          </article>
+
+          <article class="step">
+            <div class="step-num" style="font-size:0.85rem;">cmd</div>
+            <div>
+              <h3><code>top</code></h3>
+              <p>Provides a dynamic real-time view of running processes prioritized by hardware resource consumption.</p>
+              <ul>
+                <li><code>q</code> : Terminates the top view</li>
+              </ul>
+            </div>
+          </article>
+
+          <article class="step">
+            <div class="step-num" style="font-size:0.85rem;">cmd</div>
+            <div>
+              <h3><code>crontab</code></h3>
+              <p>A software utility driving task scheduling and background automation via a daemon.</p>
+              <ul>
+                <li><code>-e</code> : Opens the crontab script file inside an editor for modifications</li>
+                <li><code>-l</code> : Lists the currently active, configured jobs</li>
+              </ul>
+            </div>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+    <section id="learnings">
+      <div class="container">
+        <h2 class="section-title">Key Learnings</h2>
+        <div class="grid-2">
+          <div class="card">
+            <h3>What Was Learned</h3>
+            <div class="checklist">
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>Differences between the static snapshot output from <code>ps</code>
+                  and the real-time continuous feed given by <code>top</code>.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>Excluding particular rows within terminal data returns using the <code>-v</code>
+                  flag on the <code>grep</code> command.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>Understanding the anatomy of <code>top</code> screen outputs evaluating states like zombie or sleeping.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>Syntax formats defining frequency and scheduling instructions on a <code>cron</code> utility.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Technical Conclusion</h3>
+            <p>
+              Detecting resource exhaustion prevents critical server outages. Leveraging <code>top</code> allows rapid diagnoses
+              of memory and CPU constraints by exposing the exact software threads causing bottlenecks.
+            </p>
+            <p style="margin-top: 1rem;">
+              Automating system hygiene elements via <code>cron</code> is indispensable. Without scheduled routines, administrators
+              must manually audit access files resulting in human error rates and inefficiencies.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      Lab report documenting the Linux Managing Processes lab · AWS re/Start Program
+    </div>
+  </footer>
+</body>
+
+</html>
