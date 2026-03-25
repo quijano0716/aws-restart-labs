@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lab Report: Internet Protocols - Static and Dynamic Addresses</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --bg-soft: #111827;
+      --card: rgba(255, 255, 255, 0.08);
+      --card-strong: rgba(255, 255, 255, 0.12);
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --accent: #ff9900;
+      --accent-2: #38bdf8;
+      --ok: #22c55e;
+      --warn: #f59e0b;
+      --border: rgba(255, 255, 255, 0.12);
+      --shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+      --radius: 22px;
+      --max: 1120px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(255, 153, 0, 0.16), transparent 28%),
+        radial-gradient(circle at top right, rgba(56, 189, 248, 0.14), transparent 24%),
+        linear-gradient(180deg, #020617 0%, #0f172a 48%, #111827 100%);
+      color: var(--text);
+      line-height: 1.65;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    .container {
+      width: min(var(--max), calc(100% - 2rem));
+      margin: 0 auto;
+    }
+
+    /* -- Nav -- */
+    .nav {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      backdrop-filter: blur(16px);
+      background: rgba(2, 6, 23, 0.72);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .nav-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.9rem 0;
+      gap: 1rem;
+    }
+
+    .brand {
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+    }
+
+    .brand-badge {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, var(--accent), #ffb84d);
+      color: #111827;
+      font-weight: 900;
+      box-shadow: var(--shadow);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .nav-links a:hover { color: var(--text); }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      color: var(--muted);
+      font-size: 0.9rem;
+      transition: color 0.2s;
+    }
+
+    .back-link:hover { color: var(--accent); }
+
+    /* -- Hero -- */
+    .hero { padding: 4.8rem 0 2rem; }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 1.5rem;
+      align-items: stretch;
+    }
+
+    .panel {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.05));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .hero-main { padding: 2rem; }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.45rem 0.8rem;
+      border-radius: 999px;
+      background: rgba(255, 153, 0, 0.12);
+      color: #ffd28a;
+      border: 1px solid rgba(255, 153, 0, 0.25);
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+    }
+
+    h1, h2, h3 {
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+      margin: 0;
+    }
+
+    h1 {
+      font-size: clamp(2rem, 4vw, 3.7rem);
+      margin-bottom: 0.9rem;
+    }
+
+    .hero-main p {
+      margin: 0;
+      color: #cbd5e1;
+      font-size: 1.05rem;
+      max-width: 65ch;
+    }
+
+    .hero-side {
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .hero-side .callout {
+      padding: 1rem 1.1rem;
+      border-radius: 18px;
+      border: 1px solid rgba(56, 189, 248, 0.18);
+      background: rgba(56, 189, 248, 0.08);
+    }
+
+    .hero-side .callout strong {
+      display: block;
+      margin-bottom: 0.35rem;
+    }
+
+    .tech-stack {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.55rem;
+    }
+
+    .chip {
+      padding: 0.45rem 0.75rem;
+      border-radius: 999px;
+      font-size: 0.88rem;
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #dbeafe;
+    }
+
+    .small {
+      font-size: 0.92rem;
+      color: var(--muted);
+    }
+
+    /* -- Sections -- */
+    section { padding: 1rem 0 0.4rem; }
+
+    .section-title {
+      margin-bottom: 1rem;
+      font-size: clamp(1.5rem, 2vw, 2.2rem);
+    }
+
+    .section-subtitle {
+      color: var(--muted);
+      margin-top: 0.45rem;
+      max-width: 75ch;
+    }
+
+    /* -- Grids -- */
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .card {
+      padding: 1.3rem;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+    }
+
+    .card h3 {
+      font-size: 1.05rem;
+      margin-bottom: 0.6rem;
+    }
+
+    .card p {
+      margin: 0;
+      color: #cbd5e1;
+    }
+
+    /* -- Timeline -- */
+    .timeline {
+      display: grid;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .step {
+      display: grid;
+      grid-template-columns: 90px 1fr;
+      gap: 1rem;
+      align-items: start;
+      padding: 1.25rem;
+      border-radius: 22px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: var(--shadow);
+    }
+
+    .step-num {
+      width: 72px;
+      height: 72px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, rgba(255, 153, 0, 0.18), rgba(56, 189, 248, 0.18));
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      display: grid;
+      place-items: center;
+      font-size: 1.1rem;
+      font-weight: 900;
+      color: #fff;
+    }
+
+    .step h3 {
+      margin-bottom: 0.55rem;
+      font-size: 1.2rem;
+    }
+
+    .step ul {
+      margin: 0.3rem 0 0;
+      padding-left: 1.1rem;
+      color: #dbe4f0;
+    }
+
+    .step li+li { margin-top: 0.4rem; }
+
+    .highlight {
+      color: #ffd28a;
+      font-weight: 700;
+    }
+
+    /* -- Screenshots -- */
+    .screenshot-gallery {
+      display: grid;
+      gap: 0.8rem;
+      margin-top: 1rem;
+    }
+
+    .screenshot-gallery.cols-2 {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .screenshot-fig {
+      margin: 0;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(2, 6, 23, 0.5);
+    }
+
+    .screenshot-fig img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .screenshot-fig figcaption {
+      padding: 0.6rem 0.8rem;
+      color: var(--muted);
+      font-size: 0.84rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    /* -- Callouts -- */
+    .insight {
+      padding: 1.15rem 1.2rem;
+      border-left: 4px solid var(--accent);
+      border-radius: 16px;
+      background: rgba(255, 153, 0, 0.08);
+      color: #fde7c2;
+    }
+
+    .info {
+      border-left-color: var(--accent-2);
+      background: rgba(56, 189, 248, 0.08);
+      color: #d8f3ff;
+    }
+
+    /* -- Q&A -- */
+    .qa-block {
+      margin-top: 1rem;
+      padding: 1.15rem 1.2rem;
+      border-radius: 16px;
+      background: rgba(139, 92, 246, 0.08);
+      border-left: 4px solid #a78bfa;
+      color: #e0d4fc;
+    }
+
+    .qa-block strong {
+      display: block;
+      margin-bottom: 0.35rem;
+      color: #c4b5fd;
+    }
+
+    /* -- IP Timeline Comparison -- */
+    .ip-timeline {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      margin-top: 1rem;
+    }
+
+    .ip-timeline .ip-state {
+      padding: 1rem 1.1rem;
+      border-right: 1px solid var(--border);
+      text-align: center;
+    }
+
+    .ip-timeline .ip-state:last-child {
+      border-right: none;
+    }
+
+    .ip-state .state-label {
+      font-size: 0.82rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 0.5rem;
+    }
+
+    .ip-state .ip-value {
+      font-family: "Cascadia Code", "Fira Code", monospace;
+      font-size: 0.95rem;
+      padding: 0.3rem 0.6rem;
+      border-radius: 8px;
+      display: inline-block;
+    }
+
+    .ip-state .ip-value.changed {
+      background: rgba(239, 68, 68, 0.15);
+      color: #fca5a5;
+    }
+
+    .ip-state .ip-value.same {
+      background: rgba(34, 197, 94, 0.15);
+      color: #86efac;
+    }
+
+    .ip-state .ip-value.static {
+      background: rgba(56, 189, 248, 0.15);
+      color: #93c5fd;
+    }
+
+    /* -- Checklist -- */
+    .checklist {
+      display: grid;
+      gap: 0.7rem;
+      margin-top: 1rem;
+    }
+
+    .check {
+      display: flex;
+      gap: 0.75rem;
+      align-items: flex-start;
+      padding: 0.9rem 1rem;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+    }
+
+    .check-mark {
+      flex: 0 0 auto;
+      width: 28px;
+      height: 28px;
+      display: grid;
+      place-items: center;
+      border-radius: 999px;
+      background: rgba(34, 197, 94, 0.15);
+      color: #86efac;
+      font-weight: 800;
+    }
+
+    /* -- Code -- */
+    code {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 0.15rem 0.4rem;
+      border-radius: 6px;
+      font-size: 0.9em;
+      font-family: "Cascadia Code", "Fira Code", monospace;
+    }
+
+    /* -- Footer -- */
+    .footer {
+      padding: 2.2rem 0 3.5rem;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    /* -- Responsive -- */
+    @media (max-width: 920px) {
+      .hero-grid,
+      .grid-3,
+      .grid-2,
+      .screenshot-gallery.cols-2,
+      .ip-timeline {
+        grid-template-columns: 1fr;
+      }
+
+      .ip-timeline .ip-state {
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .ip-timeline .ip-state:last-child {
+        border-bottom: none;
+      }
+    }
+
+    @media (max-width: 680px) {
+      .nav-inner {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .step {
+        grid-template-columns: 1fr;
+      }
+
+      .step-num {
+        width: 60px;
+        height: 60px;
+        border-radius: 16px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <nav class="nav">
+    <div class="container nav-inner">
+      <div class="brand">
+        <div class="brand-badge">AWS</div>
+        <div>Lab Report · Networking</div>
+      </div>
+      <div class="nav-links">
+        <a href="../index.html" class="back-link">← All Labs</a>
+        <a href="#summary">Summary</a>
+        <a href="#services">Services</a>
+        <a href="#walkthrough">Walkthrough</a>
+        <a href="#learnings">Learnings</a>
+      </div>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <div class="container hero-grid">
+      <div class="panel hero-main">
+        <div class="eyebrow">AWS re/Start Lab · Networking</div>
+        <h1>Internet Protocols: Static and Dynamic Addresses</h1>
+        <p>
+          This lab investigates a customer scenario where an EC2 instance's public IP changes every time it
+          is stopped and restarted. The solution involves understanding dynamic vs. static addressing
+          and using an Elastic IP to assign a persistent public address.
+        </p>
+      </div>
+
+      <aside class="panel hero-side">
+        <div class="callout">
+          <strong>Lab Objective</strong>
+          Replicate a customer's issue with changing IP addresses, understand the difference between
+          dynamic and static IPs, and resolve the problem by allocating an Elastic IP.
+        </div>
+
+        <div>
+          <div class="small" style="margin-bottom:0.7rem;">Tools & Concepts</div>
+          <div class="tech-stack">
+            <span class="chip">EC2</span>
+            <span class="chip">Elastic IP</span>
+            <span class="chip">Dynamic IP</span>
+            <span class="chip">Static IP</span>
+            <span class="chip">VPC</span>
+          </div>
+        </div>
+
+        <div class="callout" style="border-color: rgba(34,197,94,0.2); background: rgba(34,197,94,0.08);">
+          <strong>Key Insight</strong>
+          By default, EC2 public IPs are dynamic and change on stop/start. To get a persistent
+          (static) public IP, you must allocate and associate an <strong>Elastic IP</strong>.
+        </div>
+      </aside>
+    </div>
+  </header>
+
+  <main>
+    <section id="summary">
+      <div class="container">
+        <h2 class="section-title">Lab Summary</h2>
+        <p class="section-subtitle">
+          Launched an EC2 instance with a <span class="highlight">dynamic public IP</span>, confirmed that the IP changes after stopping and
+          restarting, then allocated an <span class="highlight">Elastic IP</span> (52.27.55.26) and associated it to the instance.
+          After restarting the instance again, the public IP remained the same, confirming the fix.
+        </p>
+
+        <div class="grid-3" style="margin-top:1rem;">
+          <article class="card">
+            <h3>Instance Launch</h3>
+            <p>Created a t3.micro EC2 instance named "test instance" in Public Subnet 1 with an auto-assigned public IP.</p>
+          </article>
+          <article class="card">
+            <h3>Problem Replication</h3>
+            <p>Stopped and restarted the instance. The public IP changed from 35.86.127.200 to 35.91.135.26,
+              confirming the dynamic behavior.</p>
+          </article>
+          <article class="card">
+            <h3>Elastic IP Fix</h3>
+            <p>Allocated Elastic IP 52.27.55.26 and associated it to the test instance.
+               After restart, the IP remained unchanged.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="services">
+      <div class="container">
+        <h2 class="section-title">AWS Services Used</h2>
+        <div class="grid-2">
+          <article class="card">
+            <h3>Amazon EC2</h3>
+            <p>Launched a t3.micro instance to replicate the customer's issue. The instance was stopped and
+              restarted multiple times to observe IP behavior before and after applying the Elastic IP.</p>
+          </article>
+          <article class="card">
+            <h3>Elastic IP (EIP)</h3>
+            <p>Allocated a static public IPv4 address from AWS's pool and associated it with the test instance.
+              This ensures the IP persists across stop/start cycles.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="walkthrough">
+      <div class="container">
+        <h2 class="section-title">Step-by-Step Walkthrough</h2>
+        <p class="section-subtitle">
+          Detailed documentation of the troubleshooting and resolution process.
+        </p>
+
+        <div class="timeline">
+
+          <!-- Task 1: Launch instance -->
+          <article class="step">
+            <div class="step-num">01</div>
+            <div>
+              <h3>Launch an EC2 instance to replicate the issue</h3>
+              <ul>
+                <li>From the EC2 console, selected <strong>Launch instances</strong>.</li>
+                <li>Chose <strong>Amazon Linux 2 AMI</strong>, instance type <strong>t3.micro</strong>.</li>
+                <li>Configured networking: <strong>Lab VPC</strong>, <strong>Public Subnet 1</strong>, Auto-assign Public IP set to <strong>Enable</strong>.</li>
+                <li>Selected existing security group <strong>Linux Instance SG</strong> and key pair <strong>vockey</strong>.</li>
+                <li>Named the instance <strong>test instance</strong> and launched it.</li>
+              </ul>
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/01-instance-config.jpg" alt="EC2 instance network configuration" loading="lazy" />
+                  <figcaption>EC2 Launch: Network settings showing Lab VPC, Public Subnet 1, auto-assigned public IP, and selected security group.</figcaption>
+                </figure>
+              </div>
+            </div>
+          </article>
+
+          <!-- Task 2: Observe dynamic IP -->
+          <article class="step">
+            <div class="step-num">02</div>
+            <div>
+              <h3>Observe the dynamic IP behavior</h3>
+              <ul>
+                <li>Once the instance reached the <strong>Running</strong> state, noted the initial public IPv4: <code>35.86.127.200</code> and private IPv4: <code>10.0.10.146</code>.</li>
+                <li>Stopped the instance via <strong>Instance state > Stop instance</strong>. After stopping, the public IP disappeared.</li>
+                <li>Restarted the instance. The new public IPv4 was <code>35.91.135.26</code>, a different address. The private IP remained <code>10.0.10.146</code>.</li>
+              </ul>
+
+              <div class="ip-timeline">
+                <div class="ip-state">
+                  <div class="state-label">First Launch</div>
+                  <div><span class="ip-value same">35.86.127.200</span></div>
+                  <div style="margin-top: 0.4rem; font-size: 0.82rem; color: var(--muted);">Private: 10.0.10.146</div>
+                </div>
+                <div class="ip-state">
+                  <div class="state-label">After Restart</div>
+                  <div><span class="ip-value changed">35.91.135.26</span></div>
+                  <div style="margin-top: 0.4rem; font-size: 0.82rem; color: var(--muted);">Private: 10.0.10.146</div>
+                </div>
+                <div class="ip-state">
+                  <div class="state-label">With Elastic IP</div>
+                  <div><span class="ip-value static">52.27.55.26</span></div>
+                  <div style="margin-top: 0.4rem; font-size: 0.82rem; color: var(--muted);">Private: 10.0.10.146</div>
+                </div>
+              </div>
+
+              <div class="qa-block" style="margin-top:1rem;">
+                <strong>Q: What did you observe? Is the public IP dynamic or static?</strong>
+                The public IP is dynamic. It changed from 35.86.127.200 to 35.91.135.26 after stop/start. The private IP stayed the same (10.0.10.146) because private IPs are permanently assigned within the VPC. This replicates the customer's issue.
+              </div>
+            </div>
+          </article>
+
+          <!-- Task 3: Allocate Elastic IP -->
+          <article class="step">
+            <div class="step-num">03</div>
+            <div>
+              <h3>Allocate and associate an Elastic IP</h3>
+              <ul>
+                <li>Navigated to <strong>EC2 > Network and Security > Elastic IPs</strong>.</li>
+                <li>Selected <strong>Allocate Elastic IP address</strong>, kept defaults, and allocated. Received address <code>52.27.55.26</code>.</li>
+                <li>Selected the new EIP, then <strong>Actions > Associate Elastic IP address</strong>.</li>
+                <li>Chose <strong>test instance</strong> from the Instance dropdown and selected its private IP. Clicked <strong>Associate</strong>.</li>
+              </ul>
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/02-elastic-ip.jpg" alt="Elastic IP allocated and associated" loading="lazy" />
+                  <figcaption>Elastic IPs: Address 52.27.55.26 allocated and associated to the test instance with private IP 10.0.10.146.</figcaption>
+                </figure>
+              </div>
+            </div>
+          </article>
+
+          <!-- Task 4: Verify -->
+          <article class="step">
+            <div class="step-num">04</div>
+            <div>
+              <h3>Verify the static IP persists after restart</h3>
+              <ul>
+                <li>Returned to the <strong>Instances</strong> page and confirmed the public IP was now <code>52.27.55.26</code> (the Elastic IP).</li>
+                <li>Stopped and restarted the instance one more time.</li>
+                <li>After restart, the public IP remained <code>52.27.55.26</code>, confirming the Elastic IP is persistent.</li>
+              </ul>
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/03-instance-restarted.jpg" alt="Instance restarted with Elastic IP" loading="lazy" />
+                  <figcaption>EC2 Console: After restart, test instance retains public IP 52.27.55.26 (Elastic IP). The IP no longer changes.</figcaption>
+                </figure>
+              </div>
+
+              <div class="qa-block" style="margin-top:1rem;">
+                <strong>Q: Did you solve the customer's issue? Is this now a static IP?</strong>
+                Yes. By associating an Elastic IP, the public address becomes static and no longer changes when the instance is stopped and restarted. The customer can now rely on this IP for services that depend on a fixed address.
+              </div>
+            </div>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+    <section id="learnings">
+      <div class="container">
+        <h2 class="section-title">Key Learnings</h2>
+        <div class="grid-2">
+          <div class="card">
+            <h3>What Was Learned</h3>
+            <div class="checklist">
+              <div class="check">
+                <div class="check-mark">&#10003;</div>
+                <div>By default, EC2 <strong>public IPs are dynamic</strong>: they change every time the instance is stopped and restarted.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">&#10003;</div>
+                <div><strong>Private IPs are static</strong> within the VPC and do not change regardless of instance state.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">&#10003;</div>
+                <div>An <strong>Elastic IP</strong> provides a persistent (static) public address that stays associated to an instance across stop/start cycles.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">&#10003;</div>
+                <div>Elastic IPs are free while associated to a running instance, but AWS charges for EIPs that are allocated but not associated.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Technical Conclusion</h3>
+            <p>
+              This lab demonstrated why services that depend on a fixed IP address break when using the default
+              dynamic public IP assignment. Every time an EC2 instance is stopped and started, AWS releases
+              the old public IP and assigns a new one from its pool.
+            </p>
+            <p style="margin-top: 1rem;">
+              The solution is to allocate an Elastic IP and associate it with the instance. This gives the instance
+              a permanent public address that survives reboots. For the customer (Bob), this meant
+              his dependent services would no longer break on each restart.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      Lab report documenting the Internet Protocols: Static and Dynamic Addresses lab · AWS re/Start Program
+    </div>
+  </footer>
+</body>
+
+</html>

@@ -18,15 +18,36 @@ The AI agent acts as the primary "Lab Builder". Its core directive is to follow 
 6. **Git Management:** Managing the git repository by staging changes and pushing to the remote `main` branch.
 
 ## What Has Been Completed So Far
-*   **Infrastructure:** Created the custom `lab-builder` skill and structured the `.agents` folder. We updated `.gitignore` to prevent agent scripts and `node_modules` from cluttering the remote repository.
-*   **Lab 11 (EC2):** Originally Lab 01, renamed to Lab 11.
-*   **Lab 225 (Linux AMI):** Established the base CSS template and the specific SSH/PuTTY connection rules.
-*   **Lab 227 (Linux CLI):** Created the report covering basic commands and command history.
-*   **Lab 229 (Users & Groups):** Adapted the structure to use data tables for complex user assignments. 
-*   **Lab 231 (Editing Files):** Documented the use of `vimtutor`, `vim`, and `nano`.
-*   **Lab 233 (File System):** Documented folder creation and reorganization (`mkdir`, `cp`, `mv`, `rmdir`).
-*   **Lab 235 (Working with Files):** Documented generating `tar` backups, logging with `echo`/`tee`, and transferring files.
-*   **Version Control:** All these labs and their assets were successfully committed and pushed to the origin `main` repository branch.
+
+### Batch 1: Compute + Linux Fundamentals (Labs 11 - 249)
+*   **Infrastructure:** Created the custom `lab-builder` skill and structured the `.agents` folder. Updated `.gitignore` to prevent agent scripts and `node_modules` from cluttering the remote repository.
+*   **Lab 11 (EC2):** Introduction to Amazon EC2. Originally Lab 01, renamed to Lab 11.
+*   **Lab 225 (Linux AMI):** Introduction to Amazon Linux AMI. Established the base CSS template and the SSH/PuTTY connection rules.
+*   **Lab 227 (Linux CLI):** Linux Command Line. Covered basic commands, timezone dates, Julian calendars, and bash history.
+*   **Lab 229 (Users & Groups):** Managing Users and Groups. Adapted the structure to use data tables for complex user assignments.
+*   **Lab 231 (Editing Files):** Editing Files. Documented the use of `vimtutor`, `vim`, and `nano`.
+*   **Lab 233 (File System):** Working with the File System. Documented folder creation and reorganization (`mkdir`, `cp`, `mv`, `rmdir`).
+*   **Lab 235 (Working with Files):** Working with Files. Documented generating `tar` backups, logging with `echo`/`tee`, and transferring files.
+*   **Lab 237 (Permissions):** Managing File Permissions. Covered `chown`, `chmod`, and symbolic vs. absolute permission methods.
+*   **Lab 239 (Processes):** Managing Processes. Covered `ps`, `top`, `grep`, and `crontab` for process monitoring and scheduling.
+*   **Lab 241 (Monitoring):** Managing Services & Monitoring. Covered `systemctl`, `httpd`, and CloudWatch for daemon control and EC2 health monitoring.
+*   **Lab 243 (Software):** Software Management. Covered `yum history`, rollbacks, `curl`, and AWS CLI configuration.
+*   **Lab 245 (Log Files):** Managing Log Files. Covered `less`, `lastlog`, and `/var/log/secure` for authentication auditing.
+*   **Lab 247 (Commands):** Working with Commands. Covered `tee`, `sort`, `cut`, and the pipe operator for data stream manipulation.
+*   **Lab 249 (Bash Shell):** The Bash Shell. Covered `alias`, `tar`, and `PATH` variable customization.
+*   **Version Control:** All labs committed and pushed to the `origin/main` branch in two commits.
+
+### Batch 2: Networking (Labs 261 - 264)
+*   **Lab 261 (Public/Private IPs):** Internet Protocols - Public and Private IP Addresses. Covered OSI model mapping to AWS, public vs. private IP differences, and VPC CIDR recommendations.
+*   **Lab 262 (Static/Dynamic IPs):** Internet Protocols - Static and Dynamic Addresses. Covered dynamic IP behavior on EC2, Elastic IP allocation and association.
+*   **Lab 263 (VPC Subnets):** Create Subnets and Allocate IP Addresses in a VPC. Covered CIDR planning, RFC 1918 private ranges, and VPC Wizard usage.
+*   **Lab 264 (VPC Resources):** Create VPC Resources to Enable Internet Connectivity. Covered IGW, route tables, NACLs, security groups, EC2 launch, and ping verification.
+*   **Landing Page:** Updated `docs/index.html` with a new Networking section containing all 4 lab cards.
+
+### Upcoming: Batch 3
+Source materials are ready in `ignoredocs/` for the following labs:
+*   **Lab 251 (Bash Shell Scripts):** PDF + markdown guide + 4 screenshots in `ignoredocs/linux/251/`.
+
 
 ## Critical Rules to Follow
 1.  **NO Em Dashes:** Never use the em dash "—" in any generated content. Use standard hyphens "-", colons ":", commas ",", or parentheses `()` instead.
