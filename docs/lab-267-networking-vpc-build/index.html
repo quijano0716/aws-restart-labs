@@ -227,80 +227,101 @@
       max-width: 75ch;
     }
 
-    /* ── Architecture Cards Framework ── */
-    .arch-grid {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 1.5rem;
-        margin-top: 2rem;
+    /* ── Grids ── */
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1rem;
     }
 
-    .arch-card {
-        background: var(--card);
-        border: 1px solid var(--border);
-        border-radius: var(--radius);
-        padding: 1.5rem;
-        box-shadow: var(--shadow);
-        position: relative;
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
     }
 
-    .arch-icon {
-        width: 48px;
-        height: 48px;
-        border-radius: 14px;
-        background: linear-gradient(135deg, rgba(255, 153, 0, 0.2), rgba(255, 153, 0, 0.05));
-        border: 1px solid rgba(255, 153, 0, 0.3);
-        display: grid;
-        place-items: center;
-        margin-bottom: 1rem;
-        color: var(--accent);
-        font-weight: 800;
-        font-size: 1.2rem;
+    .card {
+      padding: 1.3rem;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
     }
 
-    .arch-card.layer-2 .arch-icon {
-        background: linear-gradient(135deg, rgba(56, 189, 248, 0.2), rgba(56, 189, 248, 0.05));
-        border-color: rgba(56, 189, 248, 0.3);
-        color: var(--accent-2);
+    .card h3 {
+      font-size: 1.05rem;
+      margin-bottom: 0.6rem;
     }
 
-    .arch-card h3 {
-        font-size: 1.3rem;
-        margin-bottom: 0.5rem;
+    .card p {
+      margin: 0;
+      color: #cbd5e1;
     }
 
-    .arch-card p {
-        color: #94a3b8;
-        font-size: 0.95rem;
-        margin-bottom: 1rem;
+    /* ── Timeline ── */
+    .timeline {
+      display: grid;
+      gap: 1rem;
+      margin-top: 1rem;
     }
 
-    .prop-list {
-        display: grid;
-        gap: 0.5rem;
-        font-size: 0.9rem;
+    .step {
+      display: grid;
+      grid-template-columns: 90px 1fr;
+      gap: 1rem;
+      align-items: start;
+      padding: 1.25rem;
+      border-radius: 22px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: var(--shadow);
     }
 
-    .prop-row {
-        display: flex;
-        justify-content: space-between;
-        padding: 0.5rem 0.8rem;
-        background: rgba(0,0,0,0.2);
-        border-radius: 8px;
-        border: 1px solid rgba(255,255,255,0.05);
+    .step-num {
+      width: 72px;
+      height: 72px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, rgba(255, 153, 0, 0.18), rgba(56, 189, 248, 0.18));
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      display: grid;
+      place-items: center;
+      font-size: 1.1rem;
+      font-weight: 900;
+      color: #fff;
     }
 
-    .prop-row span:last-child {
-        color: #e2e8f0;
-        font-family: monospace;
-        font-weight: 600;
+    .step h3 {
+      margin-bottom: 0.55rem;
+      font-size: 1.2rem;
+    }
+
+    .step p {
+      color: #cbd5e1;
+    }
+
+    .step ul {
+      margin: 0.3rem 0 1rem;
+      padding-left: 1.1rem;
+      color: #dbe4f0;
+    }
+
+    .step li+li {
+      margin-top: 0.4rem;
+    }
+
+    .highlight {
+      color: #ffd28a;
+      font-weight: 700;
     }
 
     /* ── Screenshots ── */
     .screenshot-gallery {
       display: grid;
       gap: 0.8rem;
-      margin-top: 1.5rem;
+    }
+
+    .screenshot-gallery.cols-2 {
+      grid-template-columns: repeat(2, 1fr);
     }
 
     .screenshot-fig {
@@ -324,8 +345,8 @@
       border-top: 1px solid rgba(255, 255, 255, 0.08);
     }
 
-     /* ── Callouts ── */
-     .insight {
+    /* ── Callouts ── */
+    .insight {
       padding: 1.15rem 1.2rem;
       border-left: 4px solid var(--accent);
       border-radius: 16px;
@@ -338,24 +359,6 @@
       background: rgba(56, 189, 248, 0.08);
       color: #d8f3ff;
       margin-top: 1rem;
-    }
-
-    /* ── Code ── */
-    code {
-      background: rgba(255, 255, 255, 0.1);
-      padding: 0.15rem 0.4rem;
-      border-radius: 6px;
-      font-size: 0.9em;
-      font-family: "Cascadia Code", "Fira Code", monospace;
-    }
-
-    pre code {
-        display: block;
-        padding: 1rem;
-        background: #020617;
-        border-radius: 12px;
-        border: 1px solid rgba(255,255,255,0.08);
-        overflow-x: auto;
     }
 
     /* ── Checklist ── */
@@ -387,10 +390,30 @@
       font-weight: 800;
     }
 
+    /* ── Code ── */
+    code {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 0.15rem 0.4rem;
+      border-radius: 6px;
+      font-size: 0.9em;
+      font-family: "Cascadia Code", "Fira Code", monospace;
+    }
+
+    pre code {
+        display: block;
+        padding: 1rem;
+        background: #020617;
+        border-radius: 12px;
+        border: 1px solid rgba(255,255,255,0.08);
+        overflow-x: auto;
+    }
+
     /* ── Responsive ── */
     @media (max-width: 920px) {
       .hero-grid,
-      .arch-grid {
+      .grid-3,
+      .grid-2,
+      .screenshot-gallery.cols-2 {
         grid-template-columns: 1fr;
       }
     }
@@ -399,6 +422,16 @@
       .nav-inner {
         flex-direction: column;
         align-items: flex-start;
+      }
+
+      .step {
+        grid-template-columns: 1fr;
+      }
+
+      .step-num {
+        width: 60px;
+        height: 60px;
+        border-radius: 16px;
       }
     }
   </style>
@@ -413,8 +446,8 @@
       </div>
       <div class="nav-links">
         <a href="../index.html" class="back-link">← All Labs</a>
-        <a href="#architecture">Architecture</a>
-        <a href="#deployment">Deployment</a>
+        <a href="#summary">Summary</a>
+        <a href="#process">Build Process</a>
         <a href="#learnings">Learnings</a>
       </div>
     </div>
@@ -423,20 +456,19 @@
   <header class="hero">
     <div class="container hero-grid">
       <div class="panel hero-main">
-        <div class="eyebrow">AWS re/Start Lab · Network Construction</div>
+        <div class="eyebrow">AWS re/Start Lab · Networking</div>
         <h1>Build Your VPC and Launch a Web Server</h1>
         <p>
-          This foundational lab outlines the process of building an entire Virtual Private Cloud (VPC) 
-          architecture from scratch to satisfy a Fortune 100 customer design request. It combines 
+          This lab outlines the process of building an entire Virtual Private Cloud (VPC) 
+          architecture from scratch to satisfy a customer design request. It combines 
           routing, security perimeters, and automated EC2 bootstrapping.
         </p>
-
       </div>
 
       <aside class="panel hero-side">
         <div class="callout">
           <strong>Lab Objective</strong>
-          Create a VPC, configure public/private subnets across multiple Availability Zones, provision a Security Group, and automatically deploy an Apache Web Server upon boot.
+          Create a VPC, configure public/private subnets within a single Availability Zone, provision a Security Group, and automatically deploy an Apache Web Server upon boot.
         </div>
 
         <div>
@@ -450,89 +482,66 @@
         </div>
 
         <div class="callout" style="border-color: rgba(56,189,248,0.2); background: rgba(56,189,248,0.08);">
-          <strong>Key Insight</strong>
-          A subnet is defined as "Public" entirely by its association with a Route Table that has a route (<code>0.0.0.0/0</code>) directed to an Internet Gateway (IGW).
+          <strong>Key Note on AZs</strong>
+          Although VPC architecture often uses multiple Availability Zones for High Availability, all resources (Public Subnets 1 & 2, Private Subnets 1 & 2) in this lab were deliberately deployed to a single Availability Zone (us-west-2a).
         </div>
       </aside>
     </div>
   </header>
 
   <main>
-    <section id="architecture">
+    <section id="summary">
       <div class="container">
-        <h2 class="section-title">Network Architecture Configuration</h2>
+        <h2 class="section-title">Lab Summary</h2>
         <p class="section-subtitle">
-          The network was built in two phases: utilizing the AWS "VPC and more" wizard for the initial foundation, 
-          then manually provisioning redundant subnets across a secondary Availability Zone.
+          The network was built starting from the VPC base CIDR block, moving down to subnet allocation, assigning route tables, securing with a Security Group, and finally launching compute resources into the custom network.
         </p>
-
-        <div class="arch-grid">
-            <div class="arch-card">
-                <div class="arch-icon">VPC</div>
-                <h3>The Gateway & Foundation</h3>
-                <p>Establishing the global boundaries for the isolated cloud infrastructure using the visual VPC Wizard.</p>
-                <div class="prop-list">
-                    <div class="prop-row"><span>VPC Name</span><span>Lab VPC</span></div>
-                    <div class="prop-row"><span>IPv4 CIDR</span><span>10.0.0.0/16</span></div>
-                    <div class="prop-row"><span>Internet Gateway</span><span>Attached</span></div>
-                </div>
-            </div>
-
-            <div class="arch-card layer-2">
-                <div class="arch-icon">AZ1</div>
-                <h3>Availability Zone 1 (us-west-2a)</h3>
-                <p>The primary subnets created via the wizard during the VPC initialization.</p>
-                <div class="prop-list">
-                    <div class="prop-row"><span>Public Subnet 1</span><span>10.0.0.0/24</span></div>
-                    <div class="prop-row"><span>Private Subnet 1</span><span>10.0.1.0/24</span></div>
-                    <div class="prop-row"><span>Routing</span><span>Implicitly Mapped</span></div>
-                </div>
-            </div>
-
-            <div class="arch-card layer-2">
-                <div class="arch-icon">AZ2</div>
-                <h3>Availability Zone 2 (us-west-2b)</h3>
-                <p>Secondary subnets created manually to ensure High Availability (HA) failover capabilities.</p>
-                <div class="prop-list">
-                    <div class="prop-row"><span>Public Subnet 2</span><span>10.0.2.0/24</span></div>
-                    <div class="prop-row"><span>Private Subnet 2</span><span>10.0.3.0/24</span></div>
-                    <div class="prop-row"><span>Routing</span><span>Explicitly Mapped</span></div>
-                </div>
-            </div>
-
-            <div class="arch-card">
-                <div class="arch-icon">SG</div>
-                <h3>Security Perimeter</h3>
-                <p>A VPC-level instance firewall explicitly defining the allowed protocols entering the web subnets.</p>
-                <div class="prop-list">
-                    <div class="prop-row"><span>Name</span><span>Web Security Group</span></div>
-                    <div class="prop-row"><span>Type</span><span>Inbound IPv4 HTTP</span></div>
-                    <div class="prop-row"><span>Source Traffic</span><span>Anywhere (0.0.0.0/0)</span></div>
-                </div>
-            </div>
-        </div>
-
-        <div class="screenshot-gallery">
-            <figure class="screenshot-fig">
-                <img src="assets/screenshots/01-vpc-workflow.jpg" alt="VPC Creation Workflow" loading="lazy">
-                <figcaption>AWS Console: The "VPC and more" workflow successfully generating the base foundation (Gateways, Route Tables, and primary Subnets).</figcaption>
-            </figure>
-        </div>
-
       </div>
     </section>
 
-    <section id="deployment">
+    <section id="process">
       <div class="container">
-        <h2 class="section-title">Web Server Deployment</h2>
-        <p class="section-subtitle">
-          With the networking structure complete, a compute instance was injected into the Public Subnet 2.
-        </p>
+        <h2 class="section-title">Build Process</h2>
 
-        <div class="insight info" style="margin-bottom: 1.5rem">
-            <strong>Bootstrapping with User Data:</strong> Rather than logging in via SSH to manually configure the server, a bash script was supplied at launch to automate the installation of Apache Web Server and deploy the lab application immediately on boot.
-        </div>
+        <div class="timeline">
 
+          <article class="step">
+            <div class="step-num">01</div>
+            <div>
+              <h3>Provisioning the Base VPC & Subnets</h3>
+              <p>The foundation was established using the AWS "VPC and more" wizard, which automatically handled the creation of the primary routing resources.</p>
+              <ul>
+                <li><strong>VPC:</strong> Lab VPC (IPv4 CIDR: 10.0.0.0/16)</li>
+                <li><strong>Availability Zone:</strong> 1 AZ</li>
+                <li><strong>Primary Subnets:</strong> 1 Public Subnet, 1 Private Subnet in us-west-2a.</li>
+                <li>Created additional subnets manually (Public Subnet 2, Private Subnet 2), all located in the exact same Availability Zone (us-west-2a) rather than splitting across multiple AZs.</li>
+              </ul>
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/01-vpc-workflow.jpg" alt="VPC Creation Workflow" loading="lazy" />
+                  <figcaption>AWS Console: The initial "VPC and more" workflow generating the base foundation (Gateways, Route Tables, and primary Subnets).</figcaption>
+                </figure>
+              </div>
+            </div>
+          </article>
+
+          <article class="step">
+            <div class="step-num">02</div>
+            <div>
+              <h3>Configuring the Security Group</h3>
+              <p>Before launching instances, a virtual firewall was defined to protect the web tier.</p>
+              <ul>
+                <li>Created the <strong>Web Security Group</strong> specifically attached to the <strong>Lab VPC</strong>.</li>
+                <li>Added an Inbound Rule for <strong>HTTP</strong> traffic from <strong>Anywhere IPv4 (0.0.0.0/0)</strong>.</li>
+              </ul>
+            </div>
+          </article>
+
+          <article class="step">
+            <div class="step-num">03</div>
+            <div>
+              <h3>Bootstrapping the Web Server via EC2 User Data</h3>
+              <p>An EC2 instance was launched directly into the newly created <strong>Public Subnet 2</strong>. To automate the software setup, a startup bash script was provided in the Advanced Details section.</p>
 <pre><code>#!/bin/bash
 # Install Apache Web Server and dependencies
 yum install -y httpd mysql php
@@ -541,43 +550,64 @@ yum install -y httpd mysql php
 wget https://aws-tc-[...]/lab-app.zip
 unzip lab-app.zip -d /var/www/html/
 
-# Turn on web server daemon and ensure it survives reboots
+# Turn on web server daemon
 chkconfig httpd on
 service httpd start</code></pre>
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/02-ec2-network-settings.jpg" alt="EC2 Network Placement" loading="lazy" />
+                  <figcaption>AWS Console: Explicitly placing the EC2 instance inside the custom Lab VPC rather than the default VPC, and assigning the Web Security Group. Note the placement in us-west-2a.</figcaption>
+                </figure>
+              </div>
+            </div>
+          </article>
 
-        <div class="screenshot-gallery" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; align-items: start; margin-top: 1.5rem;">
-            <figure class="screenshot-fig">
-                <img src="assets/screenshots/02-ec2-network-settings.jpg" alt="EC2 Network Placement" loading="lazy">
-                <figcaption>AWS Console: Explicitly placing the EC2 instance inside the custom Lab VPC rather than the default VPC, and assigning the Web Security Group.</figcaption>
-            </figure>
-            <figure class="screenshot-fig">
-                <img src="assets/screenshots/03-final-webserver.jpg" alt="Web App Test" loading="lazy">
-                <figcaption>Browser: The custom web application loaded via the EC2 Public IPv4 DNS, confirming public routing and HTTP authorization succeeded.</figcaption>
-            </figure>
+          <article class="step">
+            <div class="step-num">04</div>
+            <div>
+              <h3>Final Verification</h3>
+              <p>After the automated installation completed, passing the 2/2 status checks, the server was tested via its Public IPv4 DNS.</p>
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/03-final-webserver.jpg" alt="Web App Test" loading="lazy" />
+                  <figcaption>Browser: The custom web application loaded successfully, displaying the Metadata confirming its underlying location in us-west-2a.</figcaption>
+                </figure>
+              </div>
+            </div>
+          </article>
+
         </div>
-
       </div>
     </section>
 
     <section id="learnings">
       <div class="container">
         <h2 class="section-title">Key Learnings</h2>
-        
-        <div class="checklist">
-            <div class="check">
-            <div class="check-mark">✓</div>
-            <div><strong>Multi-AZ Deployments:</strong> Creating subnets across multiple Availability Zones protects architectures against data center failures. Subnets cannot span multiple AZs by definition.</div>
+        <div class="grid-2">
+          <div class="card">
+            <h3>Technical Concepts</h3>
+            <div class="checklist">
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div><strong>Route Table Associations:</strong> Creating a subnet is not enough. You must manually associate new subnets with the correct Route Table (Public vs. Private) for them to inherit internet accessibility.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div><strong>Automation via User Data:</strong> Sending scripts via <code>User Data</code> on EC2 launch eliminates the need for manual SSH sessions when setting up web servers.</div>
+              </div>
             </div>
-            <div class="check">
-            <div class="check-mark">✓</div>
-            <div><strong>Route Table Associations:</strong> Creating a subnet is not enough. You must manually associate new subnets with the correct Route Table (Public vs. Private) for them to inherit internet accessibility.</div>
-            </div>
-            <div class="check">
-            <div class="check-mark">✓</div>
-            <div><strong>Automation via User Data:</strong> Sending scripts via <code>User Data</code> on EC2 launch eliminates the need for manual SSH sessions when setting up identical fleets of web servers.</div>
-            </div>
-        </div>
+          </div>
 
+          <div class="card">
+            <h3>Architecture Insight</h3>
+            <p>
+              While this lab successfully built a functioning web architecture, it prioritized simplicity by housing all subnets and instances into <span class="highlight">a single Availability Zone (us-west-2a)</span>. 
+            </p>
+            <p style="margin-top: 1rem;">
+              In a true production environment for a Fortune 100 client, these subnets should be distributed across multiple Availability Zones to ensure High Availability and fault tolerance against localized data center outages.
+            </p>
+          </div>
+        </div>
       </div>
     </section>
   </main>
