@@ -23,13 +23,8 @@
       --max: 1120px;
     }
 
-    * {
-      box-sizing: border-box;
-    }
-
-    html {
-      scroll-behavior: smooth;
-    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
 
     body {
       margin: 0;
@@ -42,17 +37,13 @@
       line-height: 1.65;
     }
 
-    a {
-      color: inherit;
-      text-decoration: none;
-    }
+    a { color: inherit; text-decoration: none; }
 
     .container {
       width: min(var(--max), calc(100% - 2rem));
       margin: 0 auto;
     }
 
-    /* ── Nav ── */
     .nav {
       position: sticky;
       top: 0;
@@ -98,9 +89,7 @@
       font-size: 0.95rem;
     }
 
-    .nav-links a:hover {
-      color: var(--text);
-    }
+    .nav-links a:hover { color: var(--text); }
 
     .back-link {
       display: inline-flex;
@@ -111,14 +100,9 @@
       transition: color 0.2s;
     }
 
-    .back-link:hover {
-      color: var(--accent);
-    }
+    .back-link:hover { color: var(--accent); }
 
-    /* ── Hero ── */
-    .hero {
-      padding: 4.8rem 0 2rem;
-    }
+    .hero { padding: 4.8rem 0 2rem; }
 
     .hero-grid {
       display: grid;
@@ -134,9 +118,7 @@
       box-shadow: var(--shadow);
     }
 
-    .hero-main {
-      padding: 2rem;
-    }
+    .hero-main { padding: 2rem; }
 
     .eyebrow {
       display: inline-flex;
@@ -151,9 +133,7 @@
       margin-bottom: 1rem;
     }
 
-    h1,
-    h2,
-    h3 {
+    h1, h2, h3 {
       line-height: 1.15;
       letter-spacing: -0.03em;
       margin: 0;
@@ -211,10 +191,7 @@
       color: var(--muted);
     }
 
-    /* ── Sections ── */
-    section {
-      padding: 1rem 0 0.4rem;
-    }
+    section { padding: 1rem 0 0.4rem; }
 
     .section-title {
       margin-bottom: 1rem;
@@ -227,7 +204,6 @@
       max-width: 75ch;
     }
 
-    /* ── Grids ── */
     .grid-3 {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -258,7 +234,6 @@
       color: #cbd5e1;
     }
 
-    /* ── Timeline ── */
     .timeline {
       display: grid;
       gap: 1rem;
@@ -300,24 +275,22 @@
     }
 
     .step ul {
-      margin: 0.3rem 0 1rem;
+      margin: 0.3rem 0 0;
       padding-left: 1.1rem;
       color: #dbe4f0;
     }
 
-    .step li+li {
-      margin-top: 0.4rem;
-    }
+    .step li+li { margin-top: 0.4rem; }
 
     .highlight {
       color: #ffd28a;
       font-weight: 700;
     }
 
-    /* ── Screenshots ── */
     .screenshot-gallery {
       display: grid;
       gap: 0.8rem;
+      margin-top: 1rem;
     }
 
     .screenshot-gallery.cols-2 {
@@ -345,7 +318,6 @@
       border-top: 1px solid rgba(255, 255, 255, 0.08);
     }
 
-    /* ── Callouts ── */
     .insight {
       padding: 1.15rem 1.2rem;
       border-left: 4px solid var(--accent);
@@ -358,10 +330,43 @@
       border-left-color: var(--accent-2);
       background: rgba(56, 189, 248, 0.08);
       color: #d8f3ff;
-      margin-top: 1rem;
     }
 
-    /* ── Checklist ── */
+    .warning {
+      border-left-color: #ef4444;
+      background: rgba(239, 68, 68, 0.08);
+      color: #fecaca;
+    }
+
+    .config-card {
+      margin-top: 1rem;
+      padding: 1.2rem;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+    }
+
+    .config-card .config-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      font-size: 0.92rem;
+    }
+
+    .config-card .config-row:last-child {
+      border-bottom: none;
+    }
+
+    .config-card .config-label {
+      color: var(--muted);
+    }
+
+    .config-card .config-value {
+      font-family: "Cascadia Code", "Fira Code", monospace;
+      color: #93c5fd;
+    }
+
     .checklist {
       display: grid;
       gap: 0.7rem;
@@ -390,7 +395,6 @@
       font-weight: 800;
     }
 
-    /* ── Code ── */
     code {
       background: rgba(255, 255, 255, 0.1);
       padding: 0.15rem 0.4rem;
@@ -400,21 +404,65 @@
     }
 
     pre code {
-        display: block;
-        padding: 1rem;
-        background: #020617;
-        border-radius: 12px;
-        border: 1px solid rgba(255,255,255,0.08);
-        overflow-x: auto;
+      display: block;
+      padding: 1rem;
+      background: #020617;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      overflow-x: auto;
     }
 
-    /* ── Responsive ── */
+    /* -- Script Comparison -- */
+    .script-compare {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      margin-top: 1rem;
+    }
+
+    .script-compare .script-col {
+      padding: 1.2rem;
+    }
+
+    .script-compare .script-col:first-child {
+      background: rgba(239, 68, 68, 0.06);
+      border-right: 1px solid var(--border);
+    }
+
+    .script-compare .script-col:last-child {
+      background: rgba(34, 197, 94, 0.06);
+    }
+
+    .script-compare h4 {
+      margin: 0 0 0.5rem;
+      font-size: 1rem;
+    }
+
+    .script-compare pre code {
+      font-size: 0.82em;
+    }
+
+    .footer {
+      padding: 2.2rem 0 3.5rem;
+      color: var(--muted);
+      text-align: center;
+    }
+
     @media (max-width: 920px) {
       .hero-grid,
       .grid-3,
       .grid-2,
-      .screenshot-gallery.cols-2 {
+      .screenshot-gallery.cols-2,
+      .script-compare {
         grid-template-columns: 1fr;
+      }
+
+      .script-compare .script-col:first-child {
+        border-right: none;
+        border-bottom: 1px solid var(--border);
       }
     }
 
@@ -447,7 +495,7 @@
       <div class="nav-links">
         <a href="../index.html" class="back-link">← All Labs</a>
         <a href="#summary">Summary</a>
-        <a href="#process">Build Process</a>
+        <a href="#walkthrough">Walkthrough</a>
         <a href="#learnings">Learnings</a>
       </div>
     </div>
@@ -459,31 +507,34 @@
         <div class="eyebrow">AWS re/Start Lab · Networking</div>
         <h1>Build Your VPC and Launch a Web Server</h1>
         <p>
-          This lab outlines the process of building an entire Virtual Private Cloud (VPC) 
-          architecture from scratch to satisfy a customer design request. It combines 
-          routing, security perimeters, and automated EC2 bootstrapping.
+          This lab covers the full process of building a VPC from scratch, configuring subnets
+          and route tables, creating a security group, and launching an EC2 instance with a
+          User Data script to automatically deploy an Apache web server.
         </p>
       </div>
 
       <aside class="panel hero-side">
         <div class="callout">
           <strong>Lab Objective</strong>
-          Create a VPC, configure public/private subnets within a single Availability Zone, provision a Security Group, and automatically deploy an Apache Web Server upon boot.
+          Create a VPC with public/private subnets, configure routing and security, and launch
+          a web server instance that is publicly accessible via HTTP.
         </div>
 
         <div>
           <div class="small" style="margin-bottom:0.7rem;">Tools & Concepts</div>
           <div class="tech-stack">
             <span class="chip">Amazon VPC</span>
-            <span class="chip">Subnets & Routing</span>
+            <span class="chip">Subnets</span>
+            <span class="chip">Route Tables</span>
             <span class="chip">Security Groups</span>
             <span class="chip">EC2 User Data</span>
           </div>
         </div>
 
-        <div class="callout" style="border-color: rgba(56,189,248,0.2); background: rgba(56,189,248,0.08);">
-          <strong>Key Note on AZs</strong>
-          Although VPC architecture often uses multiple Availability Zones for High Availability, all resources (Public Subnets 1 & 2, Private Subnets 1 & 2) in this lab were deliberately deployed to a single Availability Zone (us-west-2a).
+        <div class="callout" style="border-color: rgba(255,153,0,0.25); background: rgba(255,153,0,0.08);">
+          <strong>Issue Encountered</strong>
+          The guide's User Data script was written for Amazon Linux 2 but the lab environment
+          provided Amazon Linux 2023. This required debugging and rewriting the script.
         </div>
       </aside>
     </div>
@@ -494,83 +545,206 @@
       <div class="container">
         <h2 class="section-title">Lab Summary</h2>
         <p class="section-subtitle">
-          The network was built starting from the VPC base CIDR block, moving down to subnet allocation, assigning route tables, securing with a Security Group, and finally launching compute resources into the custom network.
+          Built a complete VPC architecture using the <span class="highlight">"VPC and more"</span> wizard,
+          then manually added additional subnets, configured a Security Group for HTTP access,
+          and launched an EC2 web server. The original User Data script failed due to an AMI mismatch,
+          which was resolved by adapting the script for Amazon Linux 2023.
         </p>
+
+        <div class="grid-3" style="margin-top:1rem;">
+          <article class="card">
+            <h3>VPC Foundation</h3>
+            <p>Created <strong>Lab VPC</strong> (10.0.0.0/16) with the wizard, which automatically provisioned
+              subnets, route tables, an Internet Gateway, and a NAT Gateway in a single Availability Zone.</p>
+          </article>
+          <article class="card">
+            <h3>Security & Subnets</h3>
+            <p>Added Public Subnet 2 and Private Subnet 2 manually. Associated them with the correct route tables.
+              Created <strong>Web Security Group</strong> allowing inbound HTTP from anywhere.</p>
+          </article>
+          <article class="card">
+            <h3>Deployment & Debugging</h3>
+            <p>Launched an EC2 instance with User Data automation. The initial script failed due to an AMI version
+              mismatch. After diagnosing via instance logs, a corrected script was applied successfully.</p>
+          </article>
+        </div>
       </div>
     </section>
 
-    <section id="process">
+    <section id="walkthrough">
       <div class="container">
-        <h2 class="section-title">Build Process</h2>
+        <h2 class="section-title">Step-by-Step Walkthrough</h2>
+        <p class="section-subtitle">
+          Documentation of the VPC construction process and the troubleshooting required to get the web server running.
+        </p>
 
         <div class="timeline">
 
+          <!-- Task 1: Create VPC -->
           <article class="step">
             <div class="step-num">01</div>
             <div>
-              <h3>Provisioning the Base VPC & Subnets</h3>
-              <p>The foundation was established using the AWS "VPC and more" wizard, which automatically handled the creation of the primary routing resources.</p>
+              <h3>Create the VPC using the wizard</h3>
               <ul>
-                <li><strong>VPC:</strong> Lab VPC (IPv4 CIDR: 10.0.0.0/16)</li>
-                <li><strong>Availability Zone:</strong> 1 AZ</li>
-                <li><strong>Primary Subnets:</strong> 1 Public Subnet, 1 Private Subnet in us-west-2a.</li>
-                <li>Created additional subnets manually (Public Subnet 2, Private Subnet 2), all located in the exact same Availability Zone (us-west-2a) rather than splitting across multiple AZs.</li>
+                <li>Navigated to <strong>VPC > Create VPC</strong> and selected <strong>VPC and more</strong>.</li>
+                <li>Unchecked <strong>Auto-generate</strong> for name tags to name resources manually.</li>
+                <li>Configured: IPv4 CIDR <code>10.0.0.0/16</code>, <strong>1 Availability Zone</strong>,
+                    1 public subnet, 1 private subnet, NAT Gateway in 1 AZ.</li>
+                <li>Named resources in the Preview pane: <strong>Lab VPC</strong>, <strong>Public Subnet 1</strong>,
+                    <strong>Private Subnet 1</strong>, <strong>Public Route Table</strong>, <strong>Private Route Table</strong>.</li>
               </ul>
-              <div class="screenshot-gallery">
+
+              <div class="config-card">
+                <div class="config-row"><span class="config-label">VPC Name</span><span class="config-value">Lab VPC</span></div>
+                <div class="config-row"><span class="config-label">IPv4 CIDR</span><span class="config-value">10.0.0.0/16</span></div>
+                <div class="config-row"><span class="config-label">Public Subnet 1</span><span class="config-value">10.0.0.0/24 (us-west-2a)</span></div>
+                <div class="config-row"><span class="config-label">Private Subnet 1</span><span class="config-value">10.0.1.0/24 (us-west-2a)</span></div>
+                <div class="config-row"><span class="config-label">Internet Gateway</span><span class="config-value">Attached</span></div>
+                <div class="config-row"><span class="config-label">NAT Gateway</span><span class="config-value">In 1 AZ</span></div>
+              </div>
+
+              <div class="screenshot-gallery" style="margin-top: 1rem;">
                 <figure class="screenshot-fig">
                   <img src="assets/screenshots/01-vpc-workflow.jpg" alt="VPC Creation Workflow" loading="lazy" />
-                  <figcaption>AWS Console: The initial "VPC and more" workflow generating the base foundation (Gateways, Route Tables, and primary Subnets).</figcaption>
+                  <figcaption>AWS Console: The "Create VPC workflow" generating the base resources — VPC, subnets, Internet Gateway, route tables,
+                    and NAT Gateway.</figcaption>
                 </figure>
               </div>
             </div>
           </article>
 
+          <!-- Task 2: Additional subnets -->
           <article class="step">
             <div class="step-num">02</div>
             <div>
-              <h3>Configuring the Security Group</h3>
-              <p>Before launching instances, a virtual firewall was defined to protect the web tier.</p>
+              <h3>Create additional subnets and associate route tables</h3>
               <ul>
-                <li>Created the <strong>Web Security Group</strong> specifically attached to the <strong>Lab VPC</strong>.</li>
-                <li>Added an Inbound Rule for <strong>HTTP</strong> traffic from <strong>Anywhere IPv4 (0.0.0.0/0)</strong>.</li>
+                <li>Created <strong>Public Subnet 2</strong> (CIDR: <code>10.0.2.0/24</code>) with Availability Zone set
+                    to <strong>No preference</strong>.</li>
+                <li>Created <strong>Private Subnet 2</strong> (CIDR: <code>10.0.3.0/24</code>) with Availability Zone set
+                    to <strong>No preference</strong>.</li>
+                <li>Associated <strong>Public Subnet 2</strong> with the <strong>Public Route Table</strong>
+                    (which has the 0.0.0.0/0 route to the Internet Gateway).</li>
+                <li>Associated <strong>Private Subnet 2</strong> with the <strong>Private Route Table</strong>.</li>
               </ul>
-            </div>
-          </article>
 
-          <article class="step">
-            <div class="step-num">03</div>
-            <div>
-              <h3>Bootstrapping the Web Server via EC2 User Data</h3>
-              <p>An EC2 instance was launched directly into the newly created <strong>Public Subnet 2</strong>. To automate the software setup, a startup bash script was provided in the Advanced Details section.</p>
-<pre><code>#!/bin/bash
-# Install Apache Web Server and dependencies
-yum install -y httpd mysql php
-
-# Download Lab files
-wget https://aws-tc-[...]/lab-app.zip
-unzip lab-app.zip -d /var/www/html/
-
-# Turn on web server daemon
-chkconfig httpd on
-service httpd start</code></pre>
-              <div class="screenshot-gallery">
-                <figure class="screenshot-fig">
-                  <img src="assets/screenshots/02-ec2-network-settings.jpg" alt="EC2 Network Placement" loading="lazy" />
-                  <figcaption>AWS Console: Explicitly placing the EC2 instance inside the custom Lab VPC rather than the default VPC, and assigning the Web Security Group. Note the placement in us-west-2a.</figcaption>
-                </figure>
+              <div class="insight info" style="margin-top:1rem;">
+                A subnet without an explicit route table association uses the VPC's <strong>main route table</strong> by default.
+                To make Public Subnet 2 public, it must be explicitly associated with a route table that directs
+                <code>0.0.0.0/0</code> traffic to the Internet Gateway.
               </div>
             </div>
           </article>
 
+          <!-- Task 3: Security Group -->
+          <article class="step">
+            <div class="step-num">03</div>
+            <div>
+              <h3>Create the Web Security Group</h3>
+              <ul>
+                <li>Navigated to <strong>VPC > Security Groups</strong> and created a new group.</li>
+                <li>Named it <strong>Web Security Group</strong> with description "Enable HTTP access", attached to <strong>Lab VPC</strong>.</li>
+                <li>Added an Inbound Rule: Type <strong>HTTP</strong>, Source <strong>Anywhere IPv4</strong> (0.0.0.0/0),
+                    Description: "Permit web requests".</li>
+              </ul>
+            </div>
+          </article>
+
+          <!-- Task 4: Launch EC2 + Troubleshooting -->
           <article class="step">
             <div class="step-num">04</div>
             <div>
-              <h3>Final Verification</h3>
-              <p>After the automated installation completed, passing the 2/2 status checks, the server was tested via its Public IPv4 DNS.</p>
-              <div class="screenshot-gallery">
+              <h3>Launch the web server instance</h3>
+              <ul>
+                <li>Created an EC2 instance named <strong>Web Server 1</strong> with <strong>Amazon Linux</strong> AMI, instance type <strong>t3.micro</strong>,
+                    key pair <strong>vockey</strong>.</li>
+                <li>Network settings: VPC <strong>Lab VPC</strong>, Subnet <strong>Public Subnet 2</strong>,
+                    Auto-assign public IP <strong>Enabled</strong>, Security Group <strong>Web Security Group</strong>.</li>
+                <li>Pasted the guide's User Data script and launched.</li>
+              </ul>
+
+              <div class="screenshot-gallery" style="margin-top: 1rem;">
                 <figure class="screenshot-fig">
-                  <img src="assets/screenshots/03-final-webserver.jpg" alt="Web App Test" loading="lazy" />
-                  <figcaption>Browser: The custom web application loaded successfully, displaying the Metadata confirming its underlying location in us-west-2a.</figcaption>
+                  <img src="assets/screenshots/02-ec2-network-settings.jpg" alt="EC2 Network Settings" loading="lazy" />
+                  <figcaption>EC2 Launch: Network settings placing the instance in Lab VPC / Public Subnet 2 (us-west-2a)
+                    with Web Security Group and auto-assigned public IP.</figcaption>
+                </figure>
+              </div>
+
+              <div class="insight warning" style="margin-top: 1rem;">
+                <strong>Problem:</strong> After the instance passed the 2/2 status checks, the web page did not load
+                via the Public IPv4 DNS — neither with HTTPS nor HTTP. Checking the instance log revealed that the
+                <strong>User Data script had failed</strong>.
+              </div>
+            </div>
+          </article>
+
+          <!-- Task 5: Debugging -->
+          <article class="step">
+            <div class="step-num">05</div>
+            <div>
+              <h3>Debugging the User Data script failure</h3>
+              <p>
+                The instance log showed that the <code>yum install -y httpd mysql php</code> command failed because
+                the AMI provided was <strong>Amazon Linux 2023</strong>, not <strong>Amazon Linux 2</strong> as the
+                guide assumed.
+              </p>
+              <ul>
+                <li>The <code>mysql</code> package does not exist in Amazon Linux 2023 repositories.</li>
+                <li>Because all three packages (<code>httpd</code>, <code>mysql</code>, <code>php</code>) were on
+                    a single <code>yum install</code> line, the failure of <code>mysql</code> caused <code>httpd</code>
+                    to not install either.</li>
+                <li>Without <code>httpd</code>, the directory <code>/var/www/html/</code> was never created.</li>
+                <li>The <code>unzip</code> command failed because the target directory did not exist.</li>
+                <li>The web server never started → no page was served.</li>
+              </ul>
+
+              <div class="script-compare">
+                <div class="script-col">
+                  <h4 style="color: #fca5a5;">❌ Original Script (AL2)</h4>
+<pre><code>#!/bin/bash
+yum install -y httpd mysql php
+wget https://aws-tc-[...]/lab-app.zip
+unzip lab-app.zip -d /var/www/html/
+chkconfig httpd on
+service httpd start</code></pre>
+                </div>
+                <div class="script-col">
+                  <h4 style="color: #86efac;">✅ Fixed Script (AL2023)</h4>
+<pre><code>#!/bin/bash
+dnf install -y httpd
+dnf install -y php
+wget https://aws-tc-[...]/lab-app.zip
+unzip lab-app.zip -d /var/www/html/
+systemctl enable httpd
+systemctl start httpd</code></pre>
+                </div>
+              </div>
+
+              <div class="insight" style="margin-top: 1rem;">
+                <strong>Key changes:</strong> Replaced <code>yum</code> with <code>dnf</code> (the default
+                package manager on AL2023), removed the <code>mysql</code> dependency (not needed for the lab app),
+                installed packages on separate lines to prevent cascading failures, and used <code>systemctl</code>
+                instead of <code>chkconfig</code>/<code>service</code>.
+              </div>
+            </div>
+          </article>
+
+          <!-- Task 6: Verification -->
+          <article class="step">
+            <div class="step-num">06</div>
+            <div>
+              <h3>Successful deployment</h3>
+              <p>
+                A new instance was launched with the corrected script. After reviewing the instance log and
+                confirming all commands executed successfully, the web application loaded correctly via the
+                Public IPv4 address.
+              </p>
+              <div class="screenshot-gallery" style="margin-top: 1rem;">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/03-final-webserver.jpg" alt="Web Application Success Page" loading="lazy" />
+                  <figcaption>Browser: The lab application loaded successfully at the EC2 public IP (54.213.40.213),
+                    displaying the instance metadata — InstanceId and Availability Zone (us-west-2a).</figcaption>
                 </figure>
               </div>
             </div>
@@ -583,29 +757,33 @@ service httpd start</code></pre>
     <section id="learnings">
       <div class="container">
         <h2 class="section-title">Key Learnings</h2>
-        <div class="grid-2">
-          <div class="card">
-            <h3>Technical Concepts</h3>
-            <div class="checklist">
-              <div class="check">
-                <div class="check-mark">✓</div>
-                <div><strong>Route Table Associations:</strong> Creating a subnet is not enough. You must manually associate new subnets with the correct Route Table (Public vs. Private) for them to inherit internet accessibility.</div>
-              </div>
-              <div class="check">
-                <div class="check-mark">✓</div>
-                <div><strong>Automation via User Data:</strong> Sending scripts via <code>User Data</code> on EC2 launch eliminates the need for manual SSH sessions when setting up web servers.</div>
-              </div>
+        <div class="checklist">
+          <div class="check">
+            <div class="check-mark">✓</div>
+            <div><strong>Route Table Associations:</strong> Creating a subnet is not enough. New subnets must be explicitly
+              associated with the correct route table (public or private) for them to inherit the expected internet behavior.
             </div>
           </div>
-
-          <div class="card">
-            <h3>Architecture Insight</h3>
-            <p>
-              While this lab successfully built a functioning web architecture, it prioritized simplicity by housing all subnets and instances into <span class="highlight">a single Availability Zone (us-west-2a)</span>. 
-            </p>
-            <p style="margin-top: 1rem;">
-              In a true production environment for a Fortune 100 client, these subnets should be distributed across multiple Availability Zones to ensure High Availability and fault tolerance against localized data center outages.
-            </p>
+          <div class="check">
+            <div class="check-mark">✓</div>
+            <div><strong>AMI Compatibility Matters:</strong> User Data scripts must match the target AMI. Amazon Linux 2023
+              uses <code>dnf</code> instead of <code>yum</code> and <code>systemctl</code> instead of <code>service</code>.
+              Always verify which AMI the lab environment provides.
+            </div>
+          </div>
+          <div class="check">
+            <div class="check-mark">✓</div>
+            <div><strong>Defensive Scripting:</strong> Installing packages on separate lines prevents a single missing package
+              from blocking the installation of all others. This is especially important for User Data scripts where there
+              is no interactive session to catch errors.
+            </div>
+          </div>
+          <div class="check">
+            <div class="check-mark">✓</div>
+            <div><strong>Instance Logs for Debugging:</strong> When a User Data script fails silently, the EC2 instance log
+              (<strong>Actions > Monitor and troubleshoot > Get system log</strong>) is the primary tool for diagnosing
+              what went wrong during boot.
+            </div>
           </div>
         </div>
       </div>
