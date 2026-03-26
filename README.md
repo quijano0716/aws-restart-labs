@@ -31,6 +31,7 @@ Technical documentation of hands-on labs completed during the **AWS re/Start** p
 | 245 | Managing Log Files             | Completed     |
 | 247 | Working with Commands          | Completed     |
 | 249 | The Bash Shell                 | Completed     |
+| 253 | Bash Shell Scripting Exercise  | Completed     |
 
 ### Networking
 
@@ -40,6 +41,9 @@ Technical documentation of hands-on labs completed during the **AWS re/Start** p
 | 262 | Internet Protocols: Static and Dynamic Addresses   | Completed |
 | 263 | Create Subnets and Allocate IPs in a VPC           | Completed |
 | 264 | Create VPC Resources for Internet Connectivity     | Completed |
+| 265 | Internet Protocol Troubleshooting Commands         | Completed |
+| 266 | Troubleshooting a Network Issue                    | Completed |
+| 267 | Build Your VPC and Launch a Web Server             | Completed |
 
 ---
 

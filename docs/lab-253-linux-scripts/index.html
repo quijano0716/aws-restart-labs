@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lab Report: Bash Shell Scripting Exercise</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --bg-soft: #111827;
+      --card: rgba(255, 255, 255, 0.08);
+      --card-strong: rgba(255, 255, 255, 0.12);
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --accent: #ff9900;
+      --accent-2: #38bdf8;
+      --ok: #22c55e;
+      --warn: #f59e0b;
+      --border: rgba(255, 255, 255, 0.12);
+      --shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+      --radius: 22px;
+      --max: 1120px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(255, 153, 0, 0.16), transparent 28%),
+        radial-gradient(circle at top right, rgba(56, 189, 248, 0.14), transparent 24%),
+        linear-gradient(180deg, #020617 0%, #0f172a 48%, #111827 100%);
+      color: var(--text);
+      line-height: 1.65;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .container {
+      width: min(var(--max), calc(100% - 2rem));
+      margin: 0 auto;
+    }
+
+    /* ── Nav ── */
+    .nav {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      backdrop-filter: blur(16px);
+      background: rgba(2, 6, 23, 0.72);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .nav-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.9rem 0;
+      gap: 1rem;
+    }
+
+    .brand {
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+    }
+
+    .brand-badge {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, var(--accent), #ffb84d);
+      color: #111827;
+      font-weight: 900;
+      box-shadow: var(--shadow);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .nav-links a:hover {
+      color: var(--text);
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      color: var(--muted);
+      font-size: 0.9rem;
+      transition: color 0.2s;
+    }
+
+    .back-link:hover {
+      color: var(--accent);
+    }
+
+    /* ── Hero ── */
+    .hero {
+      padding: 4.8rem 0 2rem;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 1.5rem;
+      align-items: stretch;
+    }
+
+    .panel {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.05));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .hero-main {
+      padding: 2rem;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.45rem 0.8rem;
+      border-radius: 999px;
+      background: rgba(255, 153, 0, 0.12);
+      color: #ffd28a;
+      border: 1px solid rgba(255, 153, 0, 0.25);
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+    }
+
+    h1,
+    h2,
+    h3 {
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+      margin: 0;
+    }
+
+    h1 {
+      font-size: clamp(2rem, 4vw, 3.7rem);
+      margin-bottom: 0.9rem;
+    }
+
+    .hero-main p {
+      margin: 0;
+      color: #cbd5e1;
+      font-size: 1.05rem;
+      max-width: 65ch;
+    }
+
+    .hero-side {
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .hero-side .callout {
+      padding: 1rem 1.1rem;
+      border-radius: 18px;
+      border: 1px solid rgba(56, 189, 248, 0.18);
+      background: rgba(56, 189, 248, 0.08);
+    }
+
+    .hero-side .callout strong {
+      display: block;
+      margin-bottom: 0.35rem;
+    }
+
+    .tech-stack {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.55rem;
+    }
+
+    .chip {
+      padding: 0.45rem 0.75rem;
+      border-radius: 999px;
+      font-size: 0.88rem;
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #dbeafe;
+    }
+
+    .small {
+      font-size: 0.92rem;
+      color: var(--muted);
+    }
+
+    /* ── Sections ── */
+    section {
+      padding: 1rem 0 0.4rem;
+    }
+
+    .section-title {
+      margin-bottom: 1rem;
+      font-size: clamp(1.5rem, 2vw, 2.2rem);
+    }
+
+    .section-subtitle {
+      color: var(--muted);
+      margin-top: 0.45rem;
+      max-width: 75ch;
+    }
+
+    /* ── Grids ── */
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .card {
+      padding: 1.3rem;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+    }
+
+    .card h3 {
+      font-size: 1.05rem;
+      margin-bottom: 0.6rem;
+    }
+
+    .card p {
+      margin: 0;
+      color: #cbd5e1;
+    }
+
+    /* ── Code Display ── */
+    .code-block-wrapper {
+        margin: 1.5rem 0;
+        background: #020617;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        overflow: hidden;
+    }
+    
+    .code-header {
+      background: rgba(255, 255, 255, 0.06);
+      padding: 0.5rem 1rem;
+      font-size: 0.85rem;
+      color: var(--muted);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      font-family: monospace;
+    }
+
+    .code-block {
+        padding: 1.5rem;
+        margin: 0;
+        overflow-x: auto;
+        color: #e2e8f0;
+        font-family: "Cascadia Code", "Fira Code", monospace;
+        font-size: 0.95rem;
+        line-height: 1.6;
+    }
+
+    .token-keyword { color: #818cf8; }
+    .token-string { color: #a3e635; }
+    .token-var { color: #f472b6; }
+    .token-comment { color: #64748b; font-style: italic; }
+    .token-command { color: #38bdf8; }
+
+    /* ── Timeline ── */
+    .timeline {
+      display: grid;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .step {
+      display: grid;
+      grid-template-columns: 90px 1fr;
+      gap: 1rem;
+      align-items: start;
+      padding: 1.25rem;
+      border-radius: 22px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: var(--shadow);
+    }
+
+    .step-num {
+      width: 72px;
+      height: 72px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, rgba(255, 153, 0, 0.18), rgba(56, 189, 248, 0.18));
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      display: grid;
+      place-items: center;
+      font-size: 1.1rem;
+      font-weight: 900;
+      color: #fff;
+    }
+
+    .step h3 {
+      margin-bottom: 0.55rem;
+      font-size: 1.2rem;
+    }
+
+    .step ul {
+      margin: 0.3rem 0 0;
+      padding-left: 1.1rem;
+      color: #dbe4f0;
+    }
+
+    .step li+li {
+      margin-top: 0.4rem;
+    }
+
+    .highlight {
+      color: #ffd28a;
+      font-weight: 700;
+    }
+
+    /* ── Screenshots ── */
+    .screenshot-gallery {
+      display: grid;
+      gap: 0.8rem;
+      margin-top: 1rem;
+    }
+
+    .screenshot-gallery.cols-2 {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .screenshot-fig {
+      margin: 0;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(2, 6, 23, 0.5);
+    }
+
+    .screenshot-fig img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .screenshot-fig figcaption {
+      padding: 0.6rem 0.8rem;
+      color: var(--muted);
+      font-size: 0.84rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    /* ── Callouts ── */
+    .insight {
+      padding: 1.15rem 1.2rem;
+      border-left: 4px solid var(--accent);
+      border-radius: 16px;
+      background: rgba(255, 153, 0, 0.08);
+      color: #fde7c2;
+    }
+
+    .info {
+      border-left-color: var(--accent-2);
+      background: rgba(56, 189, 248, 0.08);
+      color: #d8f3ff;
+    }
+
+    /* ── Checklist ── */
+    .checklist {
+      display: grid;
+      gap: 0.7rem;
+      margin-top: 1rem;
+    }
+
+    .check {
+      display: flex;
+      gap: 0.75rem;
+      align-items: flex-start;
+      padding: 0.9rem 1rem;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+    }
+
+    .check-mark {
+      flex: 0 0 auto;
+      width: 28px;
+      height: 28px;
+      display: grid;
+      place-items: center;
+      border-radius: 999px;
+      background: rgba(34, 197, 94, 0.15);
+      color: #86efac;
+      font-weight: 800;
+    }
+
+    /* ── Code ── */
+    code {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 0.15rem 0.4rem;
+      border-radius: 6px;
+      font-size: 0.9em;
+      font-family: "Cascadia Code", "Fira Code", monospace;
+    }
+
+    /* ── Footer ── */
+    .footer {
+      padding: 2.2rem 0 3.5rem;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 920px) {
+
+      .hero-grid,
+      .grid-3,
+      .grid-2,
+      .screenshot-gallery.cols-2 {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 680px) {
+      .nav-inner {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .step {
+        grid-template-columns: 1fr;
+      }
+
+      .step-num {
+        width: 60px;
+        height: 60px;
+        border-radius: 16px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <nav class="nav">
+    <div class="container nav-inner">
+      <div class="brand">
+        <div class="brand-badge">AWS</div>
+        <div>Lab Report · Linux</div>
+      </div>
+      <div class="nav-links">
+        <a href="../index.html" class="back-link">← All Labs</a>
+        <a href="#summary">Summary</a>
+        <a href="#script">The Script</a>
+        <a href="#walkthrough">Execution</a>
+        <a href="#commands">Commands</a>
+        <a href="#learnings">Learnings</a>
+      </div>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <div class="container hero-grid">
+      <div class="panel hero-main">
+        <div class="eyebrow">AWS re/Start Lab · Linux</div>
+        <h1>Bash Shell Scripting Exercise</h1>
+        <p>
+          This challenge lab required the creation of an automated Bash script capable of generating 
+          batches of 25 empty files. The script uses logic to determine the highest existing numbered file 
+          and increment the next batch accordingly, heavily utilizing tools like <code>sed</code>, <code>sort</code>, and <code>seq</code>.
+        </p>
+      </div>
+
+      <aside class="panel hero-side">
+        <div class="callout">
+          <strong>Lab Objective</strong>
+          Use automation and shell scripting to create a consecutive sequence of files without hardcoding the numerical bounds.
+        </div>
+
+        <div>
+          <div class="small" style="margin-bottom:0.7rem;">Tools & Concepts</div>
+          <div class="tech-stack">
+            <span class="chip">Amazon EC2</span>
+            <span class="chip">Bash</span>
+            <span class="chip">nano</span>
+            <span class="chip">sed & awk</span>
+            <span class="chip">for loops</span>
+          </div>
+        </div>
+
+        <div class="callout" style="border-color: rgba(34,197,94,0.2); background: rgba(34,197,94,0.08);">
+          <strong>Key Insight</strong>
+          You can pipe the output of <code>ls</code> into text manipulation commands (like <code>sed</code> and <code>tail</code>) to extract the state of a directory and feed it into variables.
+        </div>
+      </aside>
+    </div>
+  </header>
+
+  <main>
+    <section id="summary">
+      <div class="container">
+        <h2 class="section-title">Lab Summary</h2>
+        <p class="section-subtitle">
+          Connected to the EC2 instance via PuTTY following the process described in <span class="highlight">Lab 225</span>. 
+          The core deliverable was a <span class="highlight">shell script</span> that dynamically identified existing files 
+          to avoid overwriting, before using a <span class="highlight">for loop</span> to generate 25 new sequentially numbered files.
+        </p>
+      </div>
+    </section>
+
+    <section id="script">
+      <div class="container">
+        <h2 class="section-title">The Bash Script Logic</h2>
+        <p class="section-subtitle">The custom script designed to tackle the incremental automation requirement.</p>
+
+        <div class="code-block-wrapper">
+          <div class="code-header">script.sh</div>
+          <pre class="code-block">
+<span class="token-comment">#!/bin/bash</span>
+
+<span class="token-comment"># Isolate the highest existing number by stripping the string 'quijano'</span>
+<span class="token-var">ultimo</span>=<span class="token-keyword">$</span>(<span class="token-command">ls</span> quijano* 2&lt;/dev/null | <span class="token-command">sed</span> <span class="token-string">'s/quijano//'</span> | <span class="token-command">sort</span> -n | <span class="token-command">tail</span> -1)
+
+<span class="token-comment"># Set to 0 if no files exist yet</span>
+<span class="token-keyword">[</span> <span class="token-keyword">-z</span> <span class="token-string">"</span><span class="token-var">$ultimo</span><span class="token-string">"</span> <span class="token-keyword">]</span> <span class="token-keyword">&amp;&amp;</span> <span class="token-var">ultimo</span>=<span class="token-string">0</span>
+
+<span class="token-comment"># Create a sequence of 25 files starting from the isolated number</span>
+<span class="token-keyword">for</span> i <span class="token-keyword">in</span> <span class="token-keyword">$</span>(<span class="token-command">seq</span> <span class="token-keyword">$((</span><span class="token-var">ultimo</span>+1<span class="token-keyword">))</span> <span class="token-keyword">$((</span><span class="token-var">ultimo</span>+25<span class="token-keyword">))</span>)
+<span class="token-keyword">do</span>
+  <span class="token-command">touch</span> <span class="token-string">"quijano</span><span class="token-var">$i</span><span class="token-string">"</span>
+<span class="token-keyword">done</span>
+
+<span class="token-comment"># Verify creation</span>
+<span class="token-command">ls</span> -l quijano*</pre>
+        </div>
+      </div>
+    </section>
+
+    <section id="walkthrough">
+      <div class="container">
+        <h2 class="section-title">Execution & Verification</h2>
+
+        <div class="timeline">
+          <article class="step">
+            <div class="step-num">01</div>
+            <div>
+              <h3>Writing the script</h3>
+              <ul>
+                <li>Created the script using the <code>nano</code> text editor.</li>
+                <li>Implemented error suppression on the `ls` command (`2&gt;/dev/null`) to prevent warnings when no files exist on the first run.</li>
+              </ul>
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/01-bash-script-nano.jpg" alt="Bash script in nano" loading="lazy" />
+                  <figcaption>nano: Implementing the bash script logic</figcaption>
+                </figure>
+              </div>
+            </div>
+          </article>
+
+          <article class="step">
+            <div class="step-num">02</div>
+            <div>
+              <h3>First execution (Batch 1-25)</h3>
+              <ul>
+                <li>Saved the script and added execute permissions (<code>chmod +x</code>).</li>
+                <li>Ran the script (<code>./script.sh</code>). It successfully identified the absence of previous files and created files numbered from <strong>1 to 25</strong>.</li>
+              </ul>
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/02-first-batch-output.jpg" alt="First batch created" loading="lazy" />
+                  <figcaption>Terminal: The first 25 files are successfully generated</figcaption>
+                </figure>
+              </div>
+            </div>
+          </article>
+
+          <article class="step">
+            <div class="step-num">03</div>
+            <div>
+              <h3>Incremental validation (Batch 26-50)</h3>
+              <ul>
+                <li>Ran the script a second time. The automation successfully identified `25` as the highest number.</li>
+                <li>The `seq` logic incremented correctly, creating the next batch from <strong>26 to 50</strong>.</li>
+              </ul>
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/03-second-batch-output.jpg" alt="Second batch created" loading="lazy" />
+                  <figcaption>Terminal: Output from the second execution confirming incremental behavior</figcaption>
+                </figure>
+              </div>
+            </div>
+          </article>
+
+          <article class="step">
+            <div class="step-num">04</div>
+            <div>
+              <h3>Final verification</h3>
+              <ul>
+                <li>Used a standard <code>ls</code> command to view the directory contents, confirming all 50 files existed without any name collisions.</li>
+              </ul>
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/04-directory-listing.jpg" alt="Directory listing" loading="lazy" />
+                  <figcaption>Terminal: View of the final created footprint</figcaption>
+                </figure>
+              </div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="commands">
+      <div class="container">
+        <h2 class="section-title">Command Reference</h2>
+        
+        <div class="timeline">
+          <article class="step">
+            <div class="step-num" style="font-size:0.85rem;">cmd</div>
+            <div>
+              <h3><code>sed</code></h3>
+              <p>Stream editor used for filtering and transforming text.</p>
+              <ul>
+                <li><code>sed 's/quijano//'</code> : Substitutes (removes) the word "quijano" from the string to isolate the number.</li>
+              </ul>
+            </div>
+          </article>
+
+          <article class="step">
+            <div class="step-num" style="font-size:0.85rem;">cmd</div>
+            <div>
+              <h3><code>sort</code></h3>
+              <p>Sorts lines of text files or streams.</p>
+              <ul>
+                <li><code>-n</code> : Evaluates strings as numerical values instead of standard alphabetic sorting.</li>
+              </ul>
+            </div>
+          </article>
+
+          <article class="step">
+            <div class="step-num" style="font-size:0.85rem;">cmd</div>
+            <div>
+              <h3><code>seq</code></h3>
+              <p>Prints a sequence of numbers.</p>
+              <ul>
+                <li><code>seq START END</code> : Outputs every integer between START and END. Crucial for bash `for` loops.</li>
+              </ul>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="learnings">
+      <div class="container">
+        <h2 class="section-title">Key Learnings</h2>
+        <div class="grid-2">
+          <div class="card">
+            <h3>What Was Actually Learned</h3>
+            <div class="checklist">
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>How to suppress `stderr` output using <code>2&gt;/dev/null</code>.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>How to use <code>sed</code> to clean strings dynamically inside a bash variable assignment.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>How to use bash conditional expressions <code>[ -z ]</code> to check for empty variables.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>How to combine <code>seq</code> and arithmetic expansion <code>$((...))</code> in a <code>for</code> loop.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Technical Conclusion</h3>
+            <p>
+              This challenge demonstrated that bash scripting is highly capable of self-aware execution. 
+              By reading from the environment prior to acting, scripts can be made idempotent or appropriately incremental.
+            </p>
+            <p style="margin-top: 1rem;">
+              String isolation is key to this logic: removing the alphabetical prefix to extract the raw integer allows mathematical sorting. Furthermore, anticipating the failure state (like running the script the very first time when no prior numbers exist) ensures robust automation.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      Lab report documenting the Bash Shell Scripting Exercise lab · AWS re/Start Program
+    </div>
+  </footer>
+</body>
+
+</html>

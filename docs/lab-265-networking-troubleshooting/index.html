@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lab Report: Internet Protocol Troubleshooting Commands</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --bg-soft: #111827;
+      --card: rgba(255, 255, 255, 0.08);
+      --card-strong: rgba(255, 255, 255, 0.12);
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --accent: #ff9900;
+      --accent-2: #38bdf8;
+      --ok: #22c55e;
+      --warn: #f59e0b;
+      --border: rgba(255, 255, 255, 0.12);
+      --shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+      --radius: 22px;
+      --max: 1120px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(255, 153, 0, 0.16), transparent 28%),
+        radial-gradient(circle at top right, rgba(56, 189, 248, 0.14), transparent 24%),
+        linear-gradient(180deg, #020617 0%, #0f172a 48%, #111827 100%);
+      color: var(--text);
+      line-height: 1.65;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .container {
+      width: min(var(--max), calc(100% - 2rem));
+      margin: 0 auto;
+    }
+
+    /* ── Nav ── */
+    .nav {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      backdrop-filter: blur(16px);
+      background: rgba(2, 6, 23, 0.72);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .nav-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.9rem 0;
+      gap: 1rem;
+    }
+
+    .brand {
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+    }
+
+    .brand-badge {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, var(--accent), #ffb84d);
+      color: #111827;
+      font-weight: 900;
+      box-shadow: var(--shadow);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .nav-links a:hover {
+      color: var(--text);
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      color: var(--muted);
+      font-size: 0.9rem;
+      transition: color 0.2s;
+    }
+
+    .back-link:hover {
+      color: var(--accent);
+    }
+
+    /* ── Hero ── */
+    .hero {
+      padding: 4.8rem 0 2rem;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 1.5rem;
+      align-items: stretch;
+    }
+
+    .panel {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.05));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .hero-main {
+      padding: 2rem;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.45rem 0.8rem;
+      border-radius: 999px;
+      background: rgba(255, 153, 0, 0.12);
+      color: #ffd28a;
+      border: 1px solid rgba(255, 153, 0, 0.25);
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+    }
+
+    h1,
+    h2,
+    h3 {
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+      margin: 0;
+    }
+
+    h1 {
+      font-size: clamp(2rem, 4vw, 3.7rem);
+      margin-bottom: 0.9rem;
+    }
+
+    .hero-main p {
+      margin: 0;
+      color: #cbd5e1;
+      font-size: 1.05rem;
+      max-width: 65ch;
+    }
+
+    .hero-side {
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .hero-side .callout {
+      padding: 1rem 1.1rem;
+      border-radius: 18px;
+      border: 1px solid rgba(56, 189, 248, 0.18);
+      background: rgba(56, 189, 248, 0.08);
+    }
+
+    .hero-side .callout strong {
+      display: block;
+      margin-bottom: 0.35rem;
+    }
+
+    .tech-stack {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.55rem;
+    }
+
+    .chip {
+      padding: 0.45rem 0.75rem;
+      border-radius: 999px;
+      font-size: 0.88rem;
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #dbeafe;
+    }
+
+    .small {
+      font-size: 0.92rem;
+      color: var(--muted);
+    }
+
+    /* ── Sections ── */
+    section {
+      padding: 1rem 0 0.4rem;
+    }
+
+    .section-title {
+      margin-bottom: 1rem;
+      font-size: clamp(1.5rem, 2vw, 2.2rem);
+    }
+
+    .section-subtitle {
+      color: var(--muted);
+      margin-top: 0.45rem;
+      max-width: 75ch;
+    }
+
+    /* ── Grids ── */
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .card {
+      padding: 1.3rem;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+    }
+
+    .card h3 {
+      font-size: 1.05rem;
+      margin-bottom: 0.6rem;
+    }
+
+    .card p {
+      margin: 0;
+      color: #cbd5e1;
+    }
+
+    /* ── Timeline (OSI Layers) ── */
+    .timeline {
+      display: grid;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .step {
+      display: grid;
+      grid-template-columns: 140px 1fr;
+      gap: 1rem;
+      align-items: start;
+      padding: 1.25rem;
+      border-radius: 22px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: var(--shadow);
+    }
+
+    .step-num {
+      width: 120px;
+      height: 72px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, rgba(56, 189, 248, 0.18), rgba(255, 153, 0, 0.18));
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .step-num strong {
+      font-size: 1.1rem;
+      font-weight: 900;
+      color: #fff;
+    }
+    
+    .step-num span {
+      font-size: 0.75rem;
+      color: #38bdf8;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .step h3 {
+      margin-bottom: 0.55rem;
+      font-size: 1.2rem;
+    }
+
+    .step p {
+      color: #cbd5e1;
+    }
+
+    .step ul {
+      margin: 0.3rem 0 0;
+      padding-left: 1.1rem;
+      color: #dbe4f0;
+    }
+
+    .step li+li {
+      margin-top: 0.4rem;
+    }
+
+    .highlight {
+      color: #ffd28a;
+      font-weight: 700;
+    }
+
+    /* ── Screenshots ── */
+    .screenshot-gallery {
+      display: grid;
+      gap: 0.8rem;
+      margin-top: 1rem;
+    }
+
+    .screenshot-gallery.cols-2 {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .screenshot-fig {
+      margin: 0;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(2, 6, 23, 0.5);
+    }
+
+    .screenshot-fig img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .screenshot-fig figcaption {
+      padding: 0.6rem 0.8rem;
+      color: var(--muted);
+      font-size: 0.84rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    /* ── Callouts ── */
+    .insight {
+      padding: 1.15rem 1.2rem;
+      border-left: 4px solid var(--accent);
+      border-radius: 16px;
+      background: rgba(255, 153, 0, 0.08);
+      color: #fde7c2;
+    }
+
+    .info {
+      border-left-color: var(--accent-2);
+      background: rgba(56, 189, 248, 0.08);
+      color: #d8f3ff;
+      margin-top: 1rem;
+    }
+
+    /* ── Checklist ── */
+    .checklist {
+      display: grid;
+      gap: 0.7rem;
+      margin-top: 1rem;
+    }
+
+    .check {
+      display: flex;
+      gap: 0.75rem;
+      align-items: flex-start;
+      padding: 0.9rem 1rem;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+    }
+
+    .check-mark {
+      flex: 0 0 auto;
+      width: 28px;
+      height: 28px;
+      display: grid;
+      place-items: center;
+      border-radius: 999px;
+      background: rgba(34, 197, 94, 0.15);
+      color: #86efac;
+      font-weight: 800;
+    }
+
+    /* ── Code ── */
+    code {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 0.15rem 0.4rem;
+      border-radius: 6px;
+      font-size: 0.9em;
+      font-family: "Cascadia Code", "Fira Code", monospace;
+    }
+
+    /* ── Custom Command Block ── */
+    .cmd-box {
+        margin: 1.5rem 0;
+        border-radius: 16px;
+        border: 1px solid rgba(255,255,255,0.1);
+        overflow: hidden;
+    }
+    
+    .cmd-header {
+        background: rgba(56, 189, 248, 0.1);
+        padding: 0.75rem 1.25rem;
+        font-family: monospace;
+        color: #7dd3fc;
+        font-weight: 700;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .cmd-body {
+        background: #020617;
+        padding: 1.25rem;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 920px) {
+
+      .hero-grid,
+      .grid-3,
+      .grid-2,
+      .screenshot-gallery.cols-2 {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 680px) {
+      .nav-inner {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .step {
+        grid-template-columns: 1fr;
+      }
+
+      .step-num {
+        width: 100px;
+        height: 60px;
+        border-radius: 16px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <nav class="nav">
+    <div class="container nav-inner">
+      <div class="brand">
+        <div class="brand-badge">AWS</div>
+        <div>Lab Report · Networking</div>
+      </div>
+      <div class="nav-links">
+        <a href="../index.html" class="back-link">← All Labs</a>
+        <a href="#summary">Summary</a>
+        <a href="#osi-troubleshooting">OSI Layers</a>
+        <a href="#learnings">Learnings</a>
+      </div>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <div class="container hero-grid">
+      <div class="panel hero-main">
+        <div class="eyebrow">AWS re/Start Lab · Networking</div>
+        <h1>Internet Protocol Troubleshooting Commands</h1>
+        <p>
+          This lab bridges the gap between networking theory and practical administration by demonstrating 
+          how standard Linux terminal utilities correspond to specific layers of the 
+          <strong>Open Systems Interconnection (OSI) model</strong>.
+        </p>
+      </div>
+
+      <aside class="panel hero-side">
+        <div class="callout">
+          <strong>Lab Objective</strong>
+          Identify customer scenarios and successfully apply <code>ping</code>, <code>traceroute</code>, <code>netstat</code>, <code>telnet</code>, and <code>curl</code> to diagnose network connectivity issues across various OSI layers.
+        </div>
+
+        <div>
+          <div class="small" style="margin-bottom:0.7rem;">Tools & Concepts</div>
+          <div class="tech-stack">
+            <span class="chip">OSI Model</span>
+            <span class="chip">ICMP</span>
+            <span class="chip">TCP</span>
+            <span class="chip">traceroute</span>
+            <span class="chip">curl</span>
+          </div>
+        </div>
+
+        <div class="callout" style="border-color: rgba(34,197,94,0.2); background: rgba(34,197,94,0.08);">
+          <strong>Key Insight</strong>
+          Troubleshooting should occur systematically layer-by-layer. If Layer 3 (ICMP) fails, Layer 7 (HTTP) is guaranteed to fail.
+        </div>
+      </aside>
+    </div>
+  </header>
+
+  <main>
+    <section id="summary">
+      <div class="container">
+        <h2 class="section-title">Lab Summary</h2>
+        <p class="section-subtitle">
+          Accessed an Amazon Linux EC2 Command Host via SSH to execute network diagnostics. The process moved from 
+          <span class="highlight">Layer 3</span> routing (ping/traceroute), mapping connectivity to public endpoints, into 
+          <span class="highlight">Layer 4</span> (netstat/telnet) verifying port listening states and TCP handshakes, and concluding at 
+          <span class="highlight">Layer 7</span> (curl) validating HTTP responses.
+        </p>
+      </div>
+    </section>
+
+    <section id="osi-troubleshooting">
+      <div class="container">
+        <h2 class="section-title">Troubleshooting by OSI Layer</h2>
+        <p class="section-subtitle">
+          Mapping commands to the OSI model narrows down where a communication failure is occurring.
+        </p>
+
+        <div class="timeline">
+
+          <!-- ══════ LAYER 3 ══════ -->
+          <article class="step">
+            <div class="step-num">
+                <strong>Layer 3</strong>
+                <span>Network</span>
+            </div>
+            <div>
+              <h3><code>ping</code> &amp; <code>traceroute</code></h3>
+              <p>Layer 3 dictates routing and IP addresses. These tools utilize ICMP (Internet Control Message Protocol) to verify that a target is logically reachable on the network.</p>
+
+              <div class="cmd-box">
+                <div class="cmd-header">$ ping 8.8.8.8 -c 5</div>
+                <div class="cmd-body">
+                    <p style="margin:0 0 1rem;">Used to test raw connectivity. In an AWS scenario, testing an EC2 instance connection ensures security groups or Network ACLs are properly allowing ICMP echo requests.</p>
+                    <div class="screenshot-gallery">
+                        <figure class="screenshot-fig">
+                        <img src="assets/screenshots/01-ping-connectivity.jpg" alt="Ping output" loading="lazy" />
+                        <figcaption>Terminal: 5 packets successfully transmitted with 0% packet loss.</figcaption>
+                        </figure>
+                    </div>
+                </div>
+              </div>
+
+              <div class="cmd-box">
+                <div class="cmd-header">$ traceroute 8.8.8.8</div>
+                <div class="cmd-body">
+                    <p style="margin:0 0 1rem;">Used to identify routing latency or packet loss. If a customer reports a slow connection, traceroute reveals the path ("hops") taken. Packet loss at specific hops indicates whether the issue lies with the local ISP, intermediary networks, or the AWS destination. Three asterisks (<code>***</code>) indicate a failed hop.</p>
+                    <div class="screenshot-gallery">
+                        <figure class="screenshot-fig">
+                        <img src="assets/screenshots/02-traceroute-hops.jpg" alt="Traceroute output" loading="lazy" />
+                        <figcaption>Terminal: Tracing the network path displaying latency at each transition hop.</figcaption>
+                        </figure>
+                    </div>
+                </div>
+              </div>
+
+            </div>
+          </article>
+
+          <!-- ══════ LAYER 4 ══════ -->
+          <article class="step">
+            <div class="step-num">
+                <strong>Layer 4</strong>
+                <span>Transport</span>
+            </div>
+            <div>
+              <h3><code>netstat</code> &amp; <code>telnet</code></h3>
+              <p>Layer 4 manages end-to-end communication (TCP/UDP protocols) and port numbers. Troubleshooting here helps identify if a service is actively listening or if a port is forcefully blocked by a localized firewall/security group.</p>
+
+              <div class="cmd-box">
+                <div class="cmd-header">$ netstat -tp</div>
+                <div class="cmd-body">
+                    <p style="margin:0 0 1rem;">Often used for security scans, providing a snapshot of active, established TCP connections and the listening state of host ports.</p>
+                    <div class="screenshot-gallery">
+                        <figure class="screenshot-fig">
+                        <img src="assets/screenshots/03-netstat-connections.jpg" alt="netstat output" loading="lazy" />
+                        <figcaption>Terminal: Output from netstat displaying current ESTABLISHED tcp connections.</figcaption>
+                        </figure>
+                    </div>
+                </div>
+              </div>
+
+              <div class="cmd-box">
+                <div class="cmd-header">$ telnet www.google.com 80</div>
+                <div class="cmd-body">
+                    <p style="margin:0 0 1rem;">While often considered a legacy remote-access tool, <code>telnet</code> is an excellent diagnostic tool for probing stateful TCP connections at destination ports. If connection returns "Connection refused", a firewall or security group is likely blocking port access manually.</p>
+                    <div class="screenshot-gallery">
+                        <figure class="screenshot-fig">
+                        <img src="assets/screenshots/04-telnet-tcp-port.jpg" alt="telnet output" loading="lazy" />
+                        <figcaption>Terminal: Telnet successfully connecting to a remote web server on Port 80.</figcaption>
+                        </figure>
+                    </div>
+                </div>
+              </div>
+
+            </div>
+          </article>
+
+          <!-- ══════ LAYER 7 ══════ -->
+          <article class="step">
+            <div class="step-num">
+                <strong>Layer 7</strong>
+                <span>Application</span>
+            </div>
+            <div>
+              <h3><code>curl</code></h3>
+              <p>Layer 7 is where software directly interfaces with network services (HTTP/HTTPS, FTP, etc.). Diagnostics here confirm that the application server itself (like Apache or Nginx) is answering formatted requests successfully.</p>
+
+              <div class="cmd-box">
+                <div class="cmd-header">$ curl -vLo /dev/null https://aws.com</div>
+                <div class="cmd-body">
+                    <p style="margin:0 0 1rem;">Uses URLs rather than raw IP/ports, transferring data via established protocols. The <code>-v</code> verbose flag is excellent for diagnosing SSL/TLS handshakes or investigating specific HTTP response codes (e.g., verifying a <code>200 OK</code> response vs. a <code>500 Server Error</code>).</p>
+                    <div class="screenshot-gallery">
+                        <figure class="screenshot-fig">
+                        <img src="assets/screenshots/05-curl-http-response.jpg" alt="curl output" loading="lazy" />
+                        <figcaption>Terminal: Successful verbose output from curl showing the established HTTP/2 200 OK response from aws.com.</figcaption>
+                        </figure>
+                    </div>
+                </div>
+              </div>
+
+            </div>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+    <section id="learnings">
+      <div class="container">
+        <h2 class="section-title">Key Learnings</h2>
+        <div class="grid-2">
+          <div class="card">
+            <h3>Flags &amp; Options Breakdown</h3>
+            <div class="checklist">
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div><strong>ping <code>-c</code></strong>: Specifies the exact "count" of requests to send, preventing an infinite ping loop in the terminal.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div><strong>netstat <code>-tp</code></strong>: Lists established connections (t) and attempts to display PID/Program name (p). Note: displaying PIDs often requires root privileges.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div><strong>curl <code>-v</code></strong>: Instructs curl to output highly detailed "verbose" logging, perfect for debugging HTTP headers and response behavior.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div><strong>curl <code>-o /dev/null</code></strong>: Discards the actual downloaded body data (like the raw HTML source code) to keep terminal logs clean when only headers matter.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Technical Conclusion</h3>
+            <p>
+              When a service becomes inaccessible, network administrators must isolate the scope of the problem.
+            </p>
+            <p style="margin-top: 1rem;">
+              Understanding how utilities map to the OSI model provides a structured framework. Rather than guessing if an Apache service crashed (Layer 7) or if the host machine entirely dropped off the subnet (Layer 3), tools like <code>traceroute</code>, <code>telnet</code>, and <code>curl</code> serve as specific diagnostic probes to isolate the point of failure methodically.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      Lab report documenting the Internet Protocol Troubleshooting Commands lab · AWS re/Start Program
+    </div>
+  </footer>
+</body>
+
+</html>

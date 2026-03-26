@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lab Report: Build Your VPC and Launch a Web Server</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --bg-soft: #111827;
+      --card: rgba(255, 255, 255, 0.08);
+      --card-strong: rgba(255, 255, 255, 0.12);
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --accent: #ff9900;
+      --accent-2: #38bdf8;
+      --ok: #22c55e;
+      --warn: #f59e0b;
+      --border: rgba(255, 255, 255, 0.12);
+      --shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+      --radius: 22px;
+      --max: 1120px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(255, 153, 0, 0.16), transparent 28%),
+        radial-gradient(circle at top right, rgba(56, 189, 248, 0.14), transparent 24%),
+        linear-gradient(180deg, #020617 0%, #0f172a 48%, #111827 100%);
+      color: var(--text);
+      line-height: 1.65;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .container {
+      width: min(var(--max), calc(100% - 2rem));
+      margin: 0 auto;
+    }
+
+    /* ── Nav ── */
+    .nav {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      backdrop-filter: blur(16px);
+      background: rgba(2, 6, 23, 0.72);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .nav-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.9rem 0;
+      gap: 1rem;
+    }
+
+    .brand {
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+    }
+
+    .brand-badge {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, var(--accent), #ffb84d);
+      color: #111827;
+      font-weight: 900;
+      box-shadow: var(--shadow);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .nav-links a:hover {
+      color: var(--text);
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      color: var(--muted);
+      font-size: 0.9rem;
+      transition: color 0.2s;
+    }
+
+    .back-link:hover {
+      color: var(--accent);
+    }
+
+    /* ── Hero ── */
+    .hero {
+      padding: 4.8rem 0 2rem;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 1.5rem;
+      align-items: stretch;
+    }
+
+    .panel {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.05));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .hero-main {
+      padding: 2rem;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.45rem 0.8rem;
+      border-radius: 999px;
+      background: rgba(255, 153, 0, 0.12);
+      color: #ffd28a;
+      border: 1px solid rgba(255, 153, 0, 0.25);
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+    }
+
+    h1,
+    h2,
+    h3 {
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+      margin: 0;
+    }
+
+    h1 {
+      font-size: clamp(2rem, 4vw, 3.7rem);
+      margin-bottom: 0.9rem;
+    }
+
+    .hero-main p {
+      margin: 0;
+      color: #cbd5e1;
+      font-size: 1.05rem;
+      max-width: 65ch;
+    }
+
+    .hero-side {
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .hero-side .callout {
+      padding: 1rem 1.1rem;
+      border-radius: 18px;
+      border: 1px solid rgba(56, 189, 248, 0.18);
+      background: rgba(56, 189, 248, 0.08);
+    }
+
+    .hero-side .callout strong {
+      display: block;
+      margin-bottom: 0.35rem;
+    }
+
+    .tech-stack {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.55rem;
+    }
+
+    .chip {
+      padding: 0.45rem 0.75rem;
+      border-radius: 999px;
+      font-size: 0.88rem;
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #dbeafe;
+    }
+
+    .small {
+      font-size: 0.92rem;
+      color: var(--muted);
+    }
+
+    /* ── Sections ── */
+    section {
+      padding: 1rem 0 0.4rem;
+    }
+
+    .section-title {
+      margin-bottom: 1rem;
+      font-size: clamp(1.5rem, 2vw, 2.2rem);
+    }
+
+    .section-subtitle {
+      color: var(--muted);
+      margin-top: 0.45rem;
+      max-width: 75ch;
+    }
+
+    /* ── Architecture Cards Framework ── */
+    .arch-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.5rem;
+        margin-top: 2rem;
+    }
+
+    .arch-card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 1.5rem;
+        box-shadow: var(--shadow);
+        position: relative;
+    }
+
+    .arch-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 14px;
+        background: linear-gradient(135deg, rgba(255, 153, 0, 0.2), rgba(255, 153, 0, 0.05));
+        border: 1px solid rgba(255, 153, 0, 0.3);
+        display: grid;
+        place-items: center;
+        margin-bottom: 1rem;
+        color: var(--accent);
+        font-weight: 800;
+        font-size: 1.2rem;
+    }
+
+    .arch-card.layer-2 .arch-icon {
+        background: linear-gradient(135deg, rgba(56, 189, 248, 0.2), rgba(56, 189, 248, 0.05));
+        border-color: rgba(56, 189, 248, 0.3);
+        color: var(--accent-2);
+    }
+
+    .arch-card h3 {
+        font-size: 1.3rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .arch-card p {
+        color: #94a3b8;
+        font-size: 0.95rem;
+        margin-bottom: 1rem;
+    }
+
+    .prop-list {
+        display: grid;
+        gap: 0.5rem;
+        font-size: 0.9rem;
+    }
+
+    .prop-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.5rem 0.8rem;
+        background: rgba(0,0,0,0.2);
+        border-radius: 8px;
+        border: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .prop-row span:last-child {
+        color: #e2e8f0;
+        font-family: monospace;
+        font-weight: 600;
+    }
+
+    /* ── Screenshots ── */
+    .screenshot-gallery {
+      display: grid;
+      gap: 0.8rem;
+      margin-top: 1.5rem;
+    }
+
+    .screenshot-fig {
+      margin: 0;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(2, 6, 23, 0.5);
+    }
+
+    .screenshot-fig img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .screenshot-fig figcaption {
+      padding: 0.6rem 0.8rem;
+      color: var(--muted);
+      font-size: 0.84rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+     /* ── Callouts ── */
+     .insight {
+      padding: 1.15rem 1.2rem;
+      border-left: 4px solid var(--accent);
+      border-radius: 16px;
+      background: rgba(255, 153, 0, 0.08);
+      color: #fde7c2;
+    }
+
+    .info {
+      border-left-color: var(--accent-2);
+      background: rgba(56, 189, 248, 0.08);
+      color: #d8f3ff;
+      margin-top: 1rem;
+    }
+
+    /* ── Code ── */
+    code {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 0.15rem 0.4rem;
+      border-radius: 6px;
+      font-size: 0.9em;
+      font-family: "Cascadia Code", "Fira Code", monospace;
+    }
+
+    pre code {
+        display: block;
+        padding: 1rem;
+        background: #020617;
+        border-radius: 12px;
+        border: 1px solid rgba(255,255,255,0.08);
+        overflow-x: auto;
+    }
+
+    /* ── Checklist ── */
+    .checklist {
+      display: grid;
+      gap: 0.7rem;
+      margin-top: 1rem;
+    }
+
+    .check {
+      display: flex;
+      gap: 0.75rem;
+      align-items: flex-start;
+      padding: 0.9rem 1rem;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+    }
+
+    .check-mark {
+      flex: 0 0 auto;
+      width: 28px;
+      height: 28px;
+      display: grid;
+      place-items: center;
+      border-radius: 999px;
+      background: rgba(34, 197, 94, 0.15);
+      color: #86efac;
+      font-weight: 800;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 920px) {
+      .hero-grid,
+      .arch-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 680px) {
+      .nav-inner {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <nav class="nav">
+    <div class="container nav-inner">
+      <div class="brand">
+        <div class="brand-badge">AWS</div>
+        <div>Lab Report · Networking</div>
+      </div>
+      <div class="nav-links">
+        <a href="../index.html" class="back-link">← All Labs</a>
+        <a href="#architecture">Architecture</a>
+        <a href="#deployment">Deployment</a>
+        <a href="#learnings">Learnings</a>
+      </div>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <div class="container hero-grid">
+      <div class="panel hero-main">
+        <div class="eyebrow">AWS re/Start Lab · Network Construction</div>
+        <h1>Build Your VPC and Launch a Web Server</h1>
+        <p>
+          This foundational lab outlines the process of building an entire Virtual Private Cloud (VPC) 
+          architecture from scratch to satisfy a Fortune 100 customer design request. It combines 
+          routing, security perimeters, and automated EC2 bootstrapping.
+        </p>
+
+      </div>
+
+      <aside class="panel hero-side">
+        <div class="callout">
+          <strong>Lab Objective</strong>
+          Create a VPC, configure public/private subnets across multiple Availability Zones, provision a Security Group, and automatically deploy an Apache Web Server upon boot.
+        </div>
+
+        <div>
+          <div class="small" style="margin-bottom:0.7rem;">Tools & Concepts</div>
+          <div class="tech-stack">
+            <span class="chip">Amazon VPC</span>
+            <span class="chip">Subnets & Routing</span>
+            <span class="chip">Security Groups</span>
+            <span class="chip">EC2 User Data</span>
+          </div>
+        </div>
+
+        <div class="callout" style="border-color: rgba(56,189,248,0.2); background: rgba(56,189,248,0.08);">
+          <strong>Key Insight</strong>
+          A subnet is defined as "Public" entirely by its association with a Route Table that has a route (<code>0.0.0.0/0</code>) directed to an Internet Gateway (IGW).
+        </div>
+      </aside>
+    </div>
+  </header>
+
+  <main>
+    <section id="architecture">
+      <div class="container">
+        <h2 class="section-title">Network Architecture Configuration</h2>
+        <p class="section-subtitle">
+          The network was built in two phases: utilizing the AWS "VPC and more" wizard for the initial foundation, 
+          then manually provisioning redundant subnets across a secondary Availability Zone.
+        </p>
+
+        <div class="arch-grid">
+            <div class="arch-card">
+                <div class="arch-icon">VPC</div>
+                <h3>The Gateway & Foundation</h3>
+                <p>Establishing the global boundaries for the isolated cloud infrastructure using the visual VPC Wizard.</p>
+                <div class="prop-list">
+                    <div class="prop-row"><span>VPC Name</span><span>Lab VPC</span></div>
+                    <div class="prop-row"><span>IPv4 CIDR</span><span>10.0.0.0/16</span></div>
+                    <div class="prop-row"><span>Internet Gateway</span><span>Attached</span></div>
+                </div>
+            </div>
+
+            <div class="arch-card layer-2">
+                <div class="arch-icon">AZ1</div>
+                <h3>Availability Zone 1 (us-west-2a)</h3>
+                <p>The primary subnets created via the wizard during the VPC initialization.</p>
+                <div class="prop-list">
+                    <div class="prop-row"><span>Public Subnet 1</span><span>10.0.0.0/24</span></div>
+                    <div class="prop-row"><span>Private Subnet 1</span><span>10.0.1.0/24</span></div>
+                    <div class="prop-row"><span>Routing</span><span>Implicitly Mapped</span></div>
+                </div>
+            </div>
+
+            <div class="arch-card layer-2">
+                <div class="arch-icon">AZ2</div>
+                <h3>Availability Zone 2 (us-west-2b)</h3>
+                <p>Secondary subnets created manually to ensure High Availability (HA) failover capabilities.</p>
+                <div class="prop-list">
+                    <div class="prop-row"><span>Public Subnet 2</span><span>10.0.2.0/24</span></div>
+                    <div class="prop-row"><span>Private Subnet 2</span><span>10.0.3.0/24</span></div>
+                    <div class="prop-row"><span>Routing</span><span>Explicitly Mapped</span></div>
+                </div>
+            </div>
+
+            <div class="arch-card">
+                <div class="arch-icon">SG</div>
+                <h3>Security Perimeter</h3>
+                <p>A VPC-level instance firewall explicitly defining the allowed protocols entering the web subnets.</p>
+                <div class="prop-list">
+                    <div class="prop-row"><span>Name</span><span>Web Security Group</span></div>
+                    <div class="prop-row"><span>Type</span><span>Inbound IPv4 HTTP</span></div>
+                    <div class="prop-row"><span>Source Traffic</span><span>Anywhere (0.0.0.0/0)</span></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="screenshot-gallery">
+            <figure class="screenshot-fig">
+                <img src="assets/screenshots/01-vpc-workflow.jpg" alt="VPC Creation Workflow" loading="lazy">
+                <figcaption>AWS Console: The "VPC and more" workflow successfully generating the base foundation (Gateways, Route Tables, and primary Subnets).</figcaption>
+            </figure>
+        </div>
+
+      </div>
+    </section>
+
+    <section id="deployment">
+      <div class="container">
+        <h2 class="section-title">Web Server Deployment</h2>
+        <p class="section-subtitle">
+          With the networking structure complete, a compute instance was injected into the Public Subnet 2.
+        </p>
+
+        <div class="insight info" style="margin-bottom: 1.5rem">
+            <strong>Bootstrapping with User Data:</strong> Rather than logging in via SSH to manually configure the server, a bash script was supplied at launch to automate the installation of Apache Web Server and deploy the lab application immediately on boot.
+        </div>
+
+<pre><code>#!/bin/bash
+# Install Apache Web Server and dependencies
+yum install -y httpd mysql php
+
+# Download Lab files
+wget https://aws-tc-[...]/lab-app.zip
+unzip lab-app.zip -d /var/www/html/
+
+# Turn on web server daemon and ensure it survives reboots
+chkconfig httpd on
+service httpd start</code></pre>
+
+        <div class="screenshot-gallery" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; align-items: start; margin-top: 1.5rem;">
+            <figure class="screenshot-fig">
+                <img src="assets/screenshots/02-ec2-network-settings.jpg" alt="EC2 Network Placement" loading="lazy">
+                <figcaption>AWS Console: Explicitly placing the EC2 instance inside the custom Lab VPC rather than the default VPC, and assigning the Web Security Group.</figcaption>
+            </figure>
+            <figure class="screenshot-fig">
+                <img src="assets/screenshots/03-final-webserver.jpg" alt="Web App Test" loading="lazy">
+                <figcaption>Browser: The custom web application loaded via the EC2 Public IPv4 DNS, confirming public routing and HTTP authorization succeeded.</figcaption>
+            </figure>
+        </div>
+
+      </div>
+    </section>
+
+    <section id="learnings">
+      <div class="container">
+        <h2 class="section-title">Key Learnings</h2>
+        
+        <div class="checklist">
+            <div class="check">
+            <div class="check-mark">✓</div>
+            <div><strong>Multi-AZ Deployments:</strong> Creating subnets across multiple Availability Zones protects architectures against data center failures. Subnets cannot span multiple AZs by definition.</div>
+            </div>
+            <div class="check">
+            <div class="check-mark">✓</div>
+            <div><strong>Route Table Associations:</strong> Creating a subnet is not enough. You must manually associate new subnets with the correct Route Table (Public vs. Private) for them to inherit internet accessibility.</div>
+            </div>
+            <div class="check">
+            <div class="check-mark">✓</div>
+            <div><strong>Automation via User Data:</strong> Sending scripts via <code>User Data</code> on EC2 launch eliminates the need for manual SSH sessions when setting up identical fleets of web servers.</div>
+            </div>
+        </div>
+
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      Lab report documenting the Build Your VPC and Launch a Web Server lab · AWS re/Start Program
+    </div>
+  </footer>
+</body>
+
+</html>
