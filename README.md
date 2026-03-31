@@ -45,6 +45,16 @@ Technical documentation of hands-on labs completed during the **AWS re/Start** p
 | 266 | Troubleshooting a Network Issue                    | Completed |
 | 267 | Build Your VPC and Launch a Web Server             | Completed |
 
+### Seguridad
+
+| #   | Lab                                               | Status    |
+|-----|---------------------------------------------------|-----------|
+| 276 | Scanning AWS Lambda Functions with Amazon Inspector | Completed |
+| 277 | Update EC2 instances with Systems Manager Patch Manager | Completed |
+| 279 | Introduction to AWS IAM | Completed |
+| 280 | Malware Protection Using an AWS Network Firewall | Completed |
+| 281 | Monitor an EC2 Instance with CloudWatch Alarms | Completed |
+
 ---
 
 **Student:** Julian David Quijano  

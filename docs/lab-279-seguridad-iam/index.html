@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lab Report: Introduction to AWS IAM</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --bg-soft: #111827;
+      --card: rgba(255, 255, 255, 0.08);
+      --card-strong: rgba(255, 255, 255, 0.12);
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --accent: #ff9900;
+      --accent-2: #38bdf8;
+      --ok: #22c55e;
+      --warn: #f59e0b;
+      --border: rgba(255, 255, 255, 0.12);
+      --shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+      --radius: 22px;
+      --max: 1120px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(255, 153, 0, 0.16), transparent 28%),
+        radial-gradient(circle at top right, rgba(56, 189, 248, 0.14), transparent 24%),
+        linear-gradient(180deg, #020617 0%, #0f172a 48%, #111827 100%);
+      color: var(--text);
+      line-height: 1.65;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .container {
+      width: min(var(--max), calc(100% - 2rem));
+      margin: 0 auto;
+    }
+
+    /* ── Nav ── */
+    .nav {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      backdrop-filter: blur(16px);
+      background: rgba(2, 6, 23, 0.72);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .nav-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.9rem 0;
+      gap: 1rem;
+    }
+
+    .brand {
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+    }
+
+    .brand-badge {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, var(--accent), #ffb84d);
+      color: #111827;
+      font-weight: 900;
+      box-shadow: var(--shadow);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .nav-links a:hover {
+      color: var(--text);
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      color: var(--muted);
+      font-size: 0.9rem;
+      transition: color 0.2s;
+    }
+
+    .back-link:hover {
+      color: var(--accent);
+    }
+
+    /* ── Hero ── */
+    .hero {
+      padding: 4.8rem 0 2rem;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 1.5rem;
+      align-items: stretch;
+    }
+
+    .panel {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.05));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .hero-main {
+      padding: 2rem;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.45rem 0.8rem;
+      border-radius: 999px;
+      background: rgba(255, 153, 0, 0.12);
+      color: #ffd28a;
+      border: 1px solid rgba(255, 153, 0, 0.25);
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+    }
+
+    h1,
+    h2,
+    h3 {
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+      margin: 0;
+    }
+
+    h1 {
+      font-size: clamp(2rem, 4vw, 3.7rem);
+      margin-bottom: 0.9rem;
+    }
+
+    .hero-main p {
+      margin: 0;
+      color: #cbd5e1;
+      font-size: 1.05rem;
+      max-width: 65ch;
+    }
+
+    .hero-side {
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .hero-side .callout {
+      padding: 1rem 1.1rem;
+      border-radius: 18px;
+      border: 1px solid rgba(56, 189, 248, 0.18);
+      background: rgba(56, 189, 248, 0.08);
+    }
+
+    .hero-side .callout strong {
+      display: block;
+      margin-bottom: 0.35rem;
+    }
+
+    .tech-stack {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.55rem;
+    }
+
+    .chip {
+      padding: 0.45rem 0.75rem;
+      border-radius: 999px;
+      font-size: 0.88rem;
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #dbeafe;
+    }
+
+    .small {
+      font-size: 0.92rem;
+      color: var(--muted);
+    }
+
+    /* ── Sections ── */
+    section {
+      padding: 1rem 0 0.4rem;
+    }
+
+    .section-title {
+      margin-bottom: 1rem;
+      font-size: clamp(1.5rem, 2vw, 2.2rem);
+    }
+
+    .section-subtitle {
+      color: var(--muted);
+      margin-top: 0.45rem;
+      max-width: 75ch;
+    }
+
+    /* ── Grids ── */
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .card {
+      padding: 1.3rem;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+    }
+
+    .card h3 {
+      font-size: 1.05rem;
+      margin-bottom: 0.6rem;
+    }
+
+    .card p {
+      margin: 0;
+      color: #cbd5e1;
+    }
+
+    /* ── Timeline ── */
+    .timeline {
+      display: grid;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .step {
+      display: grid;
+      grid-template-columns: 90px 1fr;
+      gap: 1rem;
+      align-items: start;
+      padding: 1.25rem;
+      border-radius: 22px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: var(--shadow);
+    }
+
+    .step-num {
+      width: 72px;
+      height: 72px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, rgba(255, 153, 0, 0.18), rgba(56, 189, 248, 0.18));
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      display: grid;
+      place-items: center;
+      font-size: 1.1rem;
+      font-weight: 900;
+      color: #fff;
+    }
+
+    .step h3 {
+      margin-bottom: 0.55rem;
+      font-size: 1.2rem;
+    }
+
+    .step ul {
+      margin: 0.3rem 0 0;
+      padding-left: 1.1rem;
+      color: #dbe4f0;
+    }
+
+    .step li+li {
+      margin-top: 0.4rem;
+    }
+
+    .highlight {
+      color: #ffd28a;
+      font-weight: 700;
+    }
+
+    /* ── Screenshots ── */
+    .screenshot-gallery {
+      display: grid;
+      gap: 0.8rem;
+      margin-top: 1rem;
+    }
+
+    .screenshot-gallery.cols-2 {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .screenshot-gallery.cols-3 {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .screenshot-fig {
+      margin: 0;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(2, 6, 23, 0.5);
+    }
+
+    .screenshot-fig img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .screenshot-fig figcaption {
+      padding: 0.6rem 0.8rem;
+      color: var(--muted);
+      font-size: 0.84rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    /* ── Callouts ── */
+    .insight {
+      padding: 1.15rem 1.2rem;
+      border-left: 4px solid var(--accent);
+      border-radius: 16px;
+      background: rgba(255, 153, 0, 0.08);
+      color: #fde7c2;
+    }
+
+    .info {
+      border-left-color: var(--accent-2);
+      background: rgba(56, 189, 248, 0.08);
+      color: #d8f3ff;
+    }
+
+    /* ── Checklist ── */
+    .checklist {
+      display: grid;
+      gap: 0.7rem;
+      margin-top: 1rem;
+    }
+
+    .check {
+      display: flex;
+      gap: 0.75rem;
+      align-items: flex-start;
+      padding: 0.9rem 1rem;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+    }
+
+    .check-mark {
+      flex: 0 0 auto;
+      width: 28px;
+      height: 28px;
+      display: grid;
+      place-items: center;
+      border-radius: 999px;
+      background: rgba(34, 197, 94, 0.15);
+      color: #86efac;
+      font-weight: 800;
+    }
+
+    /* ── Code ── */
+    code {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 0.15rem 0.4rem;
+      border-radius: 6px;
+      font-size: 0.9em;
+      font-family: "Cascadia Code", "Fira Code", monospace;
+    }
+    
+    pre {
+      background: rgba(255, 255, 255, 0.05);
+      padding: 1.2rem;
+      border-radius: 12px;
+      overflow-x: auto;
+      border: 1px solid var(--border);
+    }
+    
+    pre code {
+      background: transparent;
+      padding: 0;
+    }
+
+    /* ── Footer ── */
+    .footer {
+      padding: 2.2rem 0 3.5rem;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 920px) {
+
+      .hero-grid,
+      .grid-3,
+      .grid-2,
+      .screenshot-gallery.cols-2,
+      .screenshot-gallery.cols-3 {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 680px) {
+      .nav-inner {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .step {
+        grid-template-columns: 1fr;
+      }
+
+      .step-num {
+        width: 60px;
+        height: 60px;
+        border-radius: 16px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <nav class="nav">
+    <div class="container nav-inner">
+      <div class="brand">
+        <div class="brand-badge">AWS</div>
+        <div>Lab Report · Seguridad</div>
+      </div>
+      <div class="nav-links">
+        <a href="../index.html" class="back-link">← All Labs</a>
+        <a href="#summary">Summary</a>
+        <a href="#walkthrough">Walkthrough</a>
+        <a href="#learnings">Learnings</a>
+      </div>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <div class="container hero-grid">
+      <div class="panel hero-main">
+        <div class="eyebrow">AWS re/Start Lab · Seguridad</div>
+        <h1>Introduction to AWS Identity and Access Management (IAM)</h1>
+        <p>
+          This lab explores the core concepts of AWS IAM. Discover how to create and enforce account-wide password policies, organize resources utilizing user groups and policies, and enforce least-privilege permissions through practical testing.
+        </p>
+      </div>
+
+      <aside class="panel hero-side">
+        <div class="callout">
+          <strong>Lab Objective</strong>
+          Experiment with the effects of IAM policies on service access and user groups.
+        </div>
+
+        <div>
+          <div class="small" style="margin-bottom:0.7rem;">Tools & Concepts</div>
+          <div class="tech-stack">
+            <span class="chip">AWS IAM</span>
+            <span class="chip">IAM Groups</span>
+            <span class="chip">Security Policies</span>
+            <span class="chip">JSON Policies</span>
+          </div>
+        </div>
+
+        <div class="callout" style="border-color: rgba(34,197,94,0.2); background: rgba(34,197,94,0.08);">
+          <strong>Key Insight</strong>
+          Delegating permissions via <strong>IAM Groups</strong> rather than to individuals directly reduces administrative overhead and minimizes the risk of overly permissive identities.
+        </div>
+      </aside>
+    </div>
+  </header>
+
+  <main>
+    <section id="summary">
+      <div class="container">
+        <h2 class="section-title">Lab Summary</h2>
+        <p class="section-subtitle">
+          Configured an <span class="highlight">IAM password policy</span>, analyzed managed and inline <span class="highlight">JSON policies</span>, attached users to logical <span class="highlight">User Groups</span>, and systematically tested positive/negative authorizations.
+        </p>
+
+        <div class="grid-2" style="margin-top:1rem;">
+          <article class="card">
+            <h3>Hardening Authentication</h3>
+            <p>Upgraded the account password posture by enacting stricter policies requiring lengthier and more complex strings to hinder brute-force attacks.</p>
+          </article>
+          <article class="card">
+            <h3>Role-Based Testing</h3>
+            <p>Authenticated as three separate users representing distinct roles (S3 Support, EC2 Support, and EC2 Admin) to validate that each identity was explicitly denied capabilities beyond their provisioned scope.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="walkthrough">
+      <div class="container">
+        <h2 class="section-title">Step-by-Step Walkthrough</h2>
+        <p class="section-subtitle">
+          Detailed documentation of creating security policies and testing IAM roles.
+        </p>
+
+        <div class="timeline">
+
+          <!-- ══════ TASK 1 ══════ -->
+          <article class="step">
+            <div class="step-num">01</div>
+            <div>
+              <h3>Create an account password policy</h3>
+              <ul>
+                <li>Accessed <strong>Account settings</strong> in the IAM dashboard to review the default authentication security constraints.</li>
+                <li>Redefined the minimum password length to <strong>10 characters</strong> and required alphanumeric characters and symbols to increase complexity.</li>
+              </ul>
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/01-password-policies.jpg" alt="Modified password policies" loading="lazy" />
+                  <figcaption>IAM Dashboard: Saving the updated account-level password policies</figcaption>
+                </figure>
+              </div>
+            </div>
+          </article>
+
+          <!-- ══════ TASK 2 ══════ -->
+          <article class="step">
+            <div class="step-num">02</div>
+            <div>
+              <h3>Explore users, groups, and policies</h3>
+              <ul>
+                <li>Reviewed the pre-created users (<strong>user-1, user-2, user-3</strong>). Verified none of them possessed direct attached permissions.</li>
+                <li>Inspected the pre-created user groups (<strong>S3-Support, EC2-Support, EC2-Admin</strong>).</li>
+                <li>Examined the core IAM JSON policies driving the privileges for each group:</li>
+              </ul>
+              
+              <div class="grid-3" style="margin-top: 1rem;">
+                <div class="card" style="padding: 1rem;">
+                  <h4 style="margin: 0 0 0.5rem; font-size: 0.95rem; color: #38bdf8;">EC2-Support</h4>
+                  <p style="font-size: 0.85rem; margin-bottom: 0.5rem; color: #94a3b8;">Managed: AmazonEC2ReadOnlyAccess</p>
+<pre style="font-size: 0.75rem; padding: 0.8rem;"><code>{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "ec2:Describe*",
+        "ec2:GetSecurityGroupsForVpc"
+      ],
+      "Resource": "*"
+    },
+    ...
+  ]
+}</code></pre>
+                </div>
+                
+                <div class="card" style="padding: 1rem;">
+                  <h4 style="margin: 0 0 0.5rem; font-size: 0.95rem; color: #38bdf8;">S3-Support</h4>
+                  <p style="font-size: 0.85rem; margin-bottom: 0.5rem; color: #94a3b8;">Managed: AmazonS3ReadOnlyAccess</p>
+<pre style="font-size: 0.75rem; padding: 0.8rem;"><code>{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "s3:Get*",
+        "s3:List*",
+        ...
+      ],
+      "Resource": "*"
+    }
+  ]
+}</code></pre>
+                </div>
+                
+                <div class="card" style="padding: 1rem;">
+                  <h4 style="margin: 0 0 0.5rem; font-size: 0.95rem; color: #38bdf8;">EC2-Admin</h4>
+                  <p style="font-size: 0.85rem; margin-bottom: 0.5rem; color: #94a3b8;">Customer Inline Policy</p>
+<pre style="font-size: 0.75rem; padding: 0.8rem;"><code>{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": [
+        "ec2:Describe*",
+        "ec2:StartInstances",
+        "ec2:StopInstances"
+      ],
+      "Resource": ["*"],
+      "Effect": "Allow"
+    }
+  ]
+}</code></pre>
+                </div>
+              </div>
+            </div>
+          </article>
+          
+          <!-- ══════ TASK 3 ══════ -->
+          <article class="step">
+            <div class="step-num">03</div>
+            <div>
+              <h3>Add users to user groups</h3>
+              <ul>
+                <li>Assigned <strong>user-1</strong> to the <code>S3-Support</code> group.</li>
+                <li>Assigned <strong>user-2</strong> to the <code>EC2-Support</code> group.</li>
+                <li>Assigned <strong>user-3</strong> to the <code>EC2-Admin</code> group.</li>
+                <li>Verified all three groups possessed exactly one assigned user.</li>
+              </ul>
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/02-users-assigned.jpg" alt="Users assigned to groups" loading="lazy" />
+                  <figcaption>IAM Dashboard: Confirming group assignments for the new hires</figcaption>
+                </figure>
+              </div>
+            </div>
+          </article>
+          
+           <!-- ══════ TASK 4 ══════ -->
+          <article class="step">
+            <div class="step-num">04</div>
+            <div>
+              <h3>Sign in and test user permissions</h3>
+              <ul>
+                <li>Signed in as <strong>user-1 (S3-Support)</strong>. Verified successful read access to an S3 bucket but received an API error when attempting to fetch the EC2 Instances list, demonstrating the restrictive policy effectively blocking access outside S3.</li>
+              </ul>
+              <div class="screenshot-gallery cols-2">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/03-user1-s3.jpg" alt="User 1 accessing S3 successfully" loading="lazy" />
+                  <figcaption>user-1: Allowed S3 read actions</figcaption>
+                </figure>
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/04-user1-ec2-error.jpg" alt="User 1 failing to access EC2" loading="lazy" />
+                  <figcaption>user-1: Denied EC2 access via API error message</figcaption>
+                </figure>
+              </div>
+
+              <ul>
+                <li>Signed in as <strong>user-2 (EC2-Support)</strong>. Verified ability to view the EC2 instance list. Attempted to execute <strong>Stop instance</strong> and correctly received an "unauthorized operation" failure message since the role only holds read-only privileges.</li>
+              </ul>
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/05-user2-stop-error.jpg" alt="User 2 failing to stop EC2" loading="lazy" />
+                  <figcaption>user-2: Implicit Deny triggers an error when issuing modifying actions on EC2</figcaption>
+                </figure>
+              </div>
+
+              <ul>
+                <li>Signed in as <strong>user-3 (EC2-Admin)</strong>. Was successfully able to execute the <strong>Stop instance</strong> action due to the inline policy containing the explicitly defined <code>ec2:StopInstances</code> action array map.</li>
+              </ul>
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/06-user3-stop-success.jpg" alt="User 3 successfully stopping EC2" loading="lazy" />
+                  <figcaption>user-3: Functionality verified per the assigned EC2-Admin capabilities</figcaption>
+                </figure>
+              </div>
+            </div>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+    <section id="learnings">
+      <div class="container">
+        <h2 class="section-title">Key Learnings</h2>
+        <div class="grid-2">
+          <div class="card">
+            <h3>What Was Actually Learned</h3>
+            <div class="checklist">
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>How to strictly enforce an <strong>Account Password Policy</strong> across all identities within an organization.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>Differences between heavily reusable <strong>Managed Policies</strong> and single-use <strong>Customer Inline Policies</strong>.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>How the default architecture of IAM revolves around an <strong>Implicit Deny</strong>, requiring explicit allows via an Effect block.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>How to validate permissions by actually assuming the roles to emulate and troubleshoot endpoint behaviors.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Technical Conclusion</h3>
+            <p>
+              This lab underscored the importance of applying the Principle of Least Privilege in cloud environments. It highlighted a scalable approach by applying permissions directly to logical groups rather than individuals natively avoiding convoluted, contradictory, or abandoned direct permission mappings.
+            </p>
+            <p style="margin-top: 1rem;">
+              Understanding how to read JSON-structured policies, with their <code>Effect</code>, <code>Action</code>, and <code>Resource</code> blocks, is an instrumental skill for debugging API failures shown actively through simulated user testing in this lab exercise.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      Lab report documenting the Introduction to AWS Identity and Access Management (IAM) lab · AWS re/Start Program
+    </div>
+  </footer>
+</body>
+
+</html>
