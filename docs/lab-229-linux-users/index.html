@@ -611,7 +611,7 @@
 
               <div class="insight info" style="margin-top:1rem;">
                 Each password was <code>P@ssword1234!</code>. When typing the password, nothing
-                appears on screen — this is normal Linux behavior for password inputs.
+                appears on screen, which is normal Linux behavior for password inputs.
               </div>
             </div>
           </article>
@@ -688,9 +688,9 @@
                 <li>Ran <code>pwd</code> to confirm the current directory was still
                   <code>/home/ec2-user</code>.
                 </li>
-                <li>Ran <code>touch myFile.txt</code> — received <strong>Permission denied</strong>
+                <li>Ran <code>touch myFile.txt</code>, and received <strong>Permission denied</strong>
                   because <code>arosalez</code> cannot write to the <code>ec2-user</code> home folder.</li>
-                <li>Ran <code>sudo touch myFile.txt</code> — received the message
+                <li>Ran <code>sudo touch myFile.txt</code>, and received the message
                   "<strong>arosalez is not in the sudoers file. This incident will be reported.</strong>"</li>
               </ul>
 
@@ -698,7 +698,7 @@
                 <figure class="screenshot-fig">
                   <img src="assets/screenshots/03-permission-denied-sudoers.png"
                     alt="Terminal showing permission denied and sudoers error" loading="lazy" />
-                  <figcaption>Terminal: touch denied, sudo attempt denied — user not in sudoers file</figcaption>
+                  <figcaption>Terminal: touch denied, sudo attempt denied (user not in sudoers file)</figcaption>
                 </figure>
               </div>
 

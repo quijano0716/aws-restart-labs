@@ -522,14 +522,16 @@
               <h3>Activate Amazon Inspector</h3>
               <ul>
                 <li>Navigated to the <strong>Amazon Inspector</strong> service in the AWS Management Console and activated it for the account.</li>
-                <li>Monitored the dashboard until the Environment coverage for <strong>Lambda functions</strong> reached 100%.</li>
               </ul>
               <div class="screenshot-gallery">
                 <figure class="screenshot-fig">
-                  <img src="assets/screenshots/01-inspector-dashboard.jpg" alt="Inspector coverage dashboard" loading="lazy" />
-                  <figcaption>Amazon Inspector: Environment coverage reaching 100% for Lambda functions</figcaption>
+                  <img src="assets/screenshots/01-inspector-dashboard.jpg" alt="Inspector coverage dashboard showing scan underway" loading="lazy" />
+                  <figcaption>Amazon Inspector: Dashboard showing that the first scan is underway</figcaption>
                 </figure>
               </div>
+              <ul>
+                <li>Monitored the dashboard until the Environment coverage for <strong>Lambda functions</strong> completed.</li>
+              </ul>
             </div>
           </article>
 
@@ -624,7 +626,7 @@
               By automatically assessing the environment, the service swiftly flags deeply nested dependency issues like outdated packages in Lambda functions without manual intervention.
             </p>
             <p style="margin-top: 1rem;">
-              The remediation process was equally streamlined—by updating the package constraints and simply redeploying the function, a subsequent automated scan validated the fix and closed the finding, ensuring a continuous and secure development lifecycle.
+              The remediation process was equally streamlined. By updating the package constraints and simply redeploying the function, a subsequent automated scan validated the fix and closed the finding, ensuring a continuous and secure development lifecycle.
             </p>
           </div>
         </div>
