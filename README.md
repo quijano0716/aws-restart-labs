@@ -55,6 +55,15 @@ Technical documentation of hands-on labs completed during the **AWS re/Start** p
 | 280 | Malware Protection Using an AWS Network Firewall | Completed |
 | 281 | Monitor an EC2 Instance with CloudWatch Alarms | Completed |
 
+
+### Bases de Datos
+
+| #   | Lab                                           | Status    |
+|-----|-----------------------------------------------|-----------|
+| 268 | Create and Drop Databases and Tables          | Completed |
+| 269 | Insert, Update, and Delete Data in a Database | Completed |
+| 270 | Selecting Data from a Database                | Completed |
+
 ---
 
 **Student:** Julian David Quijano  

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lab Report: Selecting Data from a Database</title>
+  <style>
+    :root { --text:#e5e7eb; --muted:#94a3b8; --accent:#ff9900; --accent-2:#38bdf8; --border:rgba(255,255,255,0.12); --card:rgba(255,255,255,0.08); --shadow:0 20px 50px rgba(0,0,0,0.25); --radius:22px; --max:1120px; }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; background:linear-gradient(180deg,#020617 0%,#0f172a 48%,#111827 100%); color:var(--text); line-height:1.65; }
+    .container { width:min(var(--max),calc(100% - 2rem)); margin:0 auto; }
+    .nav { position:sticky; top:0; backdrop-filter:blur(16px); background:rgba(2,6,23,0.72); border-bottom:1px solid rgba(255,255,255,0.06); }
+    .nav-inner { display:flex; justify-content:space-between; align-items:center; padding:0.9rem 0; gap:1rem; }
+    .brand { display:flex; align-items:center; gap:0.7rem; font-weight:800; }
+    .brand-badge { width:38px; height:38px; border-radius:12px; display:grid; place-items:center; background:linear-gradient(135deg,var(--accent),#ffb84d); color:#111827; font-weight:900; }
+    .nav-links { display:flex; gap:1rem; flex-wrap:wrap; color:var(--muted); font-size:0.95rem; }
+    .nav-links a { color:inherit; text-decoration:none; }
+    .hero { padding:4.8rem 0 2rem; }
+    .hero-grid { display:grid; grid-template-columns:1.2fr 0.8fr; gap:1.5rem; }
+    .panel { background:linear-gradient(180deg, rgba(255,255,255,0.09), rgba(255,255,255,0.05)); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow); }
+    .hero-main,.hero-side { padding:2rem; }
+    .hero-side { display:flex; flex-direction:column; gap:1rem; }
+    .eyebrow { display:inline-flex; padding:0.45rem 0.8rem; border-radius:999px; background:rgba(255,153,0,0.12); color:#ffd28a; border:1px solid rgba(255,153,0,0.25); font-size:0.9rem; margin-bottom:1rem; }
+    h1,h2,h3 { line-height:1.15; letter-spacing:-0.03em; margin:0; }
+    h1 { font-size:clamp(2rem,4vw,3.7rem); margin-bottom:0.9rem; }
+    .hero-main p,.section-subtitle,.card p,.step p { color:#cbd5e1; }
+    .callout { padding:1rem 1.1rem; border-radius:18px; border:1px solid rgba(56,189,248,0.18); background:rgba(56,189,248,0.08); }
+    .callout strong { display:block; margin-bottom:0.35rem; }
+    .tech-stack { display:flex; flex-wrap:wrap; gap:0.55rem; }
+    .chip { padding:0.45rem 0.75rem; border-radius:999px; font-size:0.88rem; background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.1); color:#dbeafe; }
+    section { padding:1rem 0 0.4rem; }
+    .section-title { margin-bottom:1rem; font-size:clamp(1.5rem,2vw,2.2rem); }
+    .grid-3,.grid-2 { display:grid; gap:1rem; }
+    .grid-3 { grid-template-columns:repeat(3,minmax(0,1fr)); }
+    .grid-2 { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    .card,.step { background:var(--card); border:1px solid var(--border); border-radius:20px; box-shadow:var(--shadow); }
+    .card { padding:1.3rem; }
+    .timeline { display:grid; gap:1rem; margin-top:1rem; }
+    .step { display:grid; grid-template-columns:90px 1fr; gap:1rem; padding:1.25rem; }
+    .step-num { width:72px; height:72px; border-radius:20px; background:linear-gradient(135deg, rgba(255,153,0,0.18), rgba(56,189,248,0.18)); border:1px solid rgba(255,255,255,0.12); display:grid; place-items:center; font-weight:900; }
+    .step ul { margin:0.3rem 0 0; padding-left:1.1rem; color:#dbe4f0; }
+    .highlight { color:#ffd28a; font-weight:700; }
+    .screenshot-gallery { display:grid; gap:0.8rem; margin-top:1rem; }
+    .screenshot-fig { margin:0; border-radius:16px; overflow:hidden; border:1px solid rgba(255,255,255,0.1); background:rgba(2,6,23,0.5); }
+    .screenshot-scroll { max-height:440px; overflow:auto; background:#020617; }
+    .screenshot-scroll img { width:auto; min-width:100%; max-width:none; height:auto; display:block; }
+    .screenshot-fig figcaption { padding:0.6rem 0.8rem; color:var(--muted); font-size:0.84rem; border-top:1px solid rgba(255,255,255,0.08); }
+    .insight { padding:1.15rem 1.2rem; border-left:4px solid var(--accent); border-radius:16px; background:rgba(255,153,0,0.08); color:#fde7c2; margin-top:1rem; }
+    .info { border-left-color:var(--accent-2); background:rgba(56,189,248,0.08); color:#d8f3ff; }
+    .checklist { display:grid; gap:0.7rem; margin-top:1rem; }
+    .check { display:flex; gap:0.75rem; align-items:flex-start; padding:0.9rem 1rem; border-radius:16px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.09); }
+    .check-mark { width:28px; height:28px; display:grid; place-items:center; border-radius:999px; background:rgba(34,197,94,0.15); color:#86efac; font-weight:800; }
+    code { background:rgba(255,255,255,0.1); padding:0.15rem 0.4rem; border-radius:6px; font-size:0.9em; font-family:"Cascadia Code","Fira Code",monospace; }
+    .footer { padding:2.2rem 0 3.5rem; color:var(--muted); text-align:center; }
+    @media (max-width: 920px) { .hero-grid,.grid-3,.grid-2 { grid-template-columns:1fr; } }
+    @media (max-width: 680px) { .step { grid-template-columns:1fr; } .step-num { width:60px; height:60px; } .screenshot-scroll { max-height:320px; } }
+  </style>
+</head>
+<body>
+<nav class="nav"><div class="container nav-inner"><div class="brand"><div class="brand-badge">AWS</div><div>Lab Report · Bases de Datos</div></div><div class="nav-links"><a href="../index.html">← All Labs</a><a href="#summary">Summary</a><a href="#walkthrough">Walkthrough</a><a href="#commands">Commands</a><a href="#learnings">Learnings</a></div></div></nav>
+<header class="hero"><div class="container hero-grid"><div class="panel hero-main"><div class="eyebrow">AWS re/Start Lab · Bases de Datos</div><h1>Selecting Data from a Database</h1><p>This lab focuses on reading data instead of changing it. The work starts with broad result sets and gradually narrows them using <code>COUNT(*)</code>, aliases, ordering, and filtered conditions in the <code>WHERE</code> clause.</p></div><aside class="panel hero-side"><div class="callout"><strong>Lab Objective</strong>Use the <code>SELECT</code> statement, <code>COUNT()</code>, and common operators such as <code>&lt;</code>, <code>&gt;</code>, <code>=</code>, <code>WHERE</code>, <code>ORDER BY</code>, and <code>AND</code> to query a database.</div><div><div style="margin-bottom:0.7rem;color:var(--muted);">Tools & Concepts</div><div class="tech-stack"><span class="chip">MariaDB</span><span class="chip">SELECT</span><span class="chip">COUNT(*)</span><span class="chip">WHERE</span><span class="chip">ORDER BY</span></div></div><div class="callout" style="border-color: rgba(34,197,94,0.2); background: rgba(34,197,94,0.08);"><strong>Key Insight</strong>A useful query is built step by step. First confirm the schema, then decide which columns matter, then order or filter the result set until it answers the exact question you have in mind.</div></aside></div></header>
+<main>
+<section id="summary"><div class="container"><h2 class="section-title">Lab Summary</h2><p class="section-subtitle">Connected to the <span class="highlight">world</span> database, queried full and partial result sets from <code>world.country</code>, counted rows with <code>COUNT(*)</code>, renamed columns with <code>AS</code>, sorted by population, and solved a final challenge with combined <code>WHERE</code> conditions.</p><div class="grid-3" style="margin-top:1rem;"><article class="card"><h3>Schema Inspection</h3><p>Started with broad queries to understand how many rows existed and which columns were available in the table.</p></article><article class="card"><h3>Ordered Result Sets</h3><p>Used aliases and ascending or descending ordering to make the output easier to read.</p></article><article class="card"><h3>Filtered Queries</h3><p>Applied numeric and text conditions to answer a concrete question about Southern Europe.</p></article></div></div></section>
+<section id="walkthrough"><div class="container"><h2 class="section-title">Step-by-Step Walkthrough</h2><p class="section-subtitle">The queries move from general exploration to targeted filtering, which is the normal progression when analyzing a dataset.</p><div class="timeline">
+<article class="step"><div class="step-num">01</div><div><h3>Connect to the Command Host and confirm the world database</h3><ul><li>Opened the <strong>Command Host</strong> through <strong>Session Manager</strong>, switched to root, and connected with <code>mysql -u root --password='re:St@rt!9'</code>.</li><li>Ran <code>SHOW DATABASES;</code> to confirm that the <code>world</code> database was available before starting the query exercises.</li></ul><div class="insight info">This setup is the same as in the previous database labs. The difference here is that the focus stays on reading and filtering data, not on changing it.</div></div></article>
+<article class="step"><div class="step-num">02</div><div><h3>Inspect the table structure and basic result sets</h3><ul><li>Queried the full table with <code>SELECT * FROM world.country;</code> to view the raw dataset.</li><li>Counted the rows with <code>SELECT COUNT(*) FROM world.country;</code> and checked the table definition with <code>SHOW COLUMNS FROM world.country;</code>.</li><li>Selected only the columns that mattered for the exercise with <code>SELECT Name, Capital, Region, SurfaceArea, Population FROM world.country;</code>.</li></ul><div class="screenshot-gallery"><figure class="screenshot-fig"><div class="screenshot-scroll"><img src="assets/screenshots/01-count-columns-select.jpg" alt="Counting rows, showing columns, and selecting specific fields" loading="lazy" /></div><figcaption>Terminal: The query sequence moves from total row count to schema inspection and then to a narrower result set with only the requested columns.</figcaption></figure></div></div></article>
+<article class="step"><div class="step-num">03</div><div><h3>Order and filter the result set</h3><ul><li>Renamed <code>SurfaceArea</code> with the alias <code>AS "Surface Area"</code> to make the output easier to read.</li><li>Sorted the countries by population using <code>ORDER BY Population</code> and then reversed the order with <code>ORDER BY Population DESC</code>.</li><li>Applied the condition <code>WHERE Population &gt; 50000000</code> to focus on larger countries.</li><li>Added a second condition with <code>AND Population &lt; 100000000</code> to narrow the results to a more specific range.</li></ul><div class="screenshot-gallery"><figure class="screenshot-fig"><div class="screenshot-scroll"><img src="assets/screenshots/02-order-by-where-results.jpg" alt="Ordered and filtered query results" loading="lazy" /></div><figcaption>Terminal: The result set is sorted by population and then filtered with <code>WHERE</code> and <code>AND</code> to keep only the rows that satisfy both conditions.</figcaption></figure></div></div></article>
+<article class="step"><div class="step-num">04</div><div><h3>Answer the challenge question</h3><ul><li>Built a query for the question: Which country in Southern Europe has a population greater than 50 million?</li><li>Used <code>WHERE Population &gt; 50000000 AND Region = "Southern Europe"</code> to combine the numeric and text filters in one statement.</li><li>The result returned <strong>Italy</strong>, which satisfies both conditions in the dataset.</li></ul><div class="screenshot-gallery"><figure class="screenshot-fig"><div class="screenshot-scroll"><img src="assets/screenshots/03-southern-europe-query.jpg" alt="Challenge query returning Italy" loading="lazy" /></div><figcaption>Terminal: The final challenge query returns Italy as the country in Southern Europe with a population greater than 50 million.</figcaption></figure></div></div></article>
+</div></div></section>
+<section id="commands"><div class="container"><h2 class="section-title">Query Reference</h2><p class="section-subtitle">Main read-only statements and operators used to inspect, sort, and filter the dataset.</p><div class="timeline">
+<article class="step"><div class="step-num" style="font-size:0.85rem;">sql</div><div><h3><code>SELECT * FROM world.country;</code></h3><p>Returns every column and every row in the table.</p></div></article>
+<article class="step"><div class="step-num" style="font-size:0.85rem;">sql</div><div><h3><code>SELECT COUNT(*) FROM world.country;</code></h3><p>Counts the total number of rows in the table.</p></div></article>
+<article class="step"><div class="step-num" style="font-size:0.85rem;">sql</div><div><h3><code>SHOW COLUMNS FROM world.country;</code></h3><p>Lists the schema so you can see which columns are available for selection or filtering.</p></div></article>
+<article class="step"><div class="step-num" style="font-size:0.85rem;">sql</div><div><h3><code>SELECT Name, Capital, Region, SurfaceArea, Population FROM world.country;</code></h3><p>Returns only the selected columns instead of the full table.</p></div></article>
+<article class="step"><div class="step-num" style="font-size:0.85rem;">sql</div><div><h3><code>ORDER BY Population DESC</code></h3><p>Sorts the result set by population in descending order.</p></div></article>
+<article class="step"><div class="step-num" style="font-size:0.85rem;">sql</div><div><h3><code>WHERE Population &gt; 50000000</code></h3><p>Keeps only rows that match the numeric condition.</p></div></article>
+<article class="step"><div class="step-num" style="font-size:0.85rem;">sql</div><div><h3><code>WHERE Population &gt; 50000000 AND Region = "Southern Europe"</code></h3><p>Combines two conditions so the result answers a much more specific question.</p></div></article>
+</div></div></section>
+<section id="learnings"><div class="container"><h2 class="section-title">Key Learnings</h2><div class="grid-2"><div class="card"><h3>What Was Actually Learned</h3><div class="checklist"><div class="check"><div class="check-mark">✓</div><div><code>COUNT(*)</code> is a quick way to measure table size before doing more detailed analysis.</div></div><div class="check"><div class="check-mark">✓</div><div>Choosing only the needed columns makes the result set easier to read than using <code>SELECT *</code> all the time.</div></div><div class="check"><div class="check-mark">✓</div><div><code>WHERE</code>, <code>ORDER BY</code>, and <code>AND</code> turn a general query into a precise answer to a real question.</div></div></div></div><div class="card"><h3>Technical Conclusion</h3><p>This lab showed that querying is not only about retrieving rows. It is about shaping the output so that it becomes useful for decision-making or validation.</p><p style="margin-top:1rem;">The final challenge made that point clear. Instead of scanning the full table manually, a well-constructed <code>SELECT</code> statement narrowed the dataset to one answer with a clear and repeatable condition set.</p></div></div></div></section>
+</main>
+<footer class="footer"><div class="container">Lab report documenting the database querying lab · AWS re/Start Program</div></footer>
+</body>
+</html>

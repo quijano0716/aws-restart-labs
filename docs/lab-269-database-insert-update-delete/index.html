@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lab Report: Insert, Update, and Delete Data in a Database</title>
+  <style>
+    :root { --text:#e5e7eb; --muted:#94a3b8; --accent:#ff9900; --accent-2:#38bdf8; --border:rgba(255,255,255,0.12); --card:rgba(255,255,255,0.08); --shadow:0 20px 50px rgba(0,0,0,0.25); --radius:22px; --max:1120px; }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; background:linear-gradient(180deg,#020617 0%,#0f172a 48%,#111827 100%); color:var(--text); line-height:1.65; }
+    .container { width:min(var(--max),calc(100% - 2rem)); margin:0 auto; }
+    .nav { position:sticky; top:0; backdrop-filter:blur(16px); background:rgba(2,6,23,0.72); border-bottom:1px solid rgba(255,255,255,0.06); }
+    .nav-inner { display:flex; justify-content:space-between; align-items:center; padding:0.9rem 0; gap:1rem; }
+    .brand { display:flex; align-items:center; gap:0.7rem; font-weight:800; }
+    .brand-badge { width:38px; height:38px; border-radius:12px; display:grid; place-items:center; background:linear-gradient(135deg,var(--accent),#ffb84d); color:#111827; font-weight:900; }
+    .nav-links { display:flex; gap:1rem; flex-wrap:wrap; color:var(--muted); font-size:0.95rem; }
+    .nav-links a { color:inherit; text-decoration:none; }
+    .hero { padding:4.8rem 0 2rem; }
+    .hero-grid { display:grid; grid-template-columns:1.2fr 0.8fr; gap:1.5rem; }
+    .panel { background:linear-gradient(180deg, rgba(255,255,255,0.09), rgba(255,255,255,0.05)); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow); }
+    .hero-main,.hero-side { padding:2rem; }
+    .hero-side { display:flex; flex-direction:column; gap:1rem; }
+    .eyebrow { display:inline-flex; padding:0.45rem 0.8rem; border-radius:999px; background:rgba(255,153,0,0.12); color:#ffd28a; border:1px solid rgba(255,153,0,0.25); font-size:0.9rem; margin-bottom:1rem; }
+    h1,h2,h3 { line-height:1.15; letter-spacing:-0.03em; margin:0; }
+    h1 { font-size:clamp(2rem,4vw,3.7rem); margin-bottom:0.9rem; }
+    .hero-main p,.section-subtitle,.card p,.step p { color:#cbd5e1; }
+    .callout { padding:1rem 1.1rem; border-radius:18px; border:1px solid rgba(56,189,248,0.18); background:rgba(56,189,248,0.08); }
+    .callout strong { display:block; margin-bottom:0.35rem; }
+    .tech-stack { display:flex; flex-wrap:wrap; gap:0.55rem; }
+    .chip { padding:0.45rem 0.75rem; border-radius:999px; font-size:0.88rem; background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.1); color:#dbeafe; }
+    section { padding:1rem 0 0.4rem; }
+    .section-title { margin-bottom:1rem; font-size:clamp(1.5rem,2vw,2.2rem); }
+    .grid-3,.grid-2 { display:grid; gap:1rem; }
+    .grid-3 { grid-template-columns:repeat(3,minmax(0,1fr)); }
+    .grid-2 { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    .card,.step { background:var(--card); border:1px solid var(--border); border-radius:20px; box-shadow:var(--shadow); }
+    .card { padding:1.3rem; }
+    .timeline { display:grid; gap:1rem; margin-top:1rem; }
+    .step { display:grid; grid-template-columns:90px 1fr; gap:1rem; padding:1.25rem; }
+    .step-num { width:72px; height:72px; border-radius:20px; background:linear-gradient(135deg, rgba(255,153,0,0.18), rgba(56,189,248,0.18)); border:1px solid rgba(255,255,255,0.12); display:grid; place-items:center; font-weight:900; }
+    .step ul { margin:0.3rem 0 0; padding-left:1.1rem; color:#dbe4f0; }
+    .highlight { color:#ffd28a; font-weight:700; }
+    .screenshot-gallery { display:grid; gap:0.8rem; margin-top:1rem; }
+    .screenshot-fig { margin:0; border-radius:16px; overflow:hidden; border:1px solid rgba(255,255,255,0.1); background:rgba(2,6,23,0.5); }
+    .screenshot-scroll { max-height:440px; overflow:auto; background:#020617; }
+    .screenshot-scroll img { width:auto; min-width:100%; max-width:none; height:auto; display:block; }
+    .screenshot-fig figcaption { padding:0.6rem 0.8rem; color:var(--muted); font-size:0.84rem; border-top:1px solid rgba(255,255,255,0.08); }
+    .insight { padding:1.15rem 1.2rem; border-left:4px solid var(--accent); border-radius:16px; background:rgba(255,153,0,0.08); color:#fde7c2; margin-top:1rem; }
+    .info { border-left-color:var(--accent-2); background:rgba(56,189,248,0.08); color:#d8f3ff; }
+    .checklist { display:grid; gap:0.7rem; margin-top:1rem; }
+    .check { display:flex; gap:0.75rem; align-items:flex-start; padding:0.9rem 1rem; border-radius:16px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.09); }
+    .check-mark { width:28px; height:28px; display:grid; place-items:center; border-radius:999px; background:rgba(34,197,94,0.15); color:#86efac; font-weight:800; }
+    code { background:rgba(255,255,255,0.1); padding:0.15rem 0.4rem; border-radius:6px; font-size:0.9em; font-family:"Cascadia Code","Fira Code",monospace; }
+    .footer { padding:2.2rem 0 3.5rem; color:var(--muted); text-align:center; }
+    @media (max-width: 920px) { .hero-grid,.grid-3,.grid-2 { grid-template-columns:1fr; } }
+    @media (max-width: 680px) { .step { grid-template-columns:1fr; } .step-num { width:60px; height:60px; } .screenshot-scroll { max-height:320px; } }
+  </style>
+</head>
+<body>
+<nav class="nav"><div class="container nav-inner"><div class="brand"><div class="brand-badge">AWS</div><div>Lab Report · Bases de Datos</div></div><div class="nav-links"><a href="../index.html">← All Labs</a><a href="#summary">Summary</a><a href="#walkthrough">Walkthrough</a><a href="#commands">Commands</a><a href="#learnings">Learnings</a></div></div></nav>
+<header class="hero"><div class="container hero-grid"><div class="panel hero-main"><div class="eyebrow">AWS re/Start Lab · Bases de Datos</div><h1>Insert, Update, and Delete Data in a Database</h1><p>This lab focuses on row-level changes inside the <code>world</code> database. The workflow inserts sample countries, updates numeric values, deletes the rows again, and then restores the complete sample dataset from a SQL backup file.</p></div><aside class="panel hero-side"><div class="callout"><strong>Lab Objective</strong>Insert rows, update existing values, delete rows, and reload data from an SQL script file.</div><div><div style="margin-bottom:0.7rem;color:var(--muted);">Tools & Concepts</div><div class="tech-stack"><span class="chip">MariaDB</span><span class="chip">INSERT</span><span class="chip">UPDATE</span><span class="chip">DELETE</span><span class="chip">SQL Import</span></div></div><div class="callout" style="border-color: rgba(34,197,94,0.2); background: rgba(34,197,94,0.08);"><strong>Key Insight</strong>Data manipulation statements act directly on stored rows. If an <code>UPDATE</code> or <code>DELETE</code> statement is executed without a <code>WHERE</code> clause, every row in scope is affected.</div></aside></div></header>
+<main>
+<section id="summary"><div class="container"><h2 class="section-title">Lab Summary</h2><p class="section-subtitle">Connected to the existing <span class="highlight">world</span> database, inserted two countries into <code>world.country</code>, updated the <code>Population</code> and <code>SurfaceArea</code> columns for all rows, deleted the records, and restored the full sample dataset with <code>world.sql</code>.</p><div class="grid-3" style="margin-top:1rem;"><article class="card"><h3>Controlled Inserts</h3><p>Added Ireland and Australia to the country table and verified the result with a filtered SELECT query.</p></article><article class="card"><h3>Mass Updates and Delete</h3><p>Updated every row in the table, then removed all rows to observe the effect of DML statements without conditions.</p></article><article class="card"><h3>Bulk Restore</h3><p>Reloaded the sample environment from an SQL file instead of recreating rows one by one.</p></article></div></div></section>
+<section id="walkthrough"><div class="container"><h2 class="section-title">Step-by-Step Walkthrough</h2><p class="section-subtitle">The workflow demonstrates how row data changes over time and why verification after each statement matters.</p><div class="timeline">
+<article class="step"><div class="step-num">01</div><div><h3>Connect to MariaDB and verify the existing database</h3><ul><li>Connected to the <strong>Command Host</strong> with <strong>Session Manager</strong>, switched to root, and opened the database shell with <code>mysql -u root --password='re:St@rt!9'</code>.</li><li>Ran <code>SHOW DATABASES;</code> to confirm that the <code>world</code> database was already available before modifying any rows.</li></ul><div class="insight info">In this lab the database structure already exists, so the focus is on changing data inside the tables rather than creating schemas.</div></div></article>
+<article class="step"><div class="step-num">02</div><div><h3>Insert, update, and delete rows in the country table</h3><ul><li>Checked the table with <code>SELECT * FROM world.country;</code> and then inserted Ireland and Australia using two separate <code>INSERT INTO world.country VALUES (...)</code> statements.</li><li>Verified the inserted rows with <code>SELECT * FROM world.country WHERE Code IN ('IRL', 'AUS');</code>.</li><li>Ran <code>UPDATE world.country SET Population = 0;</code> and confirmed that both rows were affected because no <code>WHERE</code> clause limited the update.</li><li>Applied a second update with <code>UPDATE world.country SET Population = 100, SurfaceArea = 100;</code> to change two columns for every row in the table.</li><li>Disabled foreign key checks with <code>SET FOREIGN_KEY_CHECKS = 0;</code>, deleted the rows with <code>DELETE FROM world.country;</code>, and confirmed the empty result set with <code>SELECT * FROM world.country;</code>.</li></ul><div class="screenshot-gallery"><figure class="screenshot-fig"><div class="screenshot-scroll"><img src="assets/screenshots/01-insert-update-delete-country.jpg" alt="Insert, update, and delete operations in the country table" loading="lazy" /></div><figcaption>Terminal: Two rows are inserted, updated, and finally deleted from <code>world.country</code>, showing how each statement changes the stored data.</figcaption></figure></div></div></article>
+<article class="step"><div class="step-num">03</div><div><h3>Restore the database from the SQL backup file</h3><ul><li>Exited the MariaDB shell with <code>QUIT;</code> and verified the backup file path with <code>ls /home/ec2-user/world.sql</code>.</li><li>Loaded the full sample dataset with <code>mysql -u root --password='re:St@rt!9' &lt; /home/ec2-user/world.sql</code>.</li><li>Reconnected to MariaDB, selected the <code>world</code> database, and ran <code>SHOW TABLES;</code> to verify the restored <code>city</code>, <code>country</code>, and <code>countrylanguage</code> tables.</li><li>Queried <code>SELECT * FROM country;</code> to confirm that the backup repopulated the table with many more rows than the two test inserts.</li></ul><div class="screenshot-gallery"><figure class="screenshot-fig"><div class="screenshot-scroll"><img src="assets/screenshots/02-import-world-sql.jpg" alt="Importing the world.sql file and verifying restored tables" loading="lazy" /></div><figcaption>Terminal: The <code>world.sql</code> file is loaded with input redirection, the three tables are restored, and the <code>country</code> table shows the larger dataset again.</figcaption></figure></div><div class="insight">Using an SQL file is much faster than rebuilding a populated database manually. The redirection operator sends the script directly into the MariaDB client for execution.</div></div></article>
+</div></div></section>
+<section id="commands"><div class="container"><h2 class="section-title">Query Reference</h2><p class="section-subtitle">Key statements used to manipulate rows and reload data from a backup script.</p><div class="timeline">
+<article class="step"><div class="step-num" style="font-size:0.85rem;">sql</div><div><h3><code>INSERT INTO world.country VALUES (...);</code></h3><p>Adds a full row to the <code>country</code> table using the same column order defined by the schema.</p></div></article>
+<article class="step"><div class="step-num" style="font-size:0.85rem;">sql</div><div><h3><code>SELECT * FROM world.country WHERE Code IN ('IRL', 'AUS');</code></h3><p>Filters the result set to verify only the two inserted rows.</p></div></article>
+<article class="step"><div class="step-num" style="font-size:0.85rem;">sql</div><div><h3><code>UPDATE world.country SET Population = 0;</code></h3><p>Updates the <code>Population</code> column for every row in the table because there is no <code>WHERE</code> clause.</p></div></article>
+<article class="step"><div class="step-num" style="font-size:0.85rem;">sql</div><div><h3><code>UPDATE world.country SET Population = 100, SurfaceArea = 100;</code></h3><p>Updates multiple columns in the same statement.</p></div></article>
+<article class="step"><div class="step-num" style="font-size:0.85rem;">sql</div><div><h3><code>SET FOREIGN_KEY_CHECKS = 0;</code></h3><p>Temporarily disables foreign key enforcement so dependent rows can be removed during the lab.</p></div></article>
+<article class="step"><div class="step-num" style="font-size:0.85rem;">sql</div><div><h3><code>DELETE FROM world.country;</code></h3><p>Deletes all rows in the table because no filter condition is provided.</p></div></article>
+<article class="step"><div class="step-num" style="font-size:0.85rem;">cmd</div><div><h3><code>mysql -u root --password='re:St@rt!9' &lt; /home/ec2-user/world.sql</code></h3><p>Executes every statement inside the SQL file to restore tables and data in bulk.</p></div></article>
+</div></div></section>
+<section id="learnings"><div class="container"><h2 class="section-title">Key Learnings</h2><div class="grid-2"><div class="card"><h3>What Was Actually Learned</h3><div class="checklist"><div class="check"><div class="check-mark">✓</div><div><code>INSERT</code> adds new rows, while <code>UPDATE</code> modifies existing values already stored in the table.</div></div><div class="check"><div class="check-mark">✓</div><div>Running <code>UPDATE</code> or <code>DELETE</code> without <code>WHERE</code> affects all rows in scope, which is useful for demonstrations but risky in real environments.</div></div><div class="check"><div class="check-mark">✓</div><div>Input redirection with <code>&lt; /home/ec2-user/world.sql</code> is a practical way to reload a full sample database quickly.</div></div></div></div><div class="card"><h3>Technical Conclusion</h3><p>This lab showed the difference between changing structure and changing stored data. Here the important part was observing how the same table can move through insert, update, delete, and restore stages in a short sequence.</p><p style="margin-top:1rem;">The most important operational lesson was to verify the impact of each statement immediately. A quick <code>SELECT</code> after every change makes it easy to detect whether the table contents still match the intended state.</p></div></div></div></section>
+</main>
+<footer class="footer"><div class="container">Lab report documenting the data manipulation lab · AWS re/Start Program</div></footer>
+</body>
+</html>
