@@ -42,8 +42,8 @@ A lab is only ready to build when its files are available in `ignoredocs/` and, 
 | 31 | 269 | Insertar, actualizar y eliminar datos en una base de datos | Published |
 | 32 | 270 | Selección de datos de una base de datos | Published |
 | 33 | 271 | Realización de una búsqueda condicional | Published |
-| 34 | 272 | Trabajar con funciones | Planned |
-| 35 | 273 | Organización de datos | Planned |
+| 34 | 272 | Trabajar con funciones | Published |
+| 35 | 273 | Organización de datos | Published |
 | 36 | 160 | Cree su servidor de base de datos e interactúe con su base de datos usando una aplicación | Published |
 | 37 | 162 | Reto: Crie e acesse um servidor RDS | Published |
 | 38 | 274 | Introducción a Amazon Aurora | Planned |

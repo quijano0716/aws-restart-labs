@@ -72,6 +72,8 @@ Technical documentation of hands-on labs completed during the **AWS re/Start** p
 | 269 | Insert, Update, and Delete Data in a Database | Completed |
 | 270 | Selecting Data from a Database                | Completed |
 | 271 | Query the World Database with Functions and Conditions | Completed |
+| 272 | Working with Functions | Completed |
+| 273 | Organizing Data | Completed |
 
 ---
 
