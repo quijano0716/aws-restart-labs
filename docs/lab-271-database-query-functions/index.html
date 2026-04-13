@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lab Report: Query the World Database with Functions and Conditions</title>
+  <style>
+    :root { --text:#e5e7eb; --muted:#94a3b8; --accent:#ff9900; --accent-2:#38bdf8; --border:rgba(255,255,255,0.12); --card:rgba(255,255,255,0.08); --shadow:0 20px 50px rgba(0,0,0,0.25); --radius:22px; --max:1120px; }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family:Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background:linear-gradient(180deg,#020617 0%,#0f172a 48%,#111827 100%); color:var(--text); line-height:1.65; }
+    .container { width:min(var(--max),calc(100% - 2rem)); margin:0 auto; }
+    .nav { position:sticky; top:0; backdrop-filter:blur(16px); background:rgba(2,6,23,0.72); border-bottom:1px solid rgba(255,255,255,0.06); }
+    .nav-inner { display:flex; justify-content:space-between; align-items:center; padding:0.9rem 0; gap:1rem; }
+    .brand { display:flex; align-items:center; gap:0.7rem; font-weight:800; }
+    .brand-badge { width:38px; height:38px; border-radius:12px; display:grid; place-items:center; background:linear-gradient(135deg,var(--accent),#ffb84d); color:#111827; font-weight:900; }
+    .nav-links { display:flex; gap:1rem; flex-wrap:wrap; color:var(--muted); font-size:0.95rem; }
+    .nav-links a { color:inherit; text-decoration:none; }
+    .hero { padding:4.8rem 0 2rem; }
+    .hero-grid { display:grid; grid-template-columns:1.2fr 0.8fr; gap:1.5rem; }
+    .panel { background:linear-gradient(180deg, rgba(255,255,255,0.09), rgba(255,255,255,0.05)); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow); }
+    .hero-main,.hero-side { padding:2rem; }
+    .hero-side { display:flex; flex-direction:column; gap:1rem; }
+    .eyebrow { display:inline-flex; padding:0.45rem 0.8rem; border-radius:999px; background:rgba(255,153,0,0.12); color:#ffd28a; border:1px solid rgba(255,153,0,0.25); font-size:0.9rem; margin-bottom:1rem; }
+    h1,h2,h3 { line-height:1.15; letter-spacing:-0.03em; margin:0; }
+    h1 { font-size: clamp(2rem, 4vw, 3.7rem); margin-bottom:0.9rem; }
+    .hero-main p,.section-subtitle,.card p,.step p { color:#cbd5e1; }
+    .callout { padding:1rem 1.1rem; border-radius:18px; border:1px solid rgba(56,189,248,0.18); background:rgba(56,189,248,0.08); }
+    .callout strong { display:block; margin-bottom:0.35rem; }
+    .tech-stack { display:flex; flex-wrap:wrap; gap:0.55rem; }
+    .chip { padding:0.45rem 0.75rem; border-radius:999px; font-size:0.88rem; background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.1); color:#dbeafe; }
+    section { padding:1rem 0 0.4rem; }
+    .section-title { margin-bottom:1rem; font-size: clamp(1.5rem, 2vw, 2.2rem); }
+    .grid-3,.grid-2 { display:grid; gap:1rem; }
+    .grid-3 { grid-template-columns:repeat(3,minmax(0,1fr)); }
+    .grid-2 { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    .card,.step { background:var(--card); border:1px solid var(--border); border-radius:20px; box-shadow:var(--shadow); }
+    .card { padding:1.3rem; }
+    .timeline { display:grid; gap:1rem; margin-top:1rem; }
+    .step { display:grid; grid-template-columns:90px 1fr; gap:1rem; padding:1.25rem; }
+    .step-num { width:72px; height:72px; border-radius:20px; background:linear-gradient(135deg, rgba(255,153,0,0.18), rgba(56,189,248,0.18)); border:1px solid rgba(255,255,255,0.12); display:grid; place-items:center; font-weight:900; }
+    .step ul { margin:0.3rem 0 0; padding-left:1.1rem; color:#dbe4f0; }
+    .highlight { color:#ffd28a; font-weight:700; }
+    .screenshot-gallery { display:grid; gap:0.8rem; margin-top:1rem; }
+    .screenshot-fig { margin:0; border-radius:16px; overflow:hidden; border:1px solid rgba(255,255,255,0.1); background:rgba(2,6,23,0.5); }
+    .screenshot-scroll { max-height:440px; overflow:auto; background:#020617; }
+    .screenshot-scroll img { width:auto; min-width:100%; max-width:none; height:auto; display:block; }
+    .screenshot-fig figcaption { padding:0.6rem 0.8rem; color:var(--muted); font-size:0.84rem; border-top:1px solid rgba(255,255,255,0.08); }
+    .insight { padding:1.15rem 1.2rem; border-left:4px solid var(--accent-2); border-radius:16px; background:rgba(56,189,248,0.08); color:#d8f3ff; margin-top:1rem; }
+    .checklist { display:grid; gap:0.7rem; margin-top:1rem; }
+    .check { display:flex; gap:0.75rem; align-items:flex-start; padding:0.9rem 1rem; border-radius:16px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.09); }
+    .check-mark { width:28px; height:28px; display:grid; place-items:center; border-radius:999px; background:rgba(34,197,94,0.15); color:#86efac; font-weight:800; }
+    code { background:rgba(255,255,255,0.1); padding:0.15rem 0.4rem; border-radius:6px; font-size:0.9em; font-family:"Cascadia Code","Fira Code",monospace; }
+    .footer { padding:2.2rem 0 3.5rem; color:var(--muted); text-align:center; }
+    @media (max-width: 920px) { .hero-grid,.grid-3,.grid-2 { grid-template-columns:1fr; } }
+    @media (max-width: 680px) { .step { grid-template-columns:1fr; } .step-num { width:60px; height:60px; } .screenshot-scroll { max-height:320px; } }
+  </style>
+</head>
+<body>
+<nav class="nav"><div class="container nav-inner"><div class="brand"><div class="brand-badge">AWS</div><div>Lab Report · Bases de Datos</div></div><div class="nav-links"><a href="../index.html">← All Labs</a><a href="#summary">Summary</a><a href="#walkthrough">Walkthrough</a><a href="#commands">Commands</a><a href="#learnings">Learnings</a></div></div></nav>
+<header class="hero"><div class="container hero-grid"><div class="panel hero-main"><div class="eyebrow">AWS re/Start Lab · Bases de Datos</div><h1>Query the World Database with Functions and Conditions</h1><p>This lab extends the earlier SELECT exercises by introducing inclusive ranges, the BETWEEN operator, pattern matching with LIKE, totals with SUM, column aliases, and case handling with LOWER in the WHERE clause.</p></div><aside class="panel hero-side"><div class="callout"><strong>Lab Objective</strong>Query the world database with SELECT statements that use ranges, BETWEEN, LIKE, SUM, aliases, and LOWER to return more precise results.</div><div><div style="margin-bottom:0.7rem;color:var(--muted);">Tools & Concepts</div><div class="tech-stack"><span class="chip">SELECT</span><span class="chip">BETWEEN</span><span class="chip">LIKE</span><span class="chip">SUM</span><span class="chip">LOWER</span></div></div><div class="callout" style="border-color: rgba(34,197,94,0.2); background: rgba(34,197,94,0.08);"><strong>Key Insight</strong>As queries become more specific, readability matters more. Operators like BETWEEN, aliases, and functions such as LOWER or SUM make the intent of the query easier to understand and easier to verify later.</div></aside></div></header>
+<main>
+<section id="summary"><div class="container"><h2 class="section-title">Lab Summary</h2><p class="section-subtitle">Connected to the <span class="highlight">Command Host</span>, queried the <code>world.country</code> table with numeric ranges, rewrote the same range using <code>BETWEEN</code>, calculated Europe totals with <code>SUM</code>, added a readable alias, used <code>LOWER</code> for text matching, and solved the challenge by returning North America surface area and population totals.</p><div class="grid-3" style="margin-top:1rem;"><article class="card"><h3>Range Queries</h3><p>Used both explicit comparison operators and BETWEEN to return countries within the same population interval.</p></article><article class="card"><h3>Functions and Aliases</h3><p>Calculated totals with SUM and assigned readable column names with AS.</p></article><article class="card"><h3>Case Handling</h3><p>Used LOWER and LIKE to search text more safely, then solved the final aggregation challenge.</p></article></div></div></section>
+<section id="walkthrough"><div class="container"><h2 class="section-title">Step-by-Step Walkthrough</h2><p class="section-subtitle">This lab built on previous SELECT practice and showed how functions and clearer syntax make analytical queries easier to read.</p><div class="timeline"><article class="step"><div class="step-num">01</div><div><h3>Connect to the database and review the existing data</h3><ul><li>Opened the <strong>Command Host</strong> with Session Manager, switched to root, and connected to MariaDB with <code>mysql -u root --password='re:St@rt!9'</code>.</li><li>Verified that the <code>world</code> database existed with <code>SHOW DATABASES;</code>.</li><li>Reviewed the <code>country</code> table to understand the available columns before narrowing the result set.</li></ul><div class="insight">This lab continues naturally after the previous SELECT exercises. The difference is that the queries now add more expressive operators and functions for better readability and analysis.</div></div></article><article class="step"><div class="step-num">02</div><div><h3>Use SUM, aliases, LOWER, and the final challenge query</h3><ul><li>Ran the Europe aggregation with <code>SELECT sum(Population) ... WHERE Region LIKE "%Europe%";</code> and then repeated it with the alias <code>AS "Europe Population Total"</code> so the output label was easier to read.</li><li>Used <code>LOWER(Region) LIKE "%central%"</code> to return rows that contain central in the region name without depending on the original case.</li><li>Solved the challenge with <code>SELECT SUM(SurfaceArea) AS "N. America Surface Area", SUM(Population) AS "N. America Population" FROM world.country WHERE Region = "North America";</code>.</li><li>Confirmed that the final query returned both aggregated values in a single row, which was the expected result for the challenge.</li></ul><div class="screenshot-gallery"><figure class="screenshot-fig"><div class="screenshot-scroll"><img src="assets/screenshots/01-functions-and-challenge.jpg" alt="SUM alias LOWER and challenge query results" loading="lazy" /></div><figcaption>Terminal: The output shows the Europe population total with an alias, the rows returned by the <code>LOWER(...)</code> search, and the final challenge query aggregating North America surface area and population.</figcaption></figure></div></div></article></div></div></section>
+<section id="commands"><div class="container"><h2 class="section-title">Query Reference</h2><p class="section-subtitle">Functions and operators that made the later SELECT statements more expressive.</p><div class="timeline"><article class="step"><div class="step-num" style="font-size:0.85rem;">sql</div><div><h3><code>Population BETWEEN 50000000 AND 100000000</code></h3><p>Returns an inclusive numeric range using a more readable operator.</p></div></article><article class="step"><div class="step-num" style="font-size:0.85rem;">sql</div><div><h3><code>Region LIKE "%Europe%"</code></h3><p>Matches region names containing the word Europe with wildcard characters.</p></div></article><article class="step"><div class="step-num" style="font-size:0.85rem;">sql</div><div><h3><code>SUM(Population)</code></h3><p>Calculates a total instead of returning individual row values.</p></div></article><article class="step"><div class="step-num" style="font-size:0.85rem;">sql</div><div><h3><code>AS "Europe Population Total"</code></h3><p>Assigns a readable alias to the aggregated result column.</p></div></article><article class="step"><div class="step-num" style="font-size:0.85rem;">sql</div><div><h3><code>LOWER(Region) LIKE "%central%"</code></h3><p>Normalizes text to lowercase before matching the pattern.</p></div></article><article class="step"><div class="step-num" style="font-size:0.85rem;">sql</div><div><h3><code>SUM(SurfaceArea), SUM(Population) WHERE Region = "North America"</code></h3><p>Returns both challenge totals in one query.</p></div></article></div></div></section>
+<section id="learnings"><div class="container"><h2 class="section-title">Key Learnings</h2><div class="grid-2"><div class="card"><h3>What Was Actually Learned</h3><div class="checklist"><div class="check"><div class="check-mark">✓</div><div>BETWEEN can replace paired comparison operators when the goal is to search within an inclusive range.</div></div><div class="check"><div class="check-mark">✓</div><div>Functions such as <code>SUM</code> and <code>LOWER</code> make queries more useful for analysis and more robust for text comparisons.</div></div><div class="check"><div class="check-mark">✓</div><div>Column aliases improve readability, especially when the result is an aggregate value rather than a raw column name.</div></div></div></div><div class="card"><h3>Technical Conclusion</h3><p>This lab showed that SQL becomes much more practical when the query language is used to express intent clearly. The same result can be reached in multiple ways, but some versions are easier to read and maintain.</p><p style="margin-top:1rem;">The most valuable part was seeing how aggregation, pattern matching, and case normalization work together. Those features turn a basic SELECT into a more analytical query that answers broader questions about the dataset.</p></div></div></div></section>
+</main>
+<footer class="footer"><div class="container">Lab report documenting the advanced query functions lab · AWS re/Start Program</div></footer>
+</body>
+</html>

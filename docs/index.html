@@ -20,14 +20,8 @@
             --max: 960px;
         }
 
-        * {
-            box-sizing: border-box;
-        }
-
-        html {
-            scroll-behavior: smooth;
-        }
-
+        * { box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
         body {
             margin: 0;
             font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -39,184 +33,29 @@
             line-height: 1.65;
             min-height: 100vh;
         }
-
-        a {
-            color: inherit;
-            text-decoration: none;
-        }
-
-        .container {
-            width: min(var(--max), calc(100% - 2rem));
-            margin: 0 auto;
-        }
-
-        .header {
-            padding: 4rem 0 1.5rem;
-            text-align: center;
-        }
-
-        .brand-badge {
-            width: 72px;
-            height: 72px;
-            border-radius: 20px;
-            display: inline-grid;
-            place-items: center;
-            background: linear-gradient(135deg, var(--accent), #ffb84d);
-            color: #111827;
-            font-weight: 900;
-            font-size: 1.4rem;
-            box-shadow: var(--shadow);
-            margin-bottom: 1.2rem;
-        }
-
-        h1 {
-            font-size: clamp(1.8rem, 4vw, 2.8rem);
-            letter-spacing: -0.03em;
-            line-height: 1.15;
-            margin: 0 0 0.6rem;
-        }
-
-        .subtitle {
-            color: var(--muted);
-            font-size: 1.05rem;
-            max-width: 55ch;
-            margin: 0 auto 0.8rem;
-        }
-
-        .student-info {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.45rem 0.9rem;
-            border-radius: 999px;
-            background: rgba(255, 153, 0, 0.1);
-            border: 1px solid rgba(255, 153, 0, 0.2);
-            color: #ffd28a;
-            font-size: 0.9rem;
-        }
-
-        .labs-section {
-            padding: 2rem 0 1rem;
-        }
-
-        .section-label {
-            color: var(--muted);
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            margin-bottom: 1rem;
-        }
-
-        .labs-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 1rem;
-        }
-
-        .lab-card {
-            position: relative;
-            padding: 1.5rem;
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-            transition: background 0.25s, border-color 0.25s, transform 0.25s;
-            display: flex;
-            flex-direction: column;
-            gap: 0.6rem;
-        }
-
-        .lab-card:hover {
-            background: var(--card-hover);
-            border-color: rgba(255, 153, 0, 0.35);
-            transform: translateY(-4px);
-        }
-
-        .lab-number {
-            width: 48px;
-            height: 48px;
-            border-radius: 14px;
-            background: linear-gradient(135deg, rgba(255, 153, 0, 0.18), rgba(56, 189, 248, 0.18));
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            display: grid;
-            place-items: center;
-            font-weight: 900;
-            font-size: 1rem;
-            color: #fff;
-        }
-
-        .lab-card h2 {
-            font-size: 1.1rem;
-            margin: 0;
-            letter-spacing: -0.02em;
-            line-height: 1.3;
-        }
-
-        .lab-card p {
-            margin: 0;
-            color: var(--muted);
-            font-size: 0.92rem;
-            line-height: 1.5;
-        }
-
-        .lab-chips {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.4rem;
-            margin-top: auto;
-            padding-top: 0.4rem;
-        }
-
-        .chip {
-            padding: 0.3rem 0.6rem;
-            border-radius: 999px;
-            font-size: 0.78rem;
-            background: rgba(255, 255, 255, 0.06);
-            border: 1px solid rgba(255, 255, 255, 0.09);
-            color: #dbeafe;
-        }
-
-        .lab-card .arrow {
-            position: absolute;
-            top: 1.5rem;
-            right: 1.5rem;
-            color: var(--muted);
-            font-size: 1.2rem;
-            transition: color 0.25s, transform 0.25s;
-        }
-
-        .lab-card:hover .arrow {
-            color: var(--accent);
-            transform: translateX(3px);
-        }
-
-        .lab-card.coming-soon {
-            opacity: 0.45;
-            pointer-events: none;
-        }
-
-        .lab-card.coming-soon .coming-badge {
-            display: inline-block;
-            padding: 0.2rem 0.55rem;
-            border-radius: 999px;
-            background: rgba(148, 163, 184, 0.15);
-            border: 1px solid rgba(148, 163, 184, 0.2);
-            font-size: 0.75rem;
-            color: var(--muted);
-        }
-
-        .footer {
-            padding: 3rem 0 2.5rem;
-            text-align: center;
-            color: var(--muted);
-            font-size: 0.88rem;
-        }
-
-        @media (max-width: 640px) {
-            .labs-grid {
-                grid-template-columns: 1fr;
-            }
-        }
+        a { color: inherit; text-decoration: none; }
+        .container { width: min(var(--max), calc(100% - 2rem)); margin: 0 auto; }
+        .header { padding: 4rem 0 1.5rem; text-align: center; }
+        .brand-badge { width: 72px; height: 72px; border-radius: 20px; display: inline-grid; place-items: center; background: linear-gradient(135deg, var(--accent), #ffb84d); color: #111827; font-weight: 900; font-size: 1.4rem; box-shadow: var(--shadow); margin-bottom: 1.2rem; }
+        h1 { font-size: clamp(1.8rem, 4vw, 2.8rem); letter-spacing: -0.03em; line-height: 1.15; margin: 0 0 0.6rem; }
+        .subtitle { color: var(--muted); font-size: 1.05rem; max-width: 55ch; margin: 0 auto 0.8rem; }
+        .student-info { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.45rem 0.9rem; border-radius: 999px; background: rgba(255, 153, 0, 0.1); border: 1px solid rgba(255, 153, 0, 0.2); color: #ffd28a; font-size: 0.9rem; }
+        .labs-section { padding: 2rem 0 1rem; }
+        .section-label { color: var(--muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 1rem; }
+        .labs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; }
+        .lab-card { position: relative; padding: 1.5rem; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); transition: background 0.25s, border-color 0.25s, transform 0.25s; display: flex; flex-direction: column; gap: 0.6rem; }
+        .lab-card:hover { background: var(--card-hover); border-color: rgba(255, 153, 0, 0.35); transform: translateY(-4px); }
+        .lab-number { width: 48px; height: 48px; border-radius: 14px; background: linear-gradient(135deg, rgba(255, 153, 0, 0.18), rgba(56, 189, 248, 0.18)); border: 1px solid rgba(255, 255, 255, 0.12); display: grid; place-items: center; font-weight: 900; font-size: 1rem; color: #fff; }
+        .lab-card h2 { font-size: 1.1rem; margin: 0; letter-spacing: -0.02em; line-height: 1.3; }
+        .lab-card p { margin: 0; color: var(--muted); font-size: 0.92rem; line-height: 1.5; }
+        .lab-chips { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: auto; padding-top: 0.4rem; }
+        .chip { padding: 0.3rem 0.6rem; border-radius: 999px; font-size: 0.78rem; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.09); color: #dbeafe; }
+        .lab-card .arrow { position: absolute; top: 1.5rem; right: 1.5rem; color: var(--muted); font-size: 1.2rem; transition: color 0.25s, transform 0.25s; }
+        .lab-card:hover .arrow { color: var(--accent); transform: translateX(3px); }
+        .lab-card.coming-soon { opacity: 0.45; pointer-events: none; }
+        .lab-card.coming-soon .coming-badge { display: inline-block; padding: 0.2rem 0.55rem; border-radius: 999px; background: rgba(148, 163, 184, 0.15); border: 1px solid rgba(148, 163, 184, 0.2); font-size: 0.75rem; color: var(--muted); }
+        .footer { padding: 3rem 0 2.5rem; text-align: center; color: var(--muted); font-size: 0.88rem; }
+        @media (max-width: 640px) { .labs-grid { grid-template-columns: 1fr; } }
     </style>
 </head>
 
@@ -225,432 +64,430 @@
         <div class="container">
             <div class="brand-badge">AWS</div>
             <h1>Lab Reports</h1>
-            <p class="subtitle">
-                Technical documentation of hands-on labs completed during the AWS re/Start program.
-            </p>
+            <p class="subtitle">Technical documentation of hands-on labs completed during the AWS re/Start program.</p>
             <div class="student-info">Julian David Quijano · AWS re/Start</div>
             <div style="margin-top: 2rem;">
-                <img src="https://media1.tenor.com/m/2u01onrlM9EAAAAC/aws-aws-meme.gif" alt="AWS Meme"
-                    style="border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.12); box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25); max-width: 100%; height: auto; max-height: 280px;" />
+                <img src="https://media1.tenor.com/m/2u01onrlM9EAAAAC/aws-aws-meme.gif" alt="AWS Meme" style="border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.12); box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25); max-width: 100%; height: auto; max-height: 280px;" />
             </div>
         </div>
     </header>
 
     <main class="labs-section">
         <div class="container">
-
-            <!-- ══════ COMPUTE ══════ -->
             <div class="section-label">Compute</div>
             <div class="labs-grid">
-
-                <a href="lab-11-ec2/index.html" class="lab-card">
-                    <span class="arrow">→</span>
-                    <div class="lab-number">11</div>
-                    <h2>Introduction to Amazon EC2</h2>
-                    <p>Launching, monitoring, configuring security, resizing, and safely terminating an EC2 instance.</p>
-                    <div class="lab-chips">
-                        <span class="chip">EC2</span>
-                        <span class="chip">Security Groups</span>
-                        <span class="chip">EBS</span>
-                        <span class="chip">CloudWatch</span>
-                    </div>
-                </a>
+                <a href="lab-11-ec2/index.html" class="lab-card"><span class="arrow">→</span>
+                                    <div class="lab-number">11</div>
+                                    <h2>Introduction to Amazon EC2</h2>
+                                    <p>Launching, monitoring, configuring security, resizing, and safely terminating an EC2 instance.</p>
+                                    <div class="lab-chips"><span class="chip">EC2</span> <span class="chip">Security Groups</span> <span class="chip">EBS</span> <span class="chip">CloudWatch</span></div></a>
 
             </div>
 
-            <!-- ══════ LINUX ══════ -->
             <div class="section-label" style="margin-top:2.5rem;">Linux</div>
             <div class="labs-grid">
+                <a href="lab-225-linux-ami/index.html" class="lab-card"><span class="arrow">→</span>
+                                    <div class="lab-number">225</div>
+                                    <h2>Introduction to Amazon Linux AMI</h2>
+                                    <p>Connecting via SSH with PuTTY and exploring the Linux man pages.</p>
+                                    <div class="lab-chips"><span class="chip">SSH</span> <span class="chip">PuTTY</span> <span class="chip">man</span></div></a>
 
-                <a href="lab-225-linux-ami/index.html" class="lab-card">
-                    <span class="arrow">→</span>
-                    <div class="lab-number">225</div>
-                    <h2>Introduction to Amazon Linux AMI</h2>
-                    <p>Connecting via SSH with PuTTY and exploring the Linux man pages.</p>
-                    <div class="lab-chips">
-                        <span class="chip">SSH</span>
-                        <span class="chip">PuTTY</span>
-                        <span class="chip">man</span>
-                    </div>
-                </a>
+                <a href="lab-227-linux-cli/index.html" class="lab-card"><span class="arrow">→</span>
+                                    <div class="lab-number">227</div>
+                                    <h2>Linux Command Line</h2>
+                                    <p>System info commands, timezone dates, Julian calendars, and bash history search.</p>
+                                    <div class="lab-chips"><span class="chip">Bash</span> <span class="chip">System Info</span> <span class="chip">History</span></div></a>
 
-                <a href="lab-227-linux-cli/index.html" class="lab-card">
-                    <span class="arrow">→</span>
-                    <div class="lab-number">227</div>
-                    <h2>Linux Command Line</h2>
-                    <p>System info commands, timezone dates, Julian calendars, and bash history search.</p>
-                    <div class="lab-chips">
-                        <span class="chip">Bash</span>
-                        <span class="chip">System Info</span>
-                        <span class="chip">History</span>
-                    </div>
-                </a>
+                <a href="lab-229-linux-users/index.html" class="lab-card"><span class="arrow">→</span>
+                                    <div class="lab-number">229</div>
+                                    <h2>Managing Users and Groups</h2>
+                                    <p>Creating users, organizing groups by job role, and understanding sudoers permissions.</p>
+                                    <div class="lab-chips"><span class="chip">useradd</span> <span class="chip">groupadd</span> <span class="chip">usermod</span> <span class="chip">sudo</span></div></a>
 
-                <a href="lab-229-linux-users/index.html" class="lab-card">
-                    <span class="arrow">→</span>
-                    <div class="lab-number">229</div>
-                    <h2>Managing Users and Groups</h2>
-                    <p>Creating users, organizing groups by job role, and understanding sudoers permissions.</p>
-                    <div class="lab-chips">
-                        <span class="chip">useradd</span>
-                        <span class="chip">groupadd</span>
-                        <span class="chip">usermod</span>
-                        <span class="chip">sudo</span>
-                    </div>
-                </a>
+                <a href="lab-231-linux-editing/index.html" class="lab-card"><span class="arrow">→</span>
+                                    <div class="lab-number">231</div>
+                                    <h2>Editing Files</h2>
+                                    <p>Using vimtutor, creating files with Vim, and editing with nano.</p>
+                                    <div class="lab-chips"><span class="chip">vim</span> <span class="chip">nano</span> <span class="chip">vimtutor</span></div></a>
 
-                <a href="lab-231-linux-editing/index.html" class="lab-card">
-                    <span class="arrow">→</span>
-                    <div class="lab-number">231</div>
-                    <h2>Editing Files</h2>
-                    <p>Using vimtutor, creating files with Vim, and editing with nano.</p>
-                    <div class="lab-chips">
-                        <span class="chip">vim</span>
-                        <span class="chip">nano</span>
-                        <span class="chip">vimtutor</span>
-                    </div>
-                </a>
+                <a href="lab-233-linux-filesystem/index.html" class="lab-card"><span class="arrow">→</span>
+                                    <div class="lab-number">233</div>
+                                    <h2>Working with the File System</h2>
+                                    <p>Creating folder structures, copying, moving, and deleting files and directories.</p>
+                                    <div class="lab-chips"><span class="chip">mkdir</span> <span class="chip">cp</span> <span class="chip">mv</span> <span class="chip">rm</span></div></a>
 
-                <a href="lab-233-linux-filesystem/index.html" class="lab-card">
-                    <span class="arrow">→</span>
-                    <div class="lab-number">233</div>
-                    <h2>Working with the File System</h2>
-                    <p>Creating folder structures, copying, moving, and deleting files and directories.</p>
-                    <div class="lab-chips">
-                        <span class="chip">mkdir</span>
-                        <span class="chip">cp</span>
-                        <span class="chip">mv</span>
-                        <span class="chip">rm</span>
-                    </div>
-                </a>
+                <a href="lab-235-linux-files/index.html" class="lab-card"><span class="arrow">→</span>
+                                    <div class="lab-number">235</div>
+                                    <h2>Working with Files</h2>
+                                    <p>Creating tar backups, logging with echo and tee, and transferring files.</p>
+                                    <div class="lab-chips"><span class="chip">tar</span> <span class="chip">echo</span> <span class="chip">tee</span> <span class="chip">pipe</span></div></a>
 
-                <a href="lab-235-linux-files/index.html" class="lab-card">
-                    <span class="arrow">→</span>
-                    <div class="lab-number">235</div>
-                    <h2>Working with Files</h2>
-                    <p>Creating tar backups, logging with echo and tee, and transferring files.</p>
-                    <div class="lab-chips">
-                        <span class="chip">tar</span>
-                        <span class="chip">echo</span>
-                        <span class="chip">tee</span>
-                        <span class="chip">pipe</span>
-                    </div>
-                </a>
+                <a href="lab-237-linux-permissions/index.html" class="lab-card"><span class="arrow">→</span>
+                                    <div class="lab-number">237</div>
+                                    <h2>Managing File Permissions</h2>
+                                    <p>Changing ownership and permission modes using absolute and symbolic methods.</p>
+                                    <div class="lab-chips"><span class="chip">chown</span> <span class="chip">chmod</span> <span class="chip">symbolic</span> <span class="chip">absolute</span></div></a>
 
-                <a href="lab-237-linux-permissions/index.html" class="lab-card">
-                    <span class="arrow">→</span>
-                    <div class="lab-number">237</div>
-                    <h2>Managing File Permissions</h2>
-                    <p>Changing ownership and permission modes using absolute and symbolic methods.</p>
-                    <div class="lab-chips">
-                        <span class="chip">chown</span>
-                        <span class="chip">chmod</span>
-                        <span class="chip">symbolic</span>
-                        <span class="chip">absolute</span>
-                    </div>
-                </a>
+                <a href="lab-239-linux-processes/index.html" class="lab-card"><span class="arrow">→</span>
+                                    <div class="lab-number">239</div>
+                                    <h2>Managing Processes</h2>
+                                    <p>Monitoring processes, checking real-time performance, and creating cron jobs.</p>
+                                    <div class="lab-chips"><span class="chip">ps</span> <span class="chip">top</span> <span class="chip">crontab</span> <span class="chip">grep</span></div></a>
 
-                <a href="lab-239-linux-processes/index.html" class="lab-card">
-                    <span class="arrow">→</span>
-                    <div class="lab-number">239</div>
-                    <h2>Managing Processes</h2>
-                    <p>Monitoring processes, checking real-time performance, and creating cron jobs.</p>
-                    <div class="lab-chips">
-                        <span class="chip">ps</span>
-                        <span class="chip">top</span>
-                        <span class="chip">crontab</span>
-                        <span class="chip">grep</span>
-                    </div>
-                </a>
+                <a href="lab-241-linux-monitoring/index.html" class="lab-card"><span class="arrow">→</span>
+                                    <div class="lab-number">241</div>
+                                    <h2>Managing Services & Monitoring</h2>
+                                    <p>Controlling background daemons via systemctl and monitoring EC2 health visually.</p>
+                                    <div class="lab-chips"><span class="chip">systemctl</span> <span class="chip">httpd</span> <span class="chip">CloudWatch</span></div></a>
 
-                <a href="lab-241-linux-monitoring/index.html" class="lab-card">
-                    <span class="arrow">→</span>
-                    <div class="lab-number">241</div>
-                    <h2>Managing Services & Monitoring</h2>
-                    <p>Controlling background daemons via systemctl and monitoring EC2 health visually.</p>
-                    <div class="lab-chips">
-                        <span class="chip">systemctl</span>
-                        <span class="chip">httpd</span>
-                        <span class="chip">CloudWatch</span>
-                    </div>
-                </a>
+                <a href="lab-243-linux-software/index.html" class="lab-card"><span class="arrow">→</span>
+                                    <div class="lab-number">243</div>
+                                    <h2>Software Management</h2>
+                                    <p>Upgrading packages, rolling back installations via yum history, and configuring the AWS CLI.</p>
+                                    <div class="lab-chips"><span class="chip">yum history</span> <span class="chip">AWS CLI</span> <span class="chip">curl</span></div></a>
 
-                <a href="lab-243-linux-software/index.html" class="lab-card">
-                    <span class="arrow">→</span>
-                    <div class="lab-number">243</div>
-                    <h2>Software Management</h2>
-                    <p>Upgrading packages, rolling back installations via yum history, and configuring the AWS CLI.</p>
-                    <div class="lab-chips">
-                        <span class="chip">yum history</span>
-                        <span class="chip">AWS CLI</span>
-                        <span class="chip">curl</span>
-                    </div>
-                </a>
+                <a href="lab-245-linux-logfiles/index.html" class="lab-card"><span class="arrow">→</span>
+                                    <div class="lab-number">245</div>
+                                    <h2>Managing Log Files</h2>
+                                    <p>Auditing system authentication events and historical login data.</p>
+                                    <div class="lab-chips"><span class="chip">less</span> <span class="chip">lastlog</span> <span class="chip">/var/log/secure</span></div></a>
 
-                <a href="lab-245-linux-logfiles/index.html" class="lab-card">
-                    <span class="arrow">→</span>
-                    <div class="lab-number">245</div>
-                    <h2>Managing Log Files</h2>
-                    <p>Auditing system authentication events and historical login data.</p>
-                    <div class="lab-chips">
-                        <span class="chip">less</span>
-                        <span class="chip">lastlog</span>
-                        <span class="chip">/var/log/secure</span>
-                    </div>
-                </a>
+                <a href="lab-247-linux-commands/index.html" class="lab-card"><span class="arrow">→</span>
+                                    <div class="lab-number">247</div>
+                                    <h2>Working with Commands</h2>
+                                    <p>Manipulating data streams using tee, sort, cut, and the pipe operator.</p>
+                                    <div class="lab-chips"><span class="chip">tee</span> <span class="chip">sort</span> <span class="chip">cut</span> <span class="chip">Pipes (|)</span></div></a>
 
-                <a href="lab-247-linux-commands/index.html" class="lab-card">
-                    <span class="arrow">→</span>
-                    <div class="lab-number">247</div>
-                    <h2>Working with Commands</h2>
-                    <p>Manipulating data streams using tee, sort, cut, and the pipe operator.</p>
-                    <div class="lab-chips">
-                        <span class="chip">tee</span>
-                        <span class="chip">sort</span>
-                        <span class="chip">cut</span>
-                        <span class="chip">Pipes (|)</span>
-                    </div>
-                </a>
+                <a href="lab-249-linux-bash/index.html" class="lab-card"><span class="arrow">→</span>
+                                    <div class="lab-number">249</div>
+                                    <h2>The Bash Shell</h2>
+                                    <p>Customizing the command-line interface with aliases and adjusting the PATH variable.</p>
+                                    <div class="lab-chips"><span class="chip">alias</span> <span class="chip">tar</span> <span class="chip">PATH</span></div></a>
 
-                <a href="lab-249-linux-bash/index.html" class="lab-card">
-                    <span class="arrow">→</span>
-                    <div class="lab-number">249</div>
-                    <h2>The Bash Shell</h2>
-                    <p>Customizing the command-line interface with aliases and adjusting the PATH variable.</p>
-                    <div class="lab-chips">
-                        <span class="chip">alias</span>
-                        <span class="chip">tar</span>
-                        <span class="chip">PATH</span>
-                    </div>
-                </a>
-
-                <a href="lab-253-linux-scripts/index.html" class="lab-card">
-                    <span class="arrow">→</span>
-                    <div class="lab-number">253</div>
-                    <h2>Bash Shell Scripting Exercise</h2>
-                    <p>Automating repetitive tasks in Linux by creating a loop script to generate files sequentially.</p>
-                    <div class="lab-chips">
-                        <span class="chip">Bash</span>
-                        <span class="chip">Scripting</span>
-                        <span class="chip">Automation</span>
-                        <span class="chip">Loops</span>
-                    </div>
-                </a>
+                <a href="lab-253-linux-scripts/index.html" class="lab-card"><span class="arrow">→</span>
+                                    <div class="lab-number">253</div>
+                                    <h2>Bash Shell Scripting Exercise</h2>
+                                    <p>Automating repetitive tasks in Linux by creating a loop script to generate files sequentially.</p>
+                                    <div class="lab-chips"><span class="chip">Bash</span> <span class="chip">Scripting</span> <span class="chip">Automation</span> <span class="chip">Loops</span></div></a>
 
             </div>
 
-            <!-- ══════ NETWORKING ══════ -->
             <div class="section-label" style="margin-top:2.5rem;">Networking</div>
             <div class="labs-grid">
+                <a href="lab-261-networking-ips/index.html" class="lab-card"><span class="arrow">→</span>
+                                    <div class="lab-number">261</div>
+                                    <h2>Internet Protocols: Public and Private IPs</h2>
+                                    <p>Troubleshooting EC2 connectivity by understanding public vs. private IP addressing and the OSI model.</p>
+                                    <div class="lab-chips"><span class="chip">Public IP</span> <span class="chip">Private IP</span> <span class="chip">VPC</span> <span class="chip">OSI Model</span></div></a>
 
-                <a href="lab-261-networking-ips/index.html" class="lab-card">
-                    <span class="arrow">→</span>
-                    <div class="lab-number">261</div>
-                    <h2>Internet Protocols: Public and Private IPs</h2>
-                    <p>Troubleshooting EC2 connectivity by understanding public vs. private IP addressing and the OSI model.</p>
-                    <div class="lab-chips">
-                        <span class="chip">Public IP</span>
-                        <span class="chip">Private IP</span>
-                        <span class="chip">VPC</span>
-                        <span class="chip">OSI Model</span>
-                    </div>
-                </a>
+                <a href="lab-262-networking-static/index.html" class="lab-card"><span class="arrow">→</span>
+                                    <div class="lab-number">262</div>
+                                    <h2>Internet Protocols: Static and Dynamic Addresses</h2>
+                                    <p>Resolving dynamic IP changes on EC2 instances by allocating and associating an Elastic IP.</p>
+                                    <div class="lab-chips"><span class="chip">Elastic IP</span> <span class="chip">Dynamic IP</span> <span class="chip">EC2</span></div></a>
 
-                <a href="lab-262-networking-static/index.html" class="lab-card">
-                    <span class="arrow">→</span>
-                    <div class="lab-number">262</div>
-                    <h2>Internet Protocols: Static and Dynamic Addresses</h2>
-                    <p>Resolving dynamic IP changes on EC2 instances by allocating and associating an Elastic IP.</p>
-                    <div class="lab-chips">
-                        <span class="chip">Elastic IP</span>
-                        <span class="chip">Dynamic IP</span>
-                        <span class="chip">EC2</span>
-                    </div>
-                </a>
+                <a href="lab-263-networking-vpc/index.html" class="lab-card"><span class="arrow">→</span>
+                                    <div class="lab-number">263</div>
+                                    <h2>Create Subnets and Allocate IPs in a VPC</h2>
+                                    <p>Planning CIDR blocks and creating a VPC with a public subnet using the VPC Wizard.</p>
+                                    <div class="lab-chips"><span class="chip">VPC</span> <span class="chip">Subnets</span> <span class="chip">CIDR</span> <span class="chip">RFC 1918</span></div></a>
 
-                <a href="lab-263-networking-vpc/index.html" class="lab-card">
-                    <span class="arrow">→</span>
-                    <div class="lab-number">263</div>
-                    <h2>Create Subnets and Allocate IPs in a VPC</h2>
-                    <p>Planning CIDR blocks and creating a VPC with a public subnet using the VPC Wizard.</p>
-                    <div class="lab-chips">
-                        <span class="chip">VPC</span>
-                        <span class="chip">Subnets</span>
-                        <span class="chip">CIDR</span>
-                        <span class="chip">RFC 1918</span>
-                    </div>
-                </a>
+                <a href="lab-264-networking-resources/index.html" class="lab-card"><span class="arrow">→</span>
+                                    <div class="lab-number">264</div>
+                                    <h2>Create VPC Resources for Internet Connectivity</h2>
+                                    <p>Building a full networking stack: Internet Gateway, route tables, NACLs, security groups, and EC2.</p>
+                                    <div class="lab-chips"><span class="chip">IGW</span> <span class="chip">Route Table</span> <span class="chip">NACL</span> <span class="chip">Security Group</span></div></a>
 
-                <a href="lab-264-networking-resources/index.html" class="lab-card">
-                    <span class="arrow">→</span>
-                    <div class="lab-number">264</div>
-                    <h2>Create VPC Resources for Internet Connectivity</h2>
-                    <p>Building a full networking stack: Internet Gateway, route tables, NACLs, security groups, and EC2.</p>
-                    <div class="lab-chips">
-                        <span class="chip">IGW</span>
-                        <span class="chip">Route Table</span>
-                        <span class="chip">NACL</span>
-                        <span class="chip">Security Group</span>
-                    </div>
-                </a>
+                <a href="lab-265-networking-troubleshooting/index.html" class="lab-card"><span class="arrow">→</span>
+                                    <div class="lab-number">265</div>
+                                    <h2>Internet Protocol Troubleshooting Commands</h2>
+                                    <p>Diagnosing network connectivity issues across OSI layers using ping, traceroute, netstat, telnet, and curl.</p>
+                                    <div class="lab-chips"><span class="chip">OSI Model</span> <span class="chip">ICMP</span> <span class="chip">TCP</span> <span class="chip">Traceroute</span></div></a>
 
-                <a href="lab-265-networking-troubleshooting/index.html" class="lab-card">
-                    <span class="arrow">→</span>
-                    <div class="lab-number">265</div>
-                    <h2>Internet Protocol Troubleshooting Commands</h2>
-                    <p>Diagnosing network connectivity issues across OSI layers using ping, traceroute, netstat, telnet, and curl.</p>
-                    <div class="lab-chips">
-                        <span class="chip">OSI Model</span>
-                        <span class="chip">ICMP</span>
-                        <span class="chip">TCP</span>
-                        <span class="chip">Traceroute</span>
-                    </div>
-                </a>
+                <a href="lab-266-networking-troubleshooting-scenario/index.html" class="lab-card"><span class="arrow">→</span>
+                                    <div class="lab-number">266</div>
+                                    <h2>Troubleshooting a Network Issue</h2>
+                                    <p>A cloud support scenario identifying blocked Apache servers through OS-level systemctl checks and Security Group analysis.</p>
+                                    <div class="lab-chips"><span class="chip">systemctl</span> <span class="chip">Security Groups</span> <span class="chip">VPC</span></div></a>
 
-                <a href="lab-266-networking-troubleshooting-scenario/index.html" class="lab-card">
-                    <span class="arrow">→</span>
-                    <div class="lab-number">266</div>
-                    <h2>Troubleshooting a Network Issue</h2>
-                    <p>A cloud support scenario identifying blocked Apache servers through OS-level systemctl checks and Security Group analysis.</p>
-                    <div class="lab-chips">
-                        <span class="chip">systemctl</span>
-                        <span class="chip">Security Groups</span>
-                        <span class="chip">VPC</span>
-                    </div>
-                </a>
-
-                <a href="lab-267-networking-vpc-build/index.html" class="lab-card">
-                    <span class="arrow">→</span>
-                    <div class="lab-number">267</div>
-                    <h2>Build Your VPC and Launch a Web Server</h2>
-                    <p>Building a robust VPC with public/private subnets across multiple AZs and bootstrapping an EC2 web app via user data.</p>
-                    <div class="lab-chips">
-                        <span class="chip">Amazon VPC</span>
-                        <span class="chip">Multi-AZ</span>
-                        <span class="chip">User Data</span>
-                    </div>
-                </a>
+                <a href="lab-267-networking-vpc-build/index.html" class="lab-card"><span class="arrow">→</span>
+                                    <div class="lab-number">267</div>
+                                    <h2>Build Your VPC and Launch a Web Server</h2>
+                                    <p>Building a robust VPC with public/private subnets across multiple AZs and bootstrapping an EC2 web app via user data.</p>
+                                    <div class="lab-chips"><span class="chip">Amazon VPC</span> <span class="chip">Multi-AZ</span> <span class="chip">User Data</span></div></a>
 
             </div>
 
-            <!-- ══════ SEGURIDAD ══════ -->
+            <div class="section-label" style="margin-top:2.5rem;">Actividad Python</div>
+            <div class="labs-grid">
+                <div class="lab-card coming-soon"><span class="arrow">→</span>
+                                    <div class="lab-number">PY</div>
+                                    <h2>Actividad Python - 1</h2>
+                                    <p>Reserved position in the course order for the first Python activity mentioned by the student.</p>
+                                    <div class="lab-chips"><span class="chip">Python</span> <span class="chip">Actividad</span> <span class="coming-badge">Coming Soon</span></div></div>
+
+            </div>
+
             <div class="section-label" style="margin-top:2.5rem;">Seguridad</div>
             <div class="labs-grid">
+                <a href="lab-276-seguridad-inspector/index.html" class="lab-card"><span class="arrow">→</span>
+                                    <div class="lab-number">276</div>
+                                    <h2>Scanning AWS Lambda Functions with Amazon Inspector</h2>
+                                    <p>Scanning serverless applications for vulnerabilities using automated security assessments.</p>
+                                    <div class="lab-chips"><span class="chip">Amazon Inspector</span> <span class="chip">AWS Lambda</span> <span class="chip">CVEs</span></div></a>
 
-                <a href="lab-276-seguridad-inspector/index.html" class="lab-card">
-                    <span class="arrow">→</span>
-                    <div class="lab-number">276</div>
-                    <h2>Scanning AWS Lambda Functions with Amazon Inspector</h2>
-                    <p>Scanning serverless applications for vulnerabilities using automated security assessments.</p>
-                    <div class="lab-chips">
-                        <span class="chip">Amazon Inspector</span>
-                        <span class="chip">AWS Lambda</span>
-                        <span class="chip">CVEs</span>
-                    </div>
-                </a>
+                <a href="lab-277-seguridad-patch-manager/index.html" class="lab-card"><span class="arrow">→</span>
+                                    <div class="lab-number">277</div>
+                                    <h2>Update EC2 instances with AWS Systems Manager Patch Manager</h2>
+                                    <p>Automating OS patch baselines, maintenance windows, and compliance verification.</p>
+                                    <div class="lab-chips"><span class="chip">Patch Manager</span> <span class="chip">Systems Manager</span> <span class="chip">Compliance</span></div></a>
 
-                <a href="lab-277-seguridad-patch-manager/index.html" class="lab-card">
-                    <span class="arrow">→</span>
-                    <div class="lab-number">277</div>
-                    <h2>Update EC2 instances with AWS Systems Manager Patch Manager</h2>
-                    <p>Automating OS patch baselines, maintenance windows, and compliance verification.</p>
-                    <div class="lab-chips">
-                        <span class="chip">Patch Manager</span>
-                        <span class="chip">Systems Manager</span>
-                        <span class="chip">Compliance</span>
-                    </div>
-                </a>
+                <a href="lab-279-seguridad-iam/index.html" class="lab-card"><span class="arrow">→</span>
+                                    <div class="lab-number">279</div>
+                                    <h2>Introduction to AWS IAM</h2>
+                                    <p>Enforcing password policies, analyzing managed/inline JSON policies, and testing role-based permissions.</p>
+                                    <div class="lab-chips"><span class="chip">IAM Groups</span> <span class="chip">Policies</span> <span class="chip">Least Privilege</span></div></a>
 
-                <a href="lab-279-seguridad-iam/index.html" class="lab-card">
-                    <span class="arrow">→</span>
-                    <div class="lab-number">279</div>
-                    <h2>Introduction to AWS IAM</h2>
-                    <p>Enforcing password policies, analyzing managed/inline JSON policies, and testing role-based permissions.</p>
-                    <div class="lab-chips">
-                        <span class="chip">IAM Groups</span>
-                        <span class="chip">Policies</span>
-                        <span class="chip">Least Privilege</span>
-                    </div>
-                </a>
+                <a href="lab-280-seguridad-network-firewall/index.html" class="lab-card"><span class="arrow">→</span>
+                                    <div class="lab-number">280</div>
+                                    <h2>Malware Protection Using an AWS Network Firewall</h2>
+                                    <p>Updating stateless network firewalls with stateful Suricata IPS rules to block malicious domains.</p>
+                                    <div class="lab-chips"><span class="chip">Network Firewall</span> <span class="chip">Stateful Rules</span> <span class="chip">Suricata IPS</span></div></a>
 
-                <a href="lab-280-seguridad-network-firewall/index.html" class="lab-card">
-                    <span class="arrow">→</span>
-                    <div class="lab-number">280</div>
-                    <h2>Malware Protection Using an AWS Network Firewall</h2>
-                    <p>Updating stateless network firewalls with stateful Suricata IPS rules to block malicious domains.</p>
-                    <div class="lab-chips">
-                        <span class="chip">Network Firewall</span>
-                        <span class="chip">Stateful Rules</span>
-                        <span class="chip">Suricata IPS</span>
-                    </div>
-                </a>
-
-                <a href="lab-281-seguridad-cloudwatch/index.html" class="lab-card">
-                    <span class="arrow">→</span>
-                    <div class="lab-number">281</div>
-                    <h2>Monitor an EC2 Instance with CloudWatch Alarms</h2>
-                    <p>Coupling CloudWatch metrics to Amazon SNS alerts for rapid detection of CPU spikes.</p>
-                    <div class="lab-chips">
-                        <span class="chip">CloudWatch</span>
-                        <span class="chip">Amazon SNS</span>
-                        <span class="chip">Alerting</span>
-                    </div>
-                </a>
+                <a href="lab-281-seguridad-cloudwatch/index.html" class="lab-card"><span class="arrow">→</span>
+                                    <div class="lab-number">281</div>
+                                    <h2>Monitor an EC2 Instance with CloudWatch Alarms</h2>
+                                    <p>Coupling CloudWatch metrics to Amazon SNS alerts for rapid detection of CPU spikes.</p>
+                                    <div class="lab-chips"><span class="chip">CloudWatch</span> <span class="chip">Amazon SNS</span> <span class="chip">Alerting</span></div></a>
 
             </div>
 
-            <!-- ══════ BASES DE DATOS ══════ -->
+            <div class="section-label" style="margin-top:2.5rem;">Programación en Python</div>
+            <div class="labs-grid">
+                <a href="lab-141-python-scripting/index.html" class="lab-card"><span class="arrow">→</span>
+                                    <div class="lab-number">141</div>
+                                    <h2>Challenge Lab: Python Scripting Exercise</h2>
+                                    <p>Writing and testing a Python 3 script that calculates prime numbers and saves them into a results file.</p>
+                                    <div class="lab-chips"><span class="chip">Python 3</span> <span class="chip">nano</span> <span class="chip">results.txt</span></div></a>
+
+            </div>
+
             <div class="section-label" style="margin-top:2.5rem;">Bases de Datos</div>
             <div class="labs-grid">
+                <a href="lab-268-database-create-drop/index.html" class="lab-card"><span class="arrow">→</span>
+                                    <div class="lab-number">268</div>
+                                    <h2>Create and Drop Databases and Tables</h2>
+                                    <p>Practicing CREATE, SHOW, ALTER, and DROP statements to build and remove a sample world schema.</p>
+                                    <div class="lab-chips"><span class="chip">MariaDB</span> <span class="chip">CREATE</span> <span class="chip">ALTER</span> <span class="chip">DROP</span></div></a>
 
-                <a href="lab-268-database-create-drop/index.html" class="lab-card">
-                    <span class="arrow">→</span>
-                    <div class="lab-number">268</div>
-                    <h2>Create and Drop Databases and Tables</h2>
-                    <p>Practicing CREATE, SHOW, ALTER, and DROP statements to build and remove a sample world schema.</p>
-                    <div class="lab-chips">
-                        <span class="chip">MariaDB</span>
-                        <span class="chip">CREATE</span>
-                        <span class="chip">ALTER</span>
-                        <span class="chip">DROP</span>
-                    </div>
-                </a>
+                <a href="lab-269-database-insert-update-delete/index.html" class="lab-card"><span class="arrow">→</span>
+                                    <div class="lab-number">269</div>
+                                    <h2>Insert, Update, and Delete Data in a Database</h2>
+                                    <p>Using INSERT, UPDATE, DELETE, and SQL import to manipulate and restore rows in the world database.</p>
+                                    <div class="lab-chips"><span class="chip">INSERT</span> <span class="chip">UPDATE</span> <span class="chip">DELETE</span> <span class="chip">SQL Import</span></div></a>
 
-                <a href="lab-269-database-insert-update-delete/index.html" class="lab-card">
-                    <span class="arrow">→</span>
-                    <div class="lab-number">269</div>
-                    <h2>Insert, Update, and Delete Data in a Database</h2>
-                    <p>Using INSERT, UPDATE, DELETE, and SQL import to manipulate and restore rows in the world database.</p>
-                    <div class="lab-chips">
-                        <span class="chip">INSERT</span>
-                        <span class="chip">UPDATE</span>
-                        <span class="chip">DELETE</span>
-                        <span class="chip">SQL Import</span>
-                    </div>
-                </a>
+                <a href="lab-270-database-selecting-data/index.html" class="lab-card"><span class="arrow">→</span>
+                                    <div class="lab-number">270</div>
+                                    <h2>Selecting Data from a Database</h2>
+                                    <p>Querying the world dataset with SELECT, COUNT(*), aliases, ORDER BY, WHERE, and AND conditions.</p>
+                                    <div class="lab-chips"><span class="chip">SELECT</span> <span class="chip">COUNT(*)</span> <span class="chip">WHERE</span> <span class="chip">ORDER BY</span></div></a>
 
-                <a href="lab-270-database-selecting-data/index.html" class="lab-card">
-                    <span class="arrow">→</span>
-                    <div class="lab-number">270</div>
-                    <h2>Selecting Data from a Database</h2>
-                    <p>Querying the world dataset with SELECT, COUNT(*), aliases, ORDER BY, WHERE, and AND conditions.</p>
-                    <div class="lab-chips">
-                        <span class="chip">SELECT</span>
-                        <span class="chip">COUNT(*)</span>
-                        <span class="chip">WHERE</span>
-                        <span class="chip">ORDER BY</span>
-                    </div>
-                </a>
+                <a href="lab-271-database-query-functions/index.html" class="lab-card"><span class="arrow">→</span>
+                                    <div class="lab-number">271</div>
+                                    <h2>Query the World Database with Functions and Conditions</h2>
+                                    <p>Using BETWEEN, LIKE, SUM, aliases, and LOWER to build clearer and more analytical SQL queries.</p>
+                                    <div class="lab-chips"><span class="chip">BETWEEN</span> <span class="chip">SUM</span> <span class="chip">LOWER</span></div></a>
+
+                <div class="lab-card coming-soon"><span class="arrow">→</span>
+                                    <div class="lab-number">272</div>
+                                    <h2>Lab 272 · Trabajar con funciones</h2>
+                                    <p>Reserved position for the next database lab in the course sequence provided by the student.</p>
+                                    <div class="lab-chips"><span class="chip">Functions</span> <span class="coming-badge">Coming Soon</span></div></div>
+
+                <div class="lab-card coming-soon"><span class="arrow">→</span>
+                                    <div class="lab-number">273</div>
+                                    <h2>Lab 273 · Organización de datos</h2>
+                                    <p>Reserved position for the data organization lab referenced in the future course order.</p>
+                                    <div class="lab-chips"><span class="chip">Data Organization</span> <span class="coming-badge">Coming Soon</span></div></div>
+
+                <a href="lab-160-database-rds-app/index.html" class="lab-card"><span class="arrow">→</span>
+                                    <div class="lab-number">160</div>
+                                    <h2>Build Your DB Server and Interact With Your DB Using an App</h2>
+                                    <p>Launching a Multi-AZ RDS MySQL instance and connecting a web application to the managed database.</p>
+                                    <div class="lab-chips"><span class="chip">Amazon RDS</span> <span class="chip">Multi-AZ</span> <span class="chip">MySQL</span></div></a>
+
+                <a href="lab-162-database-rds-challenge/index.html" class="lab-card"><span class="arrow">→</span>
+                                    <div class="lab-number">162</div>
+                                    <h2>Challenge Lab: Build Your DB Server and Interact With Your DB</h2>
+                                    <p>Connecting to Amazon RDS from a Linux server, creating tables, inserting data, and validating an inner join.</p>
+                                    <div class="lab-chips"><span class="chip">Amazon RDS</span> <span class="chip">INNER JOIN</span> <span class="chip">MySQL Client</span></div></a>
+
+                <div class="lab-card coming-soon"><span class="arrow">→</span>
+                                    <div class="lab-number">274</div>
+                                    <h2>Lab 274 · Introducción a Amazon Aurora</h2>
+                                    <p>Reserved position for the Aurora introduction lab in the student-provided sequence.</p>
+                                    <div class="lab-chips"><span class="chip">Aurora</span> <span class="coming-badge">Coming Soon</span></div></div>
+
+                <div class="lab-card coming-soon"><span class="arrow">→</span>
+                                    <div class="lab-number">275</div>
+                                    <h2>Lab 275 · Introducción a Amazon DynamoDB</h2>
+                                    <p>Reserved position for the DynamoDB introduction lab in the student-provided sequence.</p>
+                                    <div class="lab-chips"><span class="chip">DynamoDB</span> <span class="coming-badge">Coming Soon</span></div></div>
 
             </div>
 
+            <div class="section-label" style="margin-top:2.5rem;">JAWS</div>
+            <div class="labs-grid">
+                <div class="lab-card coming-soon"><span class="arrow">→</span>
+                                    <div class="lab-number">169</div>
+                                    <h2>[JAWS] Uso de AWS Systems Manager</h2>
+                                    <p>Reserved position in the future sequence shared by the student.</p>
+                                    <div class="lab-chips"><span class="chip">Systems Manager</span> <span class="coming-badge">Coming Soon</span></div></div>
+
+                <div class="lab-card coming-soon"><span class="arrow">→</span>
+                                    <div class="lab-number">170</div>
+                                    <h2>[JAWS] Creación de un sitio web en S3</h2>
+                                    <p>Reserved position in the future sequence shared by the student.</p>
+                                    <div class="lab-chips"><span class="chip">S3</span> <span class="coming-badge">Coming Soon</span></div></div>
+
+                <div class="lab-card coming-soon"><span class="arrow">→</span>
+                                    <div class="lab-number">171</div>
+                                    <h2>[JAWS] Creación de instancias de Amazon EC2</h2>
+                                    <p>Reserved position in the future sequence shared by the student.</p>
+                                    <div class="lab-chips"><span class="chip">EC2</span> <span class="coming-badge">Coming Soon</span></div></div>
+
+                <div class="lab-card coming-soon"><span class="arrow">→</span>
+                                    <div class="lab-number">172</div>
+                                    <h2>[JAWS] Desafío de instancias de EC2</h2>
+                                    <p>Reserved position in the future sequence shared by the student.</p>
+                                    <div class="lab-chips"><span class="chip">EC2</span> <span class="coming-badge">Coming Soon</span></div></div>
+
+                <div class="lab-card coming-soon"><span class="arrow">→</span>
+                                    <div class="lab-number">173</div>
+                                    <h2>[JAWS] Solución de problemas de creación de una instancia</h2>
+                                    <p>Reserved position in the future sequence shared by the student.</p>
+                                    <div class="lab-chips"><span class="chip">Troubleshooting</span> <span class="coming-badge">Coming Soon</span></div></div>
+
+                <div class="lab-card coming-soon"><span class="arrow">→</span>
+                                    <div class="lab-number">174</div>
+                                    <h2>[JAWS] Escalado y balanceo de carga de una arquitectura</h2>
+                                    <p>Reserved position in the future sequence shared by the student.</p>
+                                    <div class="lab-chips"><span class="chip">Scaling</span> <span class="coming-badge">Coming Soon</span></div></div>
+
+                <div class="lab-card coming-soon"><span class="arrow">→</span>
+                                    <div class="lab-number">175</div>
+                                    <h2>[JAWS] Uso de escalado automático en AWS</h2>
+                                    <p>Reserved position in the future sequence shared by the student.</p>
+                                    <div class="lab-chips"><span class="chip">Auto Scaling</span> <span class="coming-badge">Coming Soon</span></div></div>
+
+                <div class="lab-card coming-soon"><span class="arrow">→</span>
+                                    <div class="lab-number">176</div>
+                                    <h2>[JAWS] Enrutamiento de conmutación por error de Route 53</h2>
+                                    <p>Reserved position in the future sequence shared by the student.</p>
+                                    <div class="lab-chips"><span class="chip">Route 53</span> <span class="coming-badge">Coming Soon</span></div></div>
+
+                <div class="lab-card coming-soon"><span class="arrow">→</span>
+                                    <div class="lab-number">177</div>
+                                    <h2>[JAWS] Desafío de AWS Lambda</h2>
+                                    <p>Reserved position in the future sequence shared by the student.</p>
+                                    <div class="lab-chips"><span class="chip">AWS Lambda</span> <span class="coming-badge">Coming Soon</span></div></div>
+
+                <div class="lab-card coming-soon"><span class="arrow">→</span>
+                                    <div class="lab-number">178</div>
+                                    <h2>[JAWS] Trabajo con AWS Lambda</h2>
+                                    <p>Reserved position in the future sequence shared by the student.</p>
+                                    <div class="lab-chips"><span class="chip">AWS Lambda</span> <span class="coming-badge">Coming Soon</span></div></div>
+
+                <div class="lab-card coming-soon"><span class="arrow">→</span>
+                                    <div class="lab-number">179</div>
+                                    <h2>[JAWS] Migración a Amazon RDS</h2>
+                                    <p>Reserved position in the future sequence shared by the student.</p>
+                                    <div class="lab-chips"><span class="chip">Amazon RDS</span> <span class="coming-badge">Coming Soon</span></div></div>
+
+                <div class="lab-card coming-soon"><span class="arrow">→</span>
+                                    <div class="lab-number">180</div>
+                                    <h2>[JAWS] Configuración de una Amazon VPC</h2>
+                                    <p>Reserved position in the future sequence shared by the student.</p>
+                                    <div class="lab-chips"><span class="chip">Amazon VPC</span> <span class="coming-badge">Coming Soon</span></div></div>
+
+                <div class="lab-card coming-soon"><span class="arrow">→</span>
+                                    <div class="lab-number">181</div>
+                                    <h2>[JAWS] Solución de problemas de una VPC</h2>
+                                    <p>Reserved position in the future sequence shared by the student.</p>
+                                    <div class="lab-chips"><span class="chip">VPC</span> <span class="coming-badge">Coming Soon</span></div></div>
+
+                <div class="lab-card coming-soon"><span class="arrow">→</span>
+                                    <div class="lab-number">182</div>
+                                    <h2>[JAWS] Trabajo con Amazon EBS</h2>
+                                    <p>Reserved position in the future sequence shared by the student.</p>
+                                    <div class="lab-chips"><span class="chip">Amazon EBS</span> <span class="coming-badge">Coming Soon</span></div></div>
+
+                <div class="lab-card coming-soon"><span class="arrow">→</span>
+                                    <div class="lab-number">183</div>
+                                    <h2>[JAWS] Administración del almacenamiento</h2>
+                                    <p>Reserved position in the future sequence shared by the student.</p>
+                                    <div class="lab-chips"><span class="chip">Storage</span> <span class="coming-badge">Coming Soon</span></div></div>
+
+                <div class="lab-card coming-soon"><span class="arrow">→</span>
+                                    <div class="lab-number">184</div>
+                                    <h2>[JAWS] Desafío sobre S3</h2>
+                                    <p>Reserved position in the future sequence shared by the student.</p>
+                                    <div class="lab-chips"><span class="chip">Amazon S3</span> <span class="coming-badge">Coming Soon</span></div></div>
+
+                <div class="lab-card coming-soon"><span class="arrow">→</span>
+                                    <div class="lab-number">185</div>
+                                    <h2>[JAWS] Trabajo con Amazon S3</h2>
+                                    <p>Reserved position in the future sequence shared by the student.</p>
+                                    <div class="lab-chips"><span class="chip">Amazon S3</span> <span class="coming-badge">Coming Soon</span></div></div>
+
+                <div class="lab-card coming-soon"><span class="arrow">→</span>
+                                    <div class="lab-number">186</div>
+                                    <h2>[JAWS] Monitoreo de las aplicaciones y la infraestructura</h2>
+                                    <p>Reserved position in the future sequence shared by the student.</p>
+                                    <div class="lab-chips"><span class="chip">Monitoring</span> <span class="coming-badge">Coming Soon</span></div></div>
+
+                <div class="lab-card coming-soon"><span class="arrow">→</span>
+                                    <div class="lab-number">187</div>
+                                    <h2>[JAWS] Trabajo con AWS CloudTrail</h2>
+                                    <p>Reserved position in the future sequence shared by the student.</p>
+                                    <div class="lab-chips"><span class="chip">CloudTrail</span> <span class="coming-badge">Coming Soon</span></div></div>
+
+                <div class="lab-card coming-soon"><span class="arrow">→</span>
+                                    <div class="lab-number">188</div>
+                                    <h2>[JAWS] Administración de recursos mediante el etiquetado</h2>
+                                    <p>Reserved position in the future sequence shared by the student.</p>
+                                    <div class="lab-chips"><span class="chip">Tagging</span> <span class="coming-badge">Coming Soon</span></div></div>
+
+                <div class="lab-card coming-soon"><span class="arrow">→</span>
+                                    <div class="lab-number">189</div>
+                                    <h2>[JAWS] Optimizar la utilización</h2>
+                                    <p>Reserved position in the future sequence shared by the student.</p>
+                                    <div class="lab-chips"><span class="chip">Optimization</span> <span class="coming-badge">Coming Soon</span></div></div>
+
+                <div class="lab-card coming-soon"><span class="arrow">→</span>
+                                    <div class="lab-number">190</div>
+                                    <h2>[JAWS] Automatización de implementaciones con AWS CloudFormation</h2>
+                                    <p>Reserved position in the future sequence shared by the student.</p>
+                                    <div class="lab-chips"><span class="chip">CloudFormation</span> <span class="coming-badge">Coming Soon</span></div></div>
+
+                <div class="lab-card coming-soon"><span class="arrow">→</span>
+                                    <div class="lab-number">191</div>
+                                    <h2>[JAWS] Café Lab de resolución de problemas en CloudFormation</h2>
+                                    <p>Reserved position in the future sequence shared by the student.</p>
+                                    <div class="lab-chips"><span class="chip">CloudFormation</span> <span class="coming-badge">Coming Soon</span></div></div>
+
+                <div class="lab-card coming-soon"><span class="arrow">→</span>
+                                    <div class="lab-number">192</div>
+                                    <h2>[JAWS] Desafío de CloudFormation</h2>
+                                    <p>Reserved position in the future sequence shared by the student.</p>
+                                    <div class="lab-chips"><span class="chip">CloudFormation</span> <span class="coming-badge">Coming Soon</span></div></div>
+
+            </div>
         </div>
     </main>
 
     <footer class="footer">
-        <div class="container">
-            AWS re/Start Lab Reports · Julian David Quijano
-        </div>
+        <div class="container">AWS re/Start Lab Reports · Julian David Quijano</div>
     </footer>
 </body>
 

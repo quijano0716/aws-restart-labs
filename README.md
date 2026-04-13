@@ -33,6 +33,12 @@ Technical documentation of hands-on labs completed during the **AWS re/Start** p
 | 249 | The Bash Shell                 | Completed     |
 | 253 | Bash Shell Scripting Exercise  | Completed     |
 
+### Programación en Python
+
+| #   | Lab                                      | Status    |
+|-----|------------------------------------------|-----------|
+| 141 | Challenge Lab: Python Scripting Exercise | Completed |
+
 ### Networking
 
 | #   | Lab                                               | Status    |
@@ -60,9 +66,12 @@ Technical documentation of hands-on labs completed during the **AWS re/Start** p
 
 | #   | Lab                                           | Status    |
 |-----|-----------------------------------------------|-----------|
+| 160 | Build Your DB Server and Interact With Your DB Using an App | Completed |
+| 162 | Challenge Lab: Build Your DB Server and Interact With Your DB | Completed |
 | 268 | Create and Drop Databases and Tables          | Completed |
 | 269 | Insert, Update, and Delete Data in a Database | Completed |
 | 270 | Selecting Data from a Database                | Completed |
+| 271 | Query the World Database with Functions and Conditions | Completed |
 
 ---
 
