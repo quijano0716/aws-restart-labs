@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lab Report: Introducción a Amazon Aurora</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --bg-soft: #111827;
+      --card: rgba(255, 255, 255, 0.08);
+      --card-strong: rgba(255, 255, 255, 0.12);
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --accent: #ff9900;
+      --accent-2: #38bdf8;
+      --ok: #22c55e;
+      --warn: #f59e0b;
+      --border: rgba(255, 255, 255, 0.12);
+      --shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+      --radius: 22px;
+      --max: 1120px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(255, 153, 0, 0.16), transparent 28%),
+        radial-gradient(circle at top right, rgba(56, 189, 248, 0.14), transparent 24%),
+        linear-gradient(180deg, #020617 0%, #0f172a 48%, #111827 100%);
+      color: var(--text);
+      line-height: 1.65;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .container {
+      width: min(var(--max), calc(100% - 2rem));
+      margin: 0 auto;
+    }
+
+    /* ── Nav ── */
+    .nav {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      backdrop-filter: blur(16px);
+      background: rgba(2, 6, 23, 0.72);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .nav-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.9rem 0;
+      gap: 1rem;
+    }
+
+    .brand {
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+    }
+
+    .brand-badge {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, var(--accent), #ffb84d);
+      color: #111827;
+      font-weight: 900;
+      box-shadow: var(--shadow);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .nav-links a:hover {
+      color: var(--text);
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      color: var(--muted);
+      font-size: 0.9rem;
+      transition: color 0.2s;
+    }
+
+    .back-link:hover {
+      color: var(--accent);
+    }
+
+    /* ── Hero ── */
+    .hero {
+      padding: 4.8rem 0 2rem;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 1.5rem;
+      align-items: stretch;
+    }
+
+    .panel {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.05));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .hero-main {
+      padding: 2rem;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.45rem 0.8rem;
+      border-radius: 999px;
+      background: rgba(255, 153, 0, 0.12);
+      color: #ffd28a;
+      border: 1px solid rgba(255, 153, 0, 0.25);
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+    }
+
+    h1,
+    h2,
+    h3 {
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+      margin: 0;
+    }
+
+    h1 {
+      font-size: clamp(2rem, 4vw, 3.7rem);
+      margin-bottom: 0.9rem;
+    }
+
+    .hero-main p {
+      margin: 0;
+      color: #cbd5e1;
+      font-size: 1.05rem;
+      max-width: 65ch;
+    }
+
+    .hero-side {
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .hero-side .callout {
+      padding: 1rem 1.1rem;
+      border-radius: 18px;
+      border: 1px solid rgba(56, 189, 248, 0.18);
+      background: rgba(56, 189, 248, 0.08);
+    }
+
+    .hero-side .callout strong {
+      display: block;
+      margin-bottom: 0.35rem;
+    }
+
+    .tech-stack {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.55rem;
+    }
+
+    .chip {
+      padding: 0.45rem 0.75rem;
+      border-radius: 999px;
+      font-size: 0.88rem;
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #dbeafe;
+    }
+
+    .small {
+      font-size: 0.92rem;
+      color: var(--muted);
+    }
+
+    /* ── Sections ── */
+    section {
+      padding: 1rem 0 0.4rem;
+    }
+
+    .section-title {
+      margin-bottom: 1rem;
+      font-size: clamp(1.5rem, 2vw, 2.2rem);
+    }
+
+    .section-subtitle {
+      color: var(--muted);
+      margin-top: 0.45rem;
+      max-width: 75ch;
+    }
+
+    /* ── Grids ── */
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .card {
+      padding: 1.3rem;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+    }
+
+    .card h3 {
+      font-size: 1.05rem;
+      margin-bottom: 0.6rem;
+    }
+
+    .card p {
+      margin: 0;
+      color: #cbd5e1;
+    }
+
+    /* ── Timeline ── */
+    .timeline {
+      display: grid;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .step {
+      display: grid;
+      grid-template-columns: 90px 1fr;
+      gap: 1rem;
+      align-items: start;
+      padding: 1.25rem;
+      border-radius: 22px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: var(--shadow);
+    }
+
+    .step-num {
+      width: 72px;
+      height: 72px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, rgba(255, 153, 0, 0.18), rgba(56, 189, 248, 0.18));
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      display: grid;
+      place-items: center;
+      font-size: 1.1rem;
+      font-weight: 900;
+      color: #fff;
+    }
+
+    .step h3 {
+      margin-bottom: 0.55rem;
+      font-size: 1.2rem;
+    }
+
+    .step ul {
+      margin: 0.3rem 0 0;
+      padding-left: 1.1rem;
+      color: #dbe4f0;
+    }
+
+    .step li+li {
+      margin-top: 0.4rem;
+    }
+
+    .highlight {
+      color: #ffd28a;
+      font-weight: 700;
+    }
+
+    /* ── Screenshots ── */
+    .screenshot-gallery {
+      display: grid;
+      gap: 0.8rem;
+      margin-top: 1rem;
+    }
+
+    .screenshot-gallery.cols-2 {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .screenshot-fig {
+      margin: 0;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(2, 6, 23, 0.5);
+    }
+
+    .screenshot-fig img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .screenshot-fig figcaption {
+      padding: 0.6rem 0.8rem;
+      color: var(--muted);
+      font-size: 0.84rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    /* ── Callouts ── */
+    .insight {
+      padding: 1.15rem 1.2rem;
+      border-left: 4px solid var(--accent);
+      border-radius: 16px;
+      background: rgba(255, 153, 0, 0.08);
+      color: #fde7c2;
+    }
+
+    .info {
+      border-left-color: var(--accent-2);
+      background: rgba(56, 189, 248, 0.08);
+      color: #d8f3ff;
+    }
+
+    /* ── Checklist ── */
+    .checklist {
+      display: grid;
+      gap: 0.7rem;
+      margin-top: 1rem;
+    }
+
+    .check {
+      display: flex;
+      gap: 0.75rem;
+      align-items: flex-start;
+      padding: 0.9rem 1rem;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+    }
+
+    .check-mark {
+      flex: 0 0 auto;
+      width: 28px;
+      height: 28px;
+      display: grid;
+      place-items: center;
+      border-radius: 999px;
+      background: rgba(34, 197, 94, 0.15);
+      color: #86efac;
+      font-weight: 800;
+    }
+
+    /* ── Code ── */
+    code {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 0.15rem 0.4rem;
+      border-radius: 6px;
+      font-size: 0.9em;
+      font-family: "Cascadia Code", "Fira Code", monospace;
+    }
+
+    /* ── Footer ── */
+    .footer {
+      padding: 2.2rem 0 3.5rem;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 920px) {
+
+      .hero-grid,
+      .grid-3,
+      .grid-2,
+      .screenshot-gallery.cols-2 {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 680px) {
+      .nav-inner {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .step {
+        grid-template-columns: 1fr;
+      }
+
+      .step-num {
+        width: 60px;
+        height: 60px;
+        border-radius: 16px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <nav class="nav">
+    <div class="container nav-inner">
+      <div class="brand">
+        <div class="brand-badge">AWS</div>
+        <div>Lab Report · Bases de Datos</div>
+      </div>
+      <div class="nav-links">
+        <a href="../index.html" class="back-link">← All Labs</a>
+        <a href="#summary">Summary</a>
+        <a href="#services">Services</a>
+        <a href="#walkthrough">Walkthrough</a>
+        <a href="#commands">Queries</a>
+        <a href="#learnings">Learnings</a>
+      </div>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <div class="container hero-grid">
+      <div class="panel hero-main">
+        <div class="eyebrow">AWS re/Start Lab · Bases de Datos</div>
+        <h1>Introducción a Amazon Aurora</h1>
+        <p>
+          Creación de una instancia de Amazon Aurora (compatible con MySQL), configuración de conectividad
+          desde EC2 mediante Session Manager y consulta de datos con SQL.
+        </p>
+      </div>
+
+      <aside class="panel hero-side">
+        <div class="callout">
+          <strong>Lab Objective</strong>
+          Create an Aurora instance, connect to it from EC2, and query data.
+        </div>
+
+        <div>
+          <div class="small" style="margin-bottom:0.7rem;">Tools & Concepts</div>
+          <div class="tech-stack">
+            <span class="chip">Aurora</span>
+            <span class="chip">RDS</span>
+            <span class="chip">MySQL</span>
+            <span class="chip">Session Manager</span>
+            <span class="chip">SQL</span>
+          </div>
+        </div>
+
+        <div class="callout" style="border-color: rgba(34,197,94,0.2); background: rgba(34,197,94,0.08);">
+          <strong>Key Insight</strong>
+          Aurora provides cluster endpoints for both write and read operations. The writer endpoint handles
+          all DDL and DML operations, while the reader endpoint load-balances read queries across replicas.
+        </div>
+      </aside>
+    </div>
+  </header>
+
+  <main>
+    <section id="summary">
+      <div class="container">
+        <h2 class="section-title">Lab Summary</h2>
+        <p class="section-subtitle">
+          Created an <span class="highlight">Amazon Aurora</span> MySQL-compatible cluster through the
+          <strong>Amazon RDS</strong> console, connected to an <span class="highlight">EC2</span> instance via
+          <span class="highlight">Session Manager</span>, installed the <span class="highlight">MariaDB client</span>,
+          and executed DDL and DML statements against the <code>world</code> database.
+        </p>
+
+        <div class="grid-2" style="margin-top:1rem;">
+          <article class="card">
+            <h3>Aurora Instance Setup</h3>
+            <p>Creating an Aurora MySQL-compatible cluster with the proper VPC and security group configuration.</p>
+          </article>
+          <article class="card">
+            <h3>SQL Query Workflow</h3>
+            <p>Installing the MariaDB client on EC2, connecting via the cluster endpoint, and running DDL/DML
+              operations against the world database.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="services">
+      <div class="container">
+        <h2 class="section-title">AWS Services Used</h2>
+        <div class="grid-3">
+          <article class="card">
+            <h3>Amazon Aurora</h3>
+            <p>Fully managed, MySQL-compatible relational database with up to 5x MySQL performance.</p>
+          </article>
+          <article class="card">
+            <h3>Amazon RDS</h3>
+            <p>Managed relational database service that handles setup, operation, and scaling.</p>
+          </article>
+          <article class="card">
+            <h3>Amazon EC2</h3>
+            <p>Virtual compute instance used as the client to connect to Aurora.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="walkthrough">
+      <div class="container">
+        <h2 class="section-title">Step-by-Step Walkthrough</h2>
+        <p class="section-subtitle">
+          Detailed documentation of the four tasks: creating the Aurora cluster, connecting to EC2, configuring
+          the client, and querying data.
+        </p>
+
+        <div class="timeline">
+
+          <article class="step">
+            <div class="step-num">01</div>
+            <div>
+              <h3>Create an Aurora instance</h3>
+              <ul>
+                <li>Navigated to <strong>RDS</strong> in the AWS Management Console.</li>
+                <li>Created a database with the <strong>Standard create</strong> method.</li>
+                <li>Selected <strong>Aurora (MySQL Compatible)</strong> with <strong>MySQL 8.0</strong>.</li>
+                <li>Configured cluster identifier: <code>aurora</code>, master username: <code>admin</code>,
+                  password: <code>admin123</code>.</li>
+                <li>Selected the <strong>Dev/Test</strong> template and <strong>Burstable classes</strong>
+                  <code>db.t3.medium</code>.</li>
+                <li>Disabled <strong>Multi-AZ Replica</strong> (not needed for a lab environment).</li>
+                <li>In Connectivity: selected <strong>LabVPC</strong>, <strong>dbsubnetgroup</strong>,
+                  <strong>No</strong> public access, removed the default security group, and added
+                  <strong>DBSecurityGroup</strong>.</li>
+                <li>Disabled Enhanced Monitoring, set initial database name: <code>world</code>.</li>
+                <li>Disabled encryption and auto minor version upgrade.</li>
+              </ul>
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/01-aurora-database-created.jpg" alt="Aurora database creation in RDS"
+                    loading="lazy" />
+                  <figcaption>RDS: Aurora database creation in progress with MySQL-compatible engine selected
+                  </figcaption>
+                </figure>
+              </div>
+            </div>
+          </article>
+
+          <article class="step">
+            <div class="step-num">02</div>
+            <div>
+              <h3>Connect to an Amazon EC2 Linux instance</h3>
+              <ul>
+                <li>Connected to the <strong>Command Host</strong> EC2 instance via <strong>Session Manager</strong>
+                  (following the standard EC2 connection workflow).</li>
+              </ul>
+            </div>
+          </article>
+
+          <article class="step">
+            <div class="step-num">03</div>
+            <div>
+              <h3>Configure the EC2 instance to connect to Aurora</h3>
+              <ul>
+                <li>Installed the MariaDB client: <code>sudo yum install mariadb -y</code></li>
+                <li>Copied the <strong>writer endpoint</strong> from the Aurora cluster's
+                  <strong>Connectivity & security</strong> tab.</li>
+              </ul>
+
+              <div class="insight info" style="margin-top:1rem;">
+                <strong>Cluster endpoints</strong>
+                The cluster endpoint connects to the current primary DB instance for write operations.
+                The reader endpoint load-balances read-only queries across replicas. For this lab with a single
+                instance, both endpoints route to the same instance.
+              </div>
+
+              <ul>
+                <li>Connected to Aurora:
+                  <code>mysql -u admin --password='admin123' -h &lt;cluster-endpoint&gt;</code>
+                </li>
+              </ul>
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/02-aurora-connection-query.jpg"
+                    alt="Terminal connected to Aurora via MariaDB client" loading="lazy" />
+                  <figcaption>Terminal: Successfully connected to the Aurora cluster via the MariaDB client
+                  </figcaption>
+                </figure>
+              </div>
+            </div>
+          </article>
+
+          <article class="step">
+            <div class="step-num">04</div>
+            <div>
+              <h3>Create a table and insert and query records</h3>
+              <ul>
+                <li>Listed databases with <code>SHOW DATABASES;</code> (observed the <code>world</code> database).</li>
+                <li>Switched to the target database: <code>USE world;</code></li>
+                <li>Created the <code>country</code> table with columns for Code, Name, Continent, Region,
+                  SurfaceArea, IndepYear, Population, LifeExpectancy, GNP, GNPOld, LocalName, GovernmentForm,
+                  Capital, and Code2. Set <code>Code</code> as the <strong>PRIMARY KEY</strong>.</li>
+                <li>Inserted 5 rows: <strong>Gabon</strong>, <strong>Ireland</strong>, <strong>Thailand</strong>,
+                  <strong>Costa Rica</strong>, and <strong>Australia</strong>.</li>
+                <li>Ran the query:
+                  <code>SELECT * FROM country WHERE GNP &gt; 35000 and Population &gt; 10000000;</code>
+                </li>
+                <li>The query returned <strong>Australia</strong> and <strong>Thailand</strong>, the two countries
+                  meeting both conditions.</li>
+              </ul>
+            </div>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+    <section id="commands">
+      <div class="container">
+        <h2 class="section-title">Query Reference</h2>
+        <p class="section-subtitle">
+          SQL statements and connection commands used during the lab.
+        </p>
+
+        <div class="timeline">
+
+          <article class="step">
+            <div class="step-num" style="font-size:0.85rem;">SQL</div>
+            <div>
+              <h3><code>SHOW DATABASES;</code></h3>
+              <p>Lists all databases on the Aurora instance.</p>
+            </div>
+          </article>
+
+          <article class="step">
+            <div class="step-num" style="font-size:0.85rem;">SQL</div>
+            <div>
+              <h3><code>USE world;</code></h3>
+              <p>Switches the active database context to <code>world</code>.</p>
+            </div>
+          </article>
+
+          <article class="step">
+            <div class="step-num" style="font-size:0.85rem;">SQL</div>
+            <div>
+              <h3><code>CREATE TABLE country (...)</code></h3>
+              <p>Defines the <code>country</code> table schema with 14 columns and <code>Code</code> as the primary
+                key.</p>
+            </div>
+          </article>
+
+          <article class="step">
+            <div class="step-num" style="font-size:0.85rem;">SQL</div>
+            <div>
+              <h3><code>INSERT INTO country VALUES (...)</code></h3>
+              <p>Inserts country records into the table (Gabon, Ireland, Thailand, Costa Rica, Australia).</p>
+            </div>
+          </article>
+
+          <article class="step">
+            <div class="step-num" style="font-size:0.85rem;">SQL</div>
+            <div>
+              <h3><code>SELECT * FROM country WHERE GNP &gt; 35000 and Population &gt; 10000000;</code></h3>
+              <p>Filters countries by GNP and population thresholds, returning Australia and Thailand.</p>
+            </div>
+          </article>
+
+          <article class="step">
+            <div class="step-num" style="font-size:0.85rem;">CLI</div>
+            <div>
+              <h3><code>mysql -u admin --password='admin123' -h &lt;endpoint&gt;</code></h3>
+              <p>Connects to the Aurora cluster via the MariaDB client.</p>
+              <ul>
+                <li><code>-u</code> : Username</li>
+                <li><code>-p</code> : Password</li>
+                <li><code>-h</code> : Host (cluster endpoint)</li>
+              </ul>
+            </div>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+    <section id="learnings">
+      <div class="container">
+        <h2 class="section-title">Key Learnings</h2>
+        <div class="grid-2">
+          <div class="card">
+            <h3>What was learned</h3>
+            <div class="checklist">
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>How to create an Aurora MySQL-compatible cluster in the AWS console</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>How Aurora cluster endpoints work (writer for DDL/DML, reader for read-only queries)</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>How to install and use the MariaDB client to connect to Aurora from EC2</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>How to execute DDL (CREATE TABLE) and DML (INSERT, SELECT) against an Aurora database</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Technical Conclusion</h3>
+            <p>
+              Amazon Aurora is a managed MySQL-compatible database that simplifies administrative tasks such as
+              patching, backups, and scaling while providing high performance. Combining RDS/Aurora with EC2
+              creates a complete client-server database workflow: the database layer handles persistent storage
+              and structured querying, while the compute layer provides a secure, interactive environment for
+              administration and application logic.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      Lab report documenting the Introducción a Amazon Aurora lab · AWS re/Start Program
+    </div>
+  </footer>
+</body>
+
+</html>

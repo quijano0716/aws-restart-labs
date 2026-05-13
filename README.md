@@ -74,6 +74,8 @@ Technical documentation of hands-on labs completed during the **AWS re/Start** p
 | 271 | Query the World Database with Functions and Conditions | Completed |
 | 272 | Working with Functions | Completed |
 | 273 | Organizing Data | Completed |
+| 274 | Introducción a Amazon Aurora | Completed |
+| 275 | Introducción a Amazon DynamoDB | Completed |
 
 ---
 

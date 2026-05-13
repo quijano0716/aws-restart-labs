@@ -46,8 +46,8 @@ A lab is only ready to build when its files are available in `ignoredocs/` and, 
 | 35 | 273 | Organización de datos | Published |
 | 36 | 160 | Cree su servidor de base de datos e interactúe con su base de datos usando una aplicación | Published |
 | 37 | 162 | Reto: Crie e acesse um servidor RDS | Published |
-| 38 | 274 | Introducción a Amazon Aurora | Planned |
-| 39 | 275 | Introducción a Amazon DynamoDB | Planned |
+| 38 | 274 | Introducción a Amazon Aurora | Published |
+| 39 | 275 | Introducción a Amazon DynamoDB | Published |
 | 40 | 169 | [JAWS] Uso de AWS Systems Manager | Planned |
 | 41 | 170 | [JAWS] Creación de un sitio web en S3 | Planned |
 | 42 | 171 | [JAWS] Creación de instancias de Amazon EC2 | Planned |
