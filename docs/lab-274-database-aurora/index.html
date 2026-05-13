@@ -561,14 +561,7 @@
                 <li>Disabled Enhanced Monitoring, set initial database name: <code>world</code>.</li>
                 <li>Disabled encryption and auto minor version upgrade.</li>
               </ul>
-              <div class="screenshot-gallery">
-                <figure class="screenshot-fig">
-                  <img src="assets/screenshots/01-aurora-database-created.jpg" alt="Aurora database creation in RDS"
-                    loading="lazy" />
-                  <figcaption>RDS: Aurora database creation in progress with MySQL-compatible engine selected
-                  </figcaption>
-                </figure>
-              </div>
+
             </div>
           </article>
 
@@ -605,14 +598,6 @@
                   <code>mysql -u admin --password='admin123' -h &lt;cluster-endpoint&gt;</code>
                 </li>
               </ul>
-              <div class="screenshot-gallery">
-                <figure class="screenshot-fig">
-                  <img src="assets/screenshots/02-aurora-connection-query.jpg"
-                    alt="Terminal connected to Aurora via MariaDB client" loading="lazy" />
-                  <figcaption>Terminal: Successfully connected to the Aurora cluster via the MariaDB client
-                  </figcaption>
-                </figure>
-              </div>
             </div>
           </article>
 
@@ -634,6 +619,18 @@
                 <li>The query returned <strong>Australia</strong> and <strong>Thailand</strong>, the two countries
                   meeting both conditions.</li>
               </ul>
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/01-create-table.jpg"
+                    alt="MySQL terminal showing CREATE TABLE command" loading="lazy" />
+                  <figcaption>MySQL: Definition of the country table and primary key configuration</figcaption>
+                </figure>
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/02-insert-query.jpg"
+                    alt="MySQL terminal showing country inserts and SELECT query results" loading="lazy" />
+                  <figcaption>MySQL: Data insertion and final query filtering countries by GNP and population</figcaption>
+                </figure>
+              </div>
             </div>
           </article>
 

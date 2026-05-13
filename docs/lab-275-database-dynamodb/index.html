@@ -545,12 +545,6 @@
                 <li>Left default settings for indexes and provisioned capacity.</li>
                 <li>Chose <strong>Create table</strong> and waited until the Music table status showed <strong>Active</strong>.</li>
               </ul>
-              <div class="screenshot-gallery">
-                <figure class="screenshot-fig">
-                  <img src="assets/screenshots/01-dynamodb-table-created.jpg" alt="DynamoDB Music table created" loading="lazy" />
-                  <figcaption>DynamoDB: Music table created with Artist partition key and Song sort key</figcaption>
-                </figure>
-              </div>
             </div>
           </article>
 
@@ -570,8 +564,8 @@
               </div>
               <div class="screenshot-gallery">
                 <figure class="screenshot-fig">
-                  <img src="assets/screenshots/02-dynamodb-create-item.jpg" alt="Creating an item in DynamoDB" loading="lazy" />
-                  <figcaption>DynamoDB: Creating an item with custom attributes in the Music table</figcaption>
+                  <img src="assets/screenshots/01-items-in-table.jpg" alt="DynamoDB Music table items" loading="lazy" />
+                  <figcaption>DynamoDB: Music table populated with items showing different attributes</figcaption>
                 </figure>
               </div>
             </div>
@@ -602,10 +596,14 @@
                 <li><strong>Scan method</strong>: Selected <strong>Scan</strong>, added filter: Attribute name <code>Year</code>, Type Number, Value <code>1971</code>.</li>
                 <li>Result: only the matching item displayed (but scans the entire table).</li>
               </ul>
-              <div class="screenshot-gallery">
+              <div class="screenshot-gallery cols-2">
                 <figure class="screenshot-fig">
-                  <img src="assets/screenshots/03-dynamodb-query-results.jpg" alt="DynamoDB query results" loading="lazy" />
-                  <figcaption>DynamoDB: Query results returning the Psy item by partition and sort key</figcaption>
+                  <img src="assets/screenshots/02-query-psy.jpg" alt="DynamoDB Query results" loading="lazy" />
+                  <figcaption>DynamoDB Query: Locating Psy item by Partition and Sort Key</figcaption>
+                </figure>
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/03-scan-year.jpg" alt="DynamoDB Scan results" loading="lazy" />
+                  <figcaption>DynamoDB Scan: Filtering items by Year attribute (1971)</figcaption>
                 </figure>
               </div>
               <div class="insight" style="margin-top:1rem;">
@@ -626,7 +624,7 @@
               </ul>
               <div class="screenshot-gallery">
                 <figure class="screenshot-fig">
-                  <img src="assets/screenshots/04-dynamodb-table-deleted.jpg" alt="DynamoDB table deletion confirmation" loading="lazy" />
+                  <img src="assets/screenshots/04-delete-table.jpg" alt="DynamoDB table deletion confirmation" loading="lazy" />
                   <figcaption>DynamoDB: Confirming table deletion</figcaption>
                 </figure>
               </div>
