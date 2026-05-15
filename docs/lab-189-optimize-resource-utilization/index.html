@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lab Report: Optimize Resource Utilization</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --bg-soft: #111827;
+      --card: rgba(255, 255, 255, 0.08);
+      --card-strong: rgba(255, 255, 255, 0.12);
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --accent: #ff9900;
+      --accent-2: #38bdf8;
+      --ok: #22c55e;
+      --warn: #f59e0b;
+      --err: #ef4444;
+      --border: rgba(255, 255, 255, 0.12);
+      --shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+      --radius: 22px;
+      --max: 1120px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(255, 153, 0, 0.16), transparent 28%),
+        radial-gradient(circle at top right, rgba(56, 189, 248, 0.14), transparent 24%),
+        linear-gradient(180deg, #020617 0%, #0f172a 48%, #111827 100%);
+      color: var(--text);
+      line-height: 1.65;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    .container { width: min(var(--max), calc(100% - 2rem)); margin: 0 auto; }
+
+    /* ── Nav ── */
+    .nav {
+      position: sticky; top: 0; z-index: 10;
+      backdrop-filter: blur(16px);
+      background: rgba(2, 6, 23, 0.72);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .nav-inner { display: flex; justify-content: space-between; align-items: center; padding: 0.9rem 0; gap: 1rem; }
+    .brand { font-weight: 800; letter-spacing: -0.02em; display: flex; align-items: center; gap: 0.7rem; }
+    .brand-badge {
+      width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center;
+      background: linear-gradient(135deg, var(--accent), #ffb84d);
+      color: #111827; font-weight: 900; box-shadow: var(--shadow);
+    }
+    .nav-links { display: flex; gap: 1rem; flex-wrap: wrap; color: var(--muted); font-size: 0.95rem; }
+    .nav-links a:hover { color: var(--text); }
+    .back-link { display: inline-flex; align-items: center; gap: 0.4rem; color: var(--muted); font-size: 0.9rem; transition: color 0.2s; }
+    .back-link:hover { color: var(--accent); }
+
+    /* ── Hero ── */
+    .hero { padding: 4.8rem 0 2rem; }
+    .hero-grid { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 1.5rem; align-items: stretch; }
+    .panel {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.05));
+      border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow);
+    }
+    .hero-main { padding: 2rem; }
+    .eyebrow {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      padding: 0.45rem 0.8rem; border-radius: 999px;
+      background: rgba(255, 153, 0, 0.12); color: #ffd28a;
+      border: 1px solid rgba(255, 153, 0, 0.25);
+      font-size: 0.9rem; margin-bottom: 1rem;
+    }
+    h1, h2, h3 { line-height: 1.15; letter-spacing: -0.03em; margin: 0; }
+    h1 { font-size: clamp(2rem, 4vw, 3.7rem); margin-bottom: 0.9rem; }
+    .hero-main p { margin: 0; color: #cbd5e1; font-size: 1.05rem; max-width: 65ch; }
+    .hero-side { padding: 1.5rem; display: flex; flex-direction: column; justify-content: space-between; gap: 1rem; }
+    .hero-side .callout {
+      padding: 1rem 1.1rem; border-radius: 18px;
+      border: 1px solid rgba(56, 189, 248, 0.18);
+      background: rgba(56, 189, 248, 0.08);
+    }
+    .hero-side .callout strong { display: block; margin-bottom: 0.35rem; }
+    .tech-stack { display: flex; flex-wrap: wrap; gap: 0.55rem; }
+    .chip {
+      padding: 0.45rem 0.75rem; border-radius: 999px; font-size: 0.88rem;
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #dbeafe;
+    }
+    .small { font-size: 0.92rem; color: var(--muted); }
+
+    /* ── Sections ── */
+    section { padding: 1rem 0 0.4rem; }
+    .section-title { margin-bottom: 1rem; font-size: clamp(1.5rem, 2vw, 2.2rem); }
+    .section-subtitle { color: var(--muted); margin-top: 0.45rem; max-width: 75ch; }
+
+    /* ── Grids ── */
+    .grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
+    .grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+
+    .card {
+      padding: 1.3rem; background: var(--card);
+      border: 1px solid var(--border); border-radius: 20px; box-shadow: var(--shadow);
+    }
+    .card h3 { font-size: 1.05rem; margin-bottom: 0.6rem; }
+    .card p { margin: 0; color: #cbd5e1; }
+
+    /* ── Timeline ── */
+    .timeline { display: grid; gap: 1rem; margin-top: 1rem; }
+    .step {
+      display: grid; grid-template-columns: 90px 1fr; gap: 1rem; align-items: start;
+      padding: 1.25rem; border-radius: 22px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: var(--shadow);
+    }
+    .step-num {
+      width: 72px; height: 72px; border-radius: 20px;
+      background: linear-gradient(135deg, rgba(255, 153, 0, 0.18), rgba(56, 189, 248, 0.18));
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      display: grid; place-items: center;
+      font-size: 1.1rem; font-weight: 900; color: #fff;
+    }
+    .step h3 { margin-bottom: 0.55rem; font-size: 1.2rem; }
+    .step ul { margin: 0.3rem 0 0; padding-left: 1.1rem; color: #dbe4f0; }
+    .step li + li { margin-top: 0.4rem; }
+    .highlight { color: #ffd28a; font-weight: 700; }
+
+    /* ── Screenshots ── */
+    .screenshot-gallery { display: grid; gap: 0.8rem; margin-top: 1rem; }
+    .screenshot-gallery.cols-2 { grid-template-columns: repeat(2, 1fr); }
+    .screenshot-fig {
+      margin: 0; border-radius: 16px; overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(2, 6, 23, 0.5);
+    }
+    .screenshot-fig img { width: 100%; height: auto; display: block; }
+    .screenshot-fig figcaption {
+      padding: 0.6rem 0.8rem; color: var(--muted); font-size: 0.84rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    /* Scrollable viewport for tall terminal screenshots */
+    .scroll-viewport {
+      max-height: 520px;
+      overflow: auto;
+      border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(2, 6, 23, 0.5);
+    }
+    .scroll-viewport img { display: block; width: 100%; height: auto; }
+    .scroll-caption {
+      padding: 0.6rem 0.8rem; color: var(--muted); font-size: 0.84rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(2, 6, 23, 0.5);
+      border-radius: 0 0 16px 16px;
+      margin-top: -1px;
+    }
+
+    /* ── Callouts ── */
+    .insight {
+      padding: 1.15rem 1.2rem; border-left: 4px solid var(--accent); border-radius: 16px;
+      background: rgba(255, 153, 0, 0.08); color: #fde7c2;
+    }
+    .insight.info { border-left-color: var(--accent-2); background: rgba(56, 189, 248, 0.08); color: #d8f3ff; }
+    .insight.warn { border-left-color: var(--warn); background: rgba(245, 158, 11, 0.08); color: #fde68a; }
+
+    /* ── Checklist ── */
+    .checklist { display: grid; gap: 0.7rem; margin-top: 1rem; }
+    .check {
+      display: flex; gap: 0.75rem; align-items: flex-start;
+      padding: 0.9rem 1rem; border-radius: 16px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+    }
+    .check-mark {
+      flex: 0 0 auto; width: 28px; height: 28px;
+      display: grid; place-items: center; border-radius: 999px;
+      background: rgba(34, 197, 94, 0.15); color: #86efac; font-weight: 800;
+    }
+
+    /* ── Code ── */
+    code {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 0.15rem 0.4rem; border-radius: 6px;
+      font-size: 0.9em;
+      font-family: "Cascadia Code", "Fira Code", monospace;
+    }
+    pre {
+      margin: 0.8rem 0 0; padding: 1rem 1.1rem;
+      background: rgba(2, 6, 23, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 14px; overflow-x: auto;
+      font-size: 0.88rem; line-height: 1.55;
+    }
+    pre code {
+      background: transparent; padding: 0; border-radius: 0;
+      font-size: inherit; color: #e8efff;
+    }
+
+    /* ── Table ── */
+    .table-wrap { overflow-x: auto; margin-top: 1rem; border-radius: 14px; border: 1px solid rgba(255,255,255,0.1); }
+    table { width: 100%; border-collapse: collapse; font-size: 0.94rem; }
+    th, td { padding: 0.7rem 0.9rem; text-align: left; vertical-align: top; border-bottom: 1px solid rgba(255,255,255,0.07); }
+    th { background: rgba(255,255,255,0.05); color: #fef3c7; font-weight: 700; }
+    tr:last-child td { border-bottom: none; }
+    td code { font-size: 0.85em; }
+
+    /* ── Savings emphasis cell ── */
+    .savings-cell { color: #86efac; font-weight: 700; }
+    .cost-before { color: #fca5a5; font-weight: 700; }
+    .cost-after { color: #93c5fd; font-weight: 700; }
+
+    /* ── No-evidence note ── */
+    .no-evidence {
+      display: inline-flex; align-items: center; gap: 0.45rem;
+      margin-top: 0.6rem; padding: 0.35rem 0.7rem;
+      border-radius: 999px; font-size: 0.8rem;
+      background: rgba(148, 163, 184, 0.12); color: #cbd5e1;
+      border: 1px dashed rgba(148, 163, 184, 0.3);
+    }
+
+    /* ── Footer ── */
+    .footer { padding: 2.2rem 0 3.5rem; color: var(--muted); text-align: center; }
+
+    /* ── Responsive ── */
+    @media (max-width: 920px) {
+      .hero-grid, .grid-3, .grid-2, .screenshot-gallery.cols-2 { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 680px) {
+      .nav-inner { flex-direction: column; align-items: flex-start; }
+      .step { grid-template-columns: 1fr; }
+      .step-num { width: 60px; height: 60px; border-radius: 16px; }
+    }
+  </style>
+</head>
+
+<body>
+  <nav class="nav">
+    <div class="container nav-inner">
+      <div class="brand">
+        <div class="brand-badge">EC2</div>
+        <div>Lab Report · Cost Optimization</div>
+      </div>
+      <div class="nav-links">
+        <a href="../index.html" class="back-link">← All Labs</a>
+        <a href="#summary">Summary</a>
+        <a href="#architecture">Architecture</a>
+        <a href="#walkthrough">Walkthrough</a>
+        <a href="#pricing">Pricing</a>
+        <a href="#learnings">Learnings</a>
+      </div>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <div class="container hero-grid">
+      <div class="panel hero-main">
+        <div class="eyebrow">AWS re/Start Lab · Cost Optimization</div>
+        <h1>Optimize Resource Utilization</h1>
+        <p>
+          Right-size the café application after the RDS migration: uninstall the orphaned local MariaDB,
+          downsize the EC2 instance from <code>t3.small</code> to <code>t3.micro</code> via the AWS CLI,
+          and quantify the saving with the AWS Pricing Calculator.
+        </p>
+      </div>
+
+      <aside class="panel hero-side">
+        <div class="callout">
+          <strong>Lab Objective</strong>
+          Reduce the café app's monthly cost by removing the unused local DB and switching the
+          web instance to a smaller class — without a redeploy and without losing service.
+        </div>
+
+        <div>
+          <div class="small" style="margin-bottom:0.7rem;">Tools &amp; Concepts</div>
+          <div class="tech-stack">
+            <span class="chip">Amazon EC2</span>
+            <span class="chip">AWS CLI</span>
+            <span class="chip">AWS Pricing Calculator</span>
+            <span class="chip">IMDS</span>
+            <span class="chip">yum / systemd</span>
+            <span class="chip">modify-instance-attribute</span>
+            <span class="chip">t3.micro</span>
+          </div>
+        </div>
+
+        <div class="callout" style="border-color: rgba(34,197,94,0.2); background: rgba(34,197,94,0.08);">
+          <strong>Key Insight</strong>
+          Changing instance type requires the EC2 to be <strong>stopped</strong>. The restart
+          assigns a new public DNS and IP — anything that hard-codes the endpoint breaks here.
+        </div>
+      </aside>
+    </div>
+  </header>
+
+  <main>
+    <!-- ══════ SUMMARY ══════ -->
+    <section id="summary">
+      <div class="container">
+        <h2 class="section-title">Lab Summary</h2>
+        <p class="section-subtitle">
+          The previous lab (179) moved the café database off the web instance and into Amazon RDS. That
+          left <span class="highlight">CafeInstance</span> with a stopped MariaDB service it no longer
+          needs and a <code>t3.small</code> profile that's bigger than the workload now justifies. The
+          job here is to clean both up: uninstall the package and downsize the instance from the
+          <strong>CLI Host</strong>, then prove the saving with the AWS Pricing Calculator.
+        </p>
+
+        <div class="grid-2" style="margin-top:1rem;">
+          <article class="card">
+            <h3>What changed</h3>
+            <p>
+              MariaDB server plus six dependencies removed from <code>CafeInstance</code>
+              (<strong>137 MB</strong> reclaimed). The instance was stopped, switched from
+              <code>t3.small</code> to <code>t3.micro</code> with <code>modify-instance-attribute</code>,
+              and started back up. The app keeps serving from a new public endpoint.
+            </p>
+          </article>
+          <article class="card">
+            <h3>What didn't change</h3>
+            <p>
+              The application code, the security group, the role attached to the instance, the EBS
+              volume, the Amazon RDS database. Right-sizing in this lab is a pure
+              <strong>compute and storage</strong> exercise — no application impact, no data movement.
+            </p>
+          </article>
+        </div>
+
+        <div class="insight info" style="margin-top:1rem;">
+          <strong>Evidence coverage.</strong> Four screenshots: <code>yum remove</code> output,
+          the café homepage on the new endpoint, and the two Pricing Calculator estimates (before /
+          after). The CLI flow for the resize itself wasn't captured — the commands appear here
+          verbatim and the post-resize DNS (<code>ec2-54-184-228-111.us-west-2.compute.amazonaws.com</code>)
+          is the textual proof that the restart happened.
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════ ARCHITECTURE ══════ -->
+    <section id="architecture">
+      <div class="container">
+        <h2 class="section-title">Topology: before vs. after</h2>
+        <p class="section-subtitle">
+          Same VPC, same SG, same role. Two things move: the local MariaDB package is gone, and the
+          instance type drops one tier. The RDS database (from lab 179) keeps serving the data.
+        </p>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Component</th>
+                <th>Before optimization</th>
+                <th>After optimization</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>EC2 instance type</td>
+                <td><strong>t3.small</strong> · 2 vCPU · 2 GiB RAM</td>
+                <td><strong>t3.micro</strong> · 2 vCPU · 1 GiB RAM</td>
+              </tr>
+              <tr>
+                <td>Web tier</td>
+                <td>Apache + PHP serving the café app</td>
+                <td>Unchanged</td>
+              </tr>
+              <tr>
+                <td>Local database</td>
+                <td>MariaDB 10.2.38 installed, service stopped after the RDS cutover</td>
+                <td><strong>Removed</strong> — package + 6 dependencies uninstalled (137 MB)</td>
+              </tr>
+              <tr>
+                <td>Database of record</td>
+                <td>Amazon RDS MariaDB (provisioned in lab 179)</td>
+                <td>Unchanged</td>
+              </tr>
+              <tr>
+                <td>Public DNS / IP</td>
+                <td>Pre-resize endpoint (from the lab credentials panel)</td>
+                <td><code>ec2-54-184-228-111.us-west-2.compute.amazonaws.com</code> · <code>54.184.228.111</code></td>
+              </tr>
+              <tr>
+                <td>Monthly cost estimate</td>
+                <td><span class="cost-before">$33.89 USD</span> (EC2 19.18 + RDS 14.71)</td>
+                <td><span class="cost-after">$24.30 USD</span> (EC2 9.59 + RDS 14.71)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p class="small" style="margin-top: 0.8rem;">
+          The lab guide ships <em>before</em> and <em>after</em> topology diagrams as Vocareum-hosted
+          images that aren't part of the local source — the table above captures the same delta in text.
+        </p>
+      </div>
+    </section>
+
+    <!-- ══════ WALKTHROUGH ══════ -->
+    <section id="walkthrough">
+      <div class="container">
+        <h2 class="section-title">Walkthrough</h2>
+        <p class="section-subtitle">
+          Four tasks. The CLI Host acts as the operations bastion — every <code>aws ec2</code> call
+          targets <code>CafeInstance</code> by tag, not by hard-coded ID.
+        </p>
+
+        <div class="timeline">
+
+          <!-- ══════ TASK 1 ══════ -->
+          <article class="step">
+            <div class="step-num">01</div>
+            <div>
+              <h3>Connect to both hosts and configure the CLI</h3>
+              <p>
+                Connected via SSH to <strong>CafeInstance</strong> (the web tier) and to the
+                <strong>CLI Host</strong> (the operator bastion) using the lab's
+                <code>labsuser.pem</code> private key. The key was first locked down with
+                <code>chmod 400</code> — required for SSH to accept it.
+              </p>
+              <p>
+                On the CLI Host, ran <code>aws configure</code> with the lab credentials, the
+                <strong>region</strong> read from the instance metadata service (IMDS), and JSON
+                output. IMDS is the right answer for "what region am I in?" — it doesn't require
+                AWS credentials and works from inside the EC2:
+              </p>
+<pre><code># Discover the region from inside the EC2 (no credentials needed)
+curl http://169.254.169.254/latest/dynamic/instance-identity/document | grep region
+
+# Then configure the AWS CLI with the lab keys + that region
+aws configure
+# AWS Access Key ID:     &lt;AccessKey from lab credentials&gt;
+# AWS Secret Access Key: &lt;SecretKey from lab credentials&gt;
+# Default region name:   us-west-2
+# Default output format: json</code></pre>
+              <div class="no-evidence">No screenshot — trivial SSH + wizard interaction; the next tasks exercise the result.</div>
+            </div>
+          </article>
+
+          <!-- ══════ TASK 2 ══════ -->
+          <article class="step">
+            <div class="step-num">02</div>
+            <div>
+              <h3>Uninstall the decommissioned MariaDB server</h3>
+              <p>
+                The local MariaDB was already stopped after the RDS migration, but the package was
+                still installed and pulling ~137 MB of disk and a chunk of memory at boot. Stopped
+                the service to be safe, then removed the package with <code>-y</code> to skip
+                interactive prompts. <code>yum</code> resolved six dependencies and dropped them in
+                the same transaction.
+              </p>
+<pre><code># On CafeInstance — make sure nothing is using the local DB
+sudo systemctl stop mariadb
+
+# Remove the package; yum pulls 6 dependencies with it
+sudo yum -y remove mariadb-server</code></pre>
+
+              <p style="margin-top: 0.8rem;">
+                The transaction summary shows the six co-removed packages, the total <strong>137 MB</strong>
+                reclaimed, and the standard yum lifecycle (<code>Erasing</code> →
+                <code>Verifying</code> → <code>Complete!</code>):
+              </p>
+
+              <div class="scroll-viewport">
+                <img src="assets/screenshots/01-mariadb-removed.png" alt="yum remove mariadb-server output showing the package, six dependencies, 137 MB installed size, and Complete! at the end" loading="lazy" />
+              </div>
+              <div class="scroll-caption">
+                <code>yum -y remove mariadb-server</code> output: <strong>mariadb-server</strong> plus
+                <code>mariadb-backup</code>, <code>mariadb-cracklib-password-check</code>,
+                <code>mariadb-gssapi-server</code>, <code>mariadb-rocksdb-engine</code>,
+                <code>mariadb-server-utils</code>, <code>mariadb-tokudb-engine</code> — 1 package + 6
+                dependencies, 137 MB freed. Prompt returns clean to <code>ec2-user@web-server</code>.
+              </div>
+
+              <div class="insight" style="margin-top:1rem;">
+                <strong>Why uninstall instead of just stopping the service.</strong> A stopped service
+                still consumes EBS storage for its binaries, config, and (if untouched) data files.
+                Removing the package shrinks the on-disk footprint and eliminates any chance of
+                someone accidentally restarting it — which on a hardened image is the better default.
+              </div>
+            </div>
+          </article>
+
+          <!-- ══════ TASK 3 ══════ -->
+          <article class="step">
+            <div class="step-num">03</div>
+            <div>
+              <h3>Downsize the instance from <code>t3.small</code> to <code>t3.micro</code> (CLI)</h3>
+              <p>
+                Driven entirely from the CLI Host. Four <code>aws ec2</code> calls do the work, but
+                the order is non-negotiable: <strong>describe → stop → modify → start → poll</strong>.
+                <code>modify-instance-attribute</code> rejects the change unless the instance state is
+                <code>stopped</code>.
+              </p>
+
+              <p style="margin-top: 0.8rem;"><strong>3.1 — Find the instance by tag</strong></p>
+              <p>
+                Filtering by <code>tag:Name=CafeInstance</code> instead of hard-coding the ID makes
+                the script portable across lab sessions, since the instance ID changes every time
+                the environment is recreated.
+              </p>
+<pre><code>aws ec2 describe-instances \
+  --filters "Name=tag:Name,Values=CafeInstance" \
+  --query "Reservations[*].Instances[*].[InstanceId,InstanceType,State.Name,PublicDnsName,PublicIpAddress]"</code></pre>
+
+              <p style="margin-top: 0.8rem;"><strong>3.2 — Stop, modify, start</strong></p>
+              <p>
+                The <code>--instance-type</code> argument takes the structured form
+                <code>{"Value":"t3.micro"}</code> — this is the only field on
+                <code>modify-instance-attribute</code> that uses that shape, a quirk of the underlying
+                API. <code>stop-instances</code> returns immediately but the state transition
+                (<code>running → stopping → stopped</code>) takes ~30–60 seconds.
+              </p>
+<pre><code># Stop the instance — required before changing the type
+aws ec2 stop-instances --instance-ids &lt;CafeInstance-ID&gt;
+
+# Wait until State.Name == "stopped" (poll describe-instances or use the waiter)
+aws ec2 wait instance-stopped --instance-ids &lt;CafeInstance-ID&gt;
+
+# Swap the instance type
+aws ec2 modify-instance-attribute \
+  --instance-id &lt;CafeInstance-ID&gt; \
+  --instance-type "{\"Value\": \"t3.micro\"}"
+
+# Bring it back up
+aws ec2 start-instances --instance-ids &lt;CafeInstance-ID&gt;</code></pre>
+
+              <p style="margin-top: 0.8rem;"><strong>3.3 — Verify the new type and the new endpoint</strong></p>
+              <p>
+                Polled <code>describe-instances</code> with a tight <code>--query</code> projection.
+                The four fields that matter post-restart are the type (must be <code>t3.micro</code>),
+                the new public DNS, the new public IP, and the state (<code>running</code>).
+              </p>
+<pre><code>aws ec2 describe-instances \
+  --instance-ids &lt;CafeInstance-ID&gt; \
+  --query "Reservations[*].Instances[*].[InstanceType,PublicDnsName,PublicIpAddress,State.Name]"
+
+# Expected output after the restart:
+# [
+#   [
+#     [ "t3.micro",
+#       "ec2-54-184-228-111.us-west-2.compute.amazonaws.com",
+#       "54.184.228.111",
+#       "running" ]
+#   ]
+# ]</code></pre>
+
+              <div class="insight warn" style="margin-top:1rem;">
+                <strong>Gotcha — public DNS and IP change on restart.</strong> Stopping and starting an
+                EC2 instance releases the public IPv4 lease; the next start gets a fresh address (and
+                therefore a fresh public DNS). The pre-resize endpoint stops working. If the workload
+                needed a stable address, this is where you'd attach an <strong>Elastic IP</strong>.
+                In this lab the app is accessed by whatever public DNS the instance currently has, so
+                the new endpoint is just what you use next.
+              </div>
+
+              <p style="margin-top: 1rem;">
+                Hit <code>http://ec2-54-184-228-111.us-west-2.compute.amazonaws.com/cafe/</code> in
+                a browser — the café homepage rendered cleanly, the navbar (<em>Home / About Us /
+                Contact Us / Menu / Order History</em>) was intact, and the catalog photos loaded.
+                <code>t3.micro</code> is enough for this workload now that MariaDB isn't co-located.
+              </p>
+
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/02-cafe-page-after-downsize.png" alt="Café homepage in the browser at ec2-54-184-228-111.us-west-2.compute.amazonaws.com/cafe/ showing the navbar and product photos" loading="lazy" />
+                  <figcaption>Café app served from the downsized <code>t3.micro</code> instance — URL bar shows the new public DNS, navbar and assets render normally.</figcaption>
+                </figure>
+              </div>
+            </div>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════ PRICING ══════ -->
+    <section id="pricing">
+      <div class="container">
+        <h2 class="section-title">Pricing Calculator: quantify the saving</h2>
+        <p class="section-subtitle">
+          Built two estimates in the AWS Pricing Calculator with identical assumptions (US West /
+          Oregon, on-demand Linux, shared tenancy, 100% utilization), differing only on EC2 instance
+          class and EBS size. Both estimates include the RDS line from lab 179, which stays constant.
+        </p>
+
+        <div class="screenshot-gallery cols-2">
+          <figure class="screenshot-fig">
+            <img src="assets/screenshots/03-pricing-before-optimization.png" alt="AWS Pricing Calculator estimate before optimization: monthly cost 33.89 USD with EC2 at 19.18 USD" loading="lazy" />
+            <figcaption><strong>Before</strong> — EC2 <code>t3.small</code> + 40 GB EBS + RDS. Monthly cost <span class="cost-before">$33.89 USD</span>, 12-month <span class="cost-before">$406.68 USD</span>. EC2 line: $19.18, RDS line: $14.71.</figcaption>
+          </figure>
+          <figure class="screenshot-fig">
+            <img src="assets/screenshots/04-pricing-after-optimization.png" alt="AWS Pricing Calculator estimate after optimization: monthly cost 24.30 USD with EC2 at 9.59 USD" loading="lazy" />
+            <figcaption><strong>After</strong> — EC2 <code>t3.micro</code> + 20 GB EBS + RDS. Monthly cost <span class="cost-after">$24.30 USD</span>, 12-month <span class="cost-after">$291.60 USD</span>. EC2 line: $9.59 (–50%), RDS line unchanged: $14.71.</figcaption>
+          </figure>
+        </div>
+
+        <div class="table-wrap" style="margin-top:1.2rem;">
+          <table>
+            <thead>
+              <tr>
+                <th>Line item</th>
+                <th>Before</th>
+                <th>After</th>
+                <th>Delta</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Amazon EC2 (compute + EBS)</td>
+                <td><span class="cost-before">$19.18 / mo</span></td>
+                <td><span class="cost-after">$9.59 / mo</span></td>
+                <td class="savings-cell">−$9.59 / mo (−50%)</td>
+              </tr>
+              <tr>
+                <td>Amazon RDS for MariaDB</td>
+                <td>$14.71 / mo</td>
+                <td>$14.71 / mo</td>
+                <td>$0.00</td>
+              </tr>
+              <tr>
+                <td><strong>Monthly total</strong></td>
+                <td><span class="cost-before"><strong>$33.89</strong></span></td>
+                <td><span class="cost-after"><strong>$24.30</strong></span></td>
+                <td class="savings-cell"><strong>−$9.59 / mo</strong></td>
+              </tr>
+              <tr>
+                <td><strong>12-month total</strong></td>
+                <td><span class="cost-before"><strong>$406.68</strong></span></td>
+                <td><span class="cost-after"><strong>$291.60</strong></span></td>
+                <td class="savings-cell"><strong>−$115.08 / year</strong></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="insight info" style="margin-top:1rem;">
+          <strong>Numbers note.</strong> The lab guide quotes <em>$35.50 → $25.18, savings $10.42</em>.
+          The actual estimates produced during the lab (the screenshots above) show
+          <strong>$33.89 → $24.30, savings $9.59</strong>. The discrepancy is AWS pricing drift between
+          when the guide was written and when the lab was run — the captured numbers are the real
+          ones and are the figures used throughout this report.
+        </div>
+
+        <div class="insight" style="margin-top:1rem;">
+          <strong>What the saving actually represents.</strong> Half the EC2 line collapses because
+          <code>t3.micro</code> has half the on-demand hourly rate of <code>t3.small</code>, and the
+          EBS volume gets halved from 40 GB to 20 GB now that the local DB is gone. The RDS line is
+          the floor — fully managed databases don't tier down at this scale.
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════ LEARNINGS ══════ -->
+    <section id="learnings">
+      <div class="container">
+        <h2 class="section-title">Key Learnings</h2>
+        <div class="grid-2">
+          <div class="card">
+            <h3>Concepts that stuck</h3>
+            <div class="checklist">
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div><strong>Right-sizing is a cleanup activity, not a capacity activity.</strong> The trigger here was an architectural change (DB moved to RDS), not a sustained metric drop.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div><code>modify-instance-attribute --instance-type</code> requires the instance to be <strong>stopped</strong>. Running it on a live instance returns an <code>IncorrectInstanceState</code> error.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>Stop/start <strong>releases the public IP</strong>. Anything depending on a fixed address needs an <strong>Elastic IP</strong> — not a feature of this lab, but the natural follow-up.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>The <strong>IMDS endpoint</strong> at <code>169.254.169.254</code> is the canonical way to find the region from inside an EC2 — no AWS credentials required.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>The Pricing Calculator is a <strong>before/after comparison tool</strong>, not a billing oracle — its job is to justify the change to whoever signs off, not to predict the invoice to the cent.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>Filtering EC2 commands by <code>tag:Name</code> instead of instance ID makes the operations <strong>portable</strong> across lab refreshes.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Conclusion</h3>
+            <p>
+              The technical work was small — one <code>yum remove</code>, one stop/modify/start
+              sequence. The lesson sits underneath that: every architectural change leaves a tail of
+              <strong>orphaned resources</strong> (a package nobody uses, an instance class nobody
+              needs anymore), and cost optimization is the discipline of going back and trimming
+              that tail.
+            </p>
+            <p style="margin-top: 1rem;">
+              At the scale of this café app the saving is <span class="savings-cell">~$9.59 per
+              month</span>. At fleet scale the same pattern — uninstall what isn't running, downsize
+              what's overprovisioned — is where the meaningful FinOps numbers come from. The Pricing
+              Calculator is the artifact that converts a CLI change into a number a stakeholder can
+              approve.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      Lab report documenting the Optimize Resource Utilization lab · AWS re/Start Program
+    </div>
+  </footer>
+</body>
+
+</html>

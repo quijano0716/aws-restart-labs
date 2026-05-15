@@ -1,0 +1,1218 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lab Report: Troubleshoot CloudFormation Deployments</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --bg-soft: #111827;
+      --card: rgba(255, 255, 255, 0.08);
+      --card-strong: rgba(255, 255, 255, 0.12);
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --accent: #ff9900;
+      --accent-2: #38bdf8;
+      --ok: #22c55e;
+      --warn: #f59e0b;
+      --danger: #ef4444;
+      --border: rgba(255, 255, 255, 0.12);
+      --shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+      --radius: 22px;
+      --max: 1120px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(255, 153, 0, 0.16), transparent 28%),
+        radial-gradient(circle at top right, rgba(56, 189, 248, 0.14), transparent 24%),
+        linear-gradient(180deg, #020617 0%, #0f172a 48%, #111827 100%);
+      color: var(--text);
+      line-height: 1.65;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    .container {
+      width: min(var(--max), calc(100% - 2rem));
+      margin: 0 auto;
+    }
+
+    /* ── Nav ── */
+    .nav {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      backdrop-filter: blur(16px);
+      background: rgba(2, 6, 23, 0.72);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .nav-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.9rem 0;
+      gap: 1rem;
+    }
+
+    .brand {
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+    }
+
+    .brand-badge {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, var(--accent), #ffb84d);
+      color: #111827;
+      font-weight: 900;
+      box-shadow: var(--shadow);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .nav-links a:hover { color: var(--text); }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      color: var(--muted);
+      font-size: 0.9rem;
+      transition: color 0.2s;
+    }
+
+    .back-link:hover { color: var(--accent); }
+
+    /* ── Hero ── */
+    .hero { padding: 4.8rem 0 2rem; }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 1.5rem;
+      align-items: stretch;
+    }
+
+    .panel {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.05));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .hero-main { padding: 2rem; }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.45rem 0.8rem;
+      border-radius: 999px;
+      background: rgba(255, 153, 0, 0.12);
+      color: #ffd28a;
+      border: 1px solid rgba(255, 153, 0, 0.25);
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+    }
+
+    h1, h2, h3 {
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+      margin: 0;
+    }
+
+    h1 {
+      font-size: clamp(2rem, 4vw, 3.7rem);
+      margin-bottom: 0.9rem;
+    }
+
+    .hero-main p {
+      margin: 0;
+      color: #cbd5e1;
+      font-size: 1.05rem;
+      max-width: 65ch;
+    }
+
+    .hero-side {
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .hero-side .callout {
+      padding: 1rem 1.1rem;
+      border-radius: 18px;
+      border: 1px solid rgba(56, 189, 248, 0.18);
+      background: rgba(56, 189, 248, 0.08);
+    }
+
+    .hero-side .callout strong {
+      display: block;
+      margin-bottom: 0.35rem;
+    }
+
+    .tech-stack {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.55rem;
+    }
+
+    .chip {
+      padding: 0.45rem 0.75rem;
+      border-radius: 999px;
+      font-size: 0.88rem;
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #dbeafe;
+    }
+
+    .small { font-size: 0.92rem; color: var(--muted); }
+
+    /* ── Sections ── */
+    section { padding: 1rem 0 0.4rem; }
+
+    .section-title {
+      margin-bottom: 1rem;
+      font-size: clamp(1.5rem, 2vw, 2.2rem);
+    }
+
+    .section-subtitle {
+      color: var(--muted);
+      margin-top: 0.45rem;
+      max-width: 75ch;
+    }
+
+    /* ── Grids ── */
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .card {
+      padding: 1.3rem;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+    }
+
+    .card h3 {
+      font-size: 1.05rem;
+      margin-bottom: 0.6rem;
+    }
+
+    .card p {
+      margin: 0;
+      color: #cbd5e1;
+    }
+
+    /* ── Timeline ── */
+    .timeline {
+      display: grid;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .step {
+      display: grid;
+      grid-template-columns: 90px 1fr;
+      gap: 1rem;
+      align-items: start;
+      padding: 1.25rem;
+      border-radius: 22px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: var(--shadow);
+    }
+
+    .step-num {
+      width: 72px;
+      height: 72px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, rgba(255, 153, 0, 0.18), rgba(56, 189, 248, 0.18));
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      display: grid;
+      place-items: center;
+      font-size: 1.1rem;
+      font-weight: 900;
+      color: #fff;
+    }
+
+    .step h3 {
+      margin-bottom: 0.55rem;
+      font-size: 1.2rem;
+    }
+
+    .step ul {
+      margin: 0.3rem 0 0;
+      padding-left: 1.1rem;
+      color: #dbe4f0;
+    }
+
+    .step li + li { margin-top: 0.4rem; }
+
+    .highlight { color: #ffd28a; font-weight: 700; }
+
+    /* ── Screenshots ── */
+    .screenshot-gallery {
+      display: grid;
+      gap: 0.8rem;
+      margin-top: 1rem;
+    }
+
+    .screenshot-gallery.cols-2 { grid-template-columns: repeat(2, 1fr); }
+
+    .screenshot-fig {
+      margin: 0;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(2, 6, 23, 0.5);
+    }
+
+    .screenshot-fig img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .screenshot-fig figcaption {
+      padding: 0.6rem 0.8rem;
+      color: var(--muted);
+      font-size: 0.84rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    /* Wide / tall screenshot: bounded scrollable viewport */
+    .screenshot-fig.scroll-viewport {
+      max-height: 600px;
+      overflow: auto;
+    }
+    .screenshot-fig.scroll-viewport img {
+      width: auto;
+      min-width: 100%;
+      max-width: none;
+    }
+
+    /* ── Callouts ── */
+    .insight {
+      padding: 1.15rem 1.2rem;
+      border-left: 4px solid var(--accent);
+      border-radius: 16px;
+      background: rgba(255, 153, 0, 0.08);
+      color: #fde7c2;
+    }
+
+    .info {
+      border-left-color: var(--accent-2);
+      background: rgba(56, 189, 248, 0.08);
+      color: #d8f3ff;
+    }
+
+    .warn {
+      border-left-color: var(--warn);
+      background: rgba(245, 158, 11, 0.08);
+      color: #fde6b6;
+    }
+
+    .danger {
+      border-left-color: var(--danger);
+      background: rgba(239, 68, 68, 0.08);
+      color: #fecaca;
+    }
+
+    /* ── Checklist ── */
+    .checklist {
+      display: grid;
+      gap: 0.7rem;
+      margin-top: 1rem;
+    }
+
+    .check {
+      display: flex;
+      gap: 0.75rem;
+      align-items: flex-start;
+      padding: 0.9rem 1rem;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+    }
+
+    .check-mark {
+      flex: 0 0 auto;
+      width: 28px;
+      height: 28px;
+      display: grid;
+      place-items: center;
+      border-radius: 999px;
+      background: rgba(34, 197, 94, 0.15);
+      color: #86efac;
+      font-weight: 800;
+    }
+
+    /* ── Code ── */
+    code {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 0.15rem 0.4rem;
+      border-radius: 6px;
+      font-size: 0.9em;
+      font-family: "Cascadia Code", "Fira Code", monospace;
+    }
+
+    pre {
+      background: rgba(2, 6, 23, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 14px;
+      padding: 1rem 1.1rem;
+      overflow-x: auto;
+      font-size: 0.88rem;
+      line-height: 1.55;
+      margin: 0.8rem 0 0;
+    }
+
+    pre code {
+      background: transparent;
+      padding: 0;
+      border-radius: 0;
+      color: #e2e8f0;
+    }
+
+    /* ── Tables ── */
+    .lab-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+      font-size: 0.92rem;
+      background: rgba(255, 255, 255, 0.04);
+      border-radius: 14px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    .lab-table th,
+    .lab-table td {
+      padding: 0.7rem 0.9rem;
+      text-align: left;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      vertical-align: top;
+    }
+
+    .lab-table th {
+      background: rgba(255, 153, 0, 0.1);
+      color: #ffd28a;
+      font-weight: 700;
+      border-bottom: 1px solid rgba(255, 153, 0, 0.2);
+    }
+
+    .lab-table tr:last-child td { border-bottom: none; }
+
+    .lab-table code {
+      font-size: 0.85em;
+      word-break: break-word;
+    }
+
+    /* ── Troubleshooting cards ── */
+    .ts-pipeline {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 0.7rem;
+      margin-top: 1rem;
+    }
+
+    .ts-stage {
+      padding: 1rem;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .ts-stage .ts-label {
+      font-size: 0.74rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.45rem;
+    }
+
+    .ts-stage.symptom .ts-label { color: #fda4af; }
+    .ts-stage.diagnose .ts-label { color: #fcd34d; }
+    .ts-stage.isolate .ts-label { color: #c4b5fd; }
+    .ts-stage.cause .ts-label { color: #fdba74; }
+    .ts-stage.fix .ts-label { color: #86efac; }
+
+    .ts-stage h4 {
+      margin: 0 0 0.4rem;
+      font-size: 0.98rem;
+      color: #f1f5f9;
+    }
+
+    .ts-stage p {
+      margin: 0;
+      font-size: 0.86rem;
+      color: #cbd5e1;
+      line-height: 1.5;
+    }
+
+    @media (max-width: 920px) {
+      .hero-grid,
+      .grid-3,
+      .grid-2,
+      .screenshot-gallery.cols-2 {
+        grid-template-columns: 1fr;
+      }
+      .ts-pipeline { grid-template-columns: 1fr 1fr; }
+    }
+
+    @media (max-width: 680px) {
+      .nav-inner { flex-direction: column; align-items: flex-start; }
+      .step { grid-template-columns: 1fr; }
+      .step-num { width: 60px; height: 60px; border-radius: 16px; }
+      .ts-pipeline { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+
+<body>
+  <nav class="nav">
+    <div class="container nav-inner">
+      <div class="brand">
+        <div class="brand-badge">CFN</div>
+        <div>Lab Report · CloudFormation</div>
+      </div>
+      <div class="nav-links">
+        <a href="../index.html" class="back-link">← All Labs</a>
+        <a href="#summary">Summary</a>
+        <a href="#task1">Task 1</a>
+        <a href="#task2">Task 2</a>
+        <a href="#task3">Task 3</a>
+        <a href="#task4">Task 4</a>
+        <a href="#learnings">Learnings</a>
+      </div>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <div class="container hero-grid">
+      <div class="panel hero-main">
+        <div class="eyebrow">AWS re/Start Lab · CloudFormation</div>
+        <h1>Troubleshoot CloudFormation Deployments</h1>
+        <p>
+          A failing <code>create-stack</code> driven by a one-character typo in a userdata script. The
+          stack rolls back, the symptom hides on the EC2 instance, and the fix only becomes visible
+          after re-running with <code>--on-failure DO_NOTHING</code> and reading <code>cloud-init</code>
+          logs. The lab also covers drift detection and a <code>delete-stack</code> that fails by design
+          when an S3 bucket is not empty.
+        </p>
+      </div>
+
+      <aside class="panel hero-side">
+        <div class="callout">
+          <strong>Lab Objective</strong>
+          Diagnose and fix a CloudFormation deployment failure using JMESPath, CLI introspection,
+          and userdata log analysis.
+        </div>
+
+        <div>
+          <div class="small" style="margin-bottom:0.7rem;">Tools &amp; Concepts</div>
+          <div class="tech-stack">
+            <span class="chip">CloudFormation</span>
+            <span class="chip">AWS CLI</span>
+            <span class="chip">JMESPath</span>
+            <span class="chip">EC2 userdata</span>
+            <span class="chip">cloud-init</span>
+            <span class="chip">WaitCondition</span>
+            <span class="chip">Drift</span>
+            <span class="chip">S3</span>
+          </div>
+        </div>
+
+        <div class="callout" style="border-color: rgba(34,197,94,0.2); background: rgba(34,197,94,0.08);">
+          <strong>Key Insight</strong>
+          A failing <code>WaitCondition</code> is almost never the real problem — it's the canary.
+          The actual cause lives in <code>/var/log/cloud-init-output.log</code> on the instance, and
+          you only get to read it if you create the stack with <code>--on-failure DO_NOTHING</code>.
+        </div>
+      </aside>
+    </div>
+  </header>
+
+  <main>
+    <section id="summary">
+      <div class="container">
+        <h2 class="section-title">Lab Summary</h2>
+        <p class="section-subtitle">
+          Four tasks: practice JMESPath queries against JSON, troubleshoot a broken stack, detect
+          configuration drift after a manual change, and observe how CloudFormation protects an S3
+          bucket with objects from being deleted.
+        </p>
+
+        <div class="grid-3" style="margin-top:1rem;">
+          <article class="card">
+            <h3>Task 1 — JMESPath</h3>
+            <p>Query JSON structures in the browser-based playground. The same syntax is used in
+              every <code>--query</code> parameter of the AWS CLI for the rest of the lab.</p>
+          </article>
+          <article class="card">
+            <h3>Task 2 — Troubleshoot a failed deploy</h3>
+            <p>First <code>create-stack</code> fails with <code>WaitCondition timed out</code>.
+              Retry with <code>--on-failure DO_NOTHING</code>, SSH to the web server, and find the
+              real cause in the userdata script: <code>yum install -y http</code> instead of
+              <code>httpd</code>.</p>
+          </article>
+          <article class="card">
+            <h3>Tasks 3 &amp; 4 — Drift &amp; Delete</h3>
+            <p>Manually edit the SG (port 22 to <em>My IP</em>) and upload a file to the bucket.
+              <code>detect-stack-drift</code> reports the SG as <code>MODIFIED</code>, but the bucket
+              stays <code>IN_SYNC</code>. <code>delete-stack</code> then fails because the bucket is
+              no longer empty.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════ TASK 1 ══════ -->
+    <section id="task1">
+      <div class="container">
+        <h2 class="section-title">Task 1 — JMESPath in the Browser</h2>
+        <p class="section-subtitle">
+          JMESPath is the query language behind every AWS CLI <code>--query</code> parameter.
+          The playground at <code>jmespath.org</code> lets you test expressions against JSON
+          documents directly. Two documents were used: a <code>desserts</code> sample
+          (provided by the lab) and the output of <code>describe-stack-resources</code>.
+        </p>
+
+        <article class="step">
+          <div class="step-num">01</div>
+          <div>
+            <h3>Query reference</h3>
+            <p>The lab walks through six expressions. The last two are the most useful because
+              they are the same patterns repeated in every <code>--query</code> later on:
+              filter by attribute, then project a single field.</p>
+
+            <table class="lab-table">
+              <thead>
+                <tr>
+                  <th style="width: 55%;">JMESPath expression</th>
+                  <th>Result</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>desserts[1].ingredients</code></td>
+                  <td>Array of ingredients for the second dessert.</td>
+                </tr>
+                <tr>
+                  <td><code>desserts[?calories &gt; `300`]</code></td>
+                  <td>Only desserts whose <code>calories</code> exceed 300.</td>
+                </tr>
+                <tr>
+                  <td><code>desserts[?calories &gt; `300`].name</code></td>
+                  <td>Same filter, projecting only <code>name</code>.</td>
+                </tr>
+                <tr>
+                  <td><code>StackResources[*].LogicalResourceId</code></td>
+                  <td>List of every logical ID in the stack.</td>
+                </tr>
+                <tr>
+                  <td><code>StackResources[?ResourceType == 'AWS::EC2::Instance']</code></td>
+                  <td>Full record of the EC2 instance entry inside the stack.</td>
+                </tr>
+                <tr>
+                  <td><code>StackResources[?ResourceType == 'AWS::EC2::Instance'].LogicalResourceId</code></td>
+                  <td><code>["CliHostInstance"]</code> — the answer to the lab's bonus question.</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <div class="screenshot-gallery">
+              <figure class="screenshot-fig">
+                <img src="assets/screenshots/01-task1-jmespath-query.png"
+                     alt="JMESPath playground showing the filter-and-project query returning CliHostInstance"
+                     loading="lazy" />
+                <figcaption>JMESPath playground: filter <code>StackResources</code> by <code>ResourceType</code> and project <code>LogicalResourceId</code> → <code>["CliHostInstance"]</code></figcaption>
+              </figure>
+            </div>
+
+            <div class="insight info" style="margin-top: 1rem;">
+              <strong>Pattern that matters:</strong>
+              <code>list[?attr == 'value'].field</code> — filter then project. Every interesting
+              <code>--query</code> in the rest of the lab is a variant of this.
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- ══════ TASK 2 ══════ -->
+    <section id="task2">
+      <div class="container">
+        <h2 class="section-title">Task 2 — Troubleshoot a Failed <code>create-stack</code></h2>
+        <p class="section-subtitle">
+          The core of the lab. Standard CloudFormation pattern: stack starts, most resources
+          succeed, then everything rolls back. The error message points at <code>WaitCondition</code>,
+          but that's the symptom — not the cause.
+        </p>
+
+        <!-- Troubleshooting pipeline -->
+        <div class="ts-pipeline">
+          <div class="ts-stage symptom">
+            <div class="ts-label">Symptom</div>
+            <h4>Stack rolls back</h4>
+            <p>After ~3 min, resources start being deleted. Status: <code>CREATE_FAILED</code> →
+              <code>ROLLBACK_COMPLETE</code>.</p>
+          </div>
+          <div class="ts-stage diagnose">
+            <div class="ts-label">Diagnose</div>
+            <h4>Filter the events</h4>
+            <p><code>describe-stack-events</code> with a JMESPath filter for
+              <code>CREATE_FAILED</code>. Reason:
+              <em>WaitCondition timed out. Received 0 conditions when expecting 1</em>.</p>
+          </div>
+          <div class="ts-stage isolate">
+            <div class="ts-label">Isolate</div>
+            <h4>Retry without rollback</h4>
+            <p>Re-run <code>create-stack</code> with <code>--on-failure DO_NOTHING</code> so the
+              EC2 instance survives the failure and is available for inspection.</p>
+          </div>
+          <div class="ts-stage cause">
+            <div class="ts-label">Root cause</div>
+            <h4>Typo in userdata</h4>
+            <p>SSH to the web server. <code>cat part-001</code> shows
+              <code>yum install -y http</code> — should be <code>httpd</code>. The shebang
+              <code>#!/bin/bash -ex</code> aborts the script on that line, so the signal to
+              <code>cfn-signal</code> never runs.</p>
+          </div>
+          <div class="ts-stage fix">
+            <div class="ts-label">Fix</div>
+            <h4>Edit &amp; redeploy</h4>
+            <p>Patch <code>template1.yaml</code> (<code>http</code> → <code>httpd</code>),
+              <code>delete-stack</code>, <code>create-stack</code> again. All resources
+              <code>CREATE_COMPLETE</code>; the web page loads.</p>
+          </div>
+        </div>
+
+        <div class="timeline">
+
+          <!-- 2.1 First attempt -->
+          <article class="step">
+            <div class="step-num">2.1</div>
+            <div>
+              <h3>First <code>create-stack</code> — failure visible mid-flight</h3>
+              <ul>
+                <li>SSH to the CLI Host (provided EC2 inside <strong>VPC2</strong>) using the
+                  Vocareum-supplied PEM key.</li>
+                <li>Launched the stack with the broken template:</li>
+              </ul>
+
+              <pre><code>aws cloudformation create-stack \
+  --stack-name myStack \
+  --template-body file://template1.yaml \
+  --capabilities CAPABILITY_NAMED_IAM \
+  --parameters ParameterKey=KeyName,ParameterValue=vockey</code></pre>
+
+              <ul>
+                <li>Monitored resource progress with <code>watch -n 5 -d</code> for live refresh:</li>
+              </ul>
+
+              <pre><code>watch -n 5 -d \
+  aws cloudformation describe-stack-resources \
+  --stack-name myStack \
+  --query 'StackResources[*].[ResourceType,ResourceStatus]' \
+  --output table</code></pre>
+
+              <ul>
+                <li>10 of 11 resources reached <code>CREATE_COMPLETE</code>; the
+                  <code>WaitCondition</code> stayed in <code>CREATE_IN_PROGRESS</code> until the
+                  60-second timeout, then the whole stack started rolling back.</li>
+              </ul>
+
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig scroll-viewport">
+                  <img src="assets/screenshots/02-stack-resources-create-in-progress.png"
+                       alt="describe-stack-resources output via watch — 10 resources CREATE_COMPLETE, WaitCondition still CREATE_IN_PROGRESS"
+                       loading="lazy" />
+                  <figcaption>
+                    <code>describe-stack-resources</code> under <code>watch</code> at 11:20 —
+                    everything green except <code>AWS::CloudFormation::WaitCondition</code>.
+                    That single resource is what will fail.
+                  </figcaption>
+                </figure>
+              </div>
+            </div>
+          </article>
+
+          <!-- 2.2 Diagnosis -->
+          <article class="step">
+            <div class="step-num">2.2</div>
+            <div>
+              <h3>Diagnosis — narrow the events to <code>CREATE_FAILED</code></h3>
+              <p>The full event list is unreadable. JMESPath filters it down to just the failing
+                event so the <code>ResourceStatusReason</code> is visible at a glance:</p>
+
+              <pre><code>aws cloudformation describe-stack-events \
+  --stack-name myStack \
+  --query "StackEvents[?ResourceStatus == 'CREATE_FAILED']"</code></pre>
+
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig scroll-viewport">
+                  <img src="assets/screenshots/03-describe-stack-events-failed.png"
+                       alt="describe-stack-events output filtered to CREATE_FAILED showing WaitCondition timed out"
+                       loading="lazy" />
+                  <figcaption>
+                    Filtered output: <code>"ResourceStatusReason": "WaitCondition timed out. Received 0 conditions when expecting 1"</code>.
+                    Useful but not actionable yet — the WaitCondition is the messenger.
+                  </figcaption>
+                </figure>
+              </div>
+
+              <div class="insight warn" style="margin-top: 1rem;">
+                <strong>Trap to avoid:</strong> reading the failure as a CloudFormation problem.
+                It isn't. <code>WaitCondition</code> just waited for a signal that never arrived.
+                The signal never arrived because something on the instance failed silently.
+              </div>
+            </div>
+          </article>
+
+          <!-- 2.3 Isolation -->
+          <article class="step">
+            <div class="step-num">2.3</div>
+            <div>
+              <h3>Isolation — preserve the instance with <code>--on-failure DO_NOTHING</code></h3>
+              <p>Default behaviour: CloudFormation deletes every resource on failure, including the
+                EC2 instance whose logs would explain the problem. Solution: delete the failed
+                stack first, then re-create with rollback disabled.</p>
+
+              <pre><code>aws cloudformation delete-stack --stack-name myStack
+
+aws cloudformation create-stack \
+  --stack-name myStack \
+  --template-body file://template1.yaml \
+  --capabilities CAPABILITY_NAMED_IAM \
+  --on-failure DO_NOTHING \
+  --parameters ParameterKey=KeyName,ParameterValue=vockey</code></pre>
+
+              <p>This time, when <code>WaitCondition</code> times out, the rest of the stack stays
+                in <code>CREATE_COMPLETE</code> and the instance keeps running:</p>
+
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/04-create-failed-no-rollback.png"
+                       alt="describe-stacks output showing myStack in CREATE_FAILED state without rollback"
+                       loading="lazy" />
+                  <figcaption>
+                    <code>describe-stacks --output table</code>: status is
+                    <code>CREATE_FAILED</code>, not <code>ROLLBACK_COMPLETE</code>. Resources are
+                    still alive — the web server can be inspected.
+                  </figcaption>
+                </figure>
+              </div>
+            </div>
+          </article>
+
+          <!-- 2.4 Root cause -->
+          <article class="step">
+            <div class="step-num">2.4</div>
+            <div>
+              <h3>Root cause — typo in the userdata script</h3>
+              <p>SSH from the CLI Host to the web server's private IP (same VPC, key already present)
+                and read what cloud-init actually executed:</p>
+
+              <pre><code>tail -50 /var/log/cloud-init-output.log
+sudo cat /var/lib/cloud/instance/scripts/part-001</code></pre>
+
+              <p>The userdata script, as rendered by CloudFormation on the instance:</p>
+
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig scroll-viewport">
+                  <img src="assets/screenshots/05-userdata-http-typo.png"
+                       alt="Userdata script part-001 showing the line yum install -y http"
+                       loading="lazy" />
+                  <figcaption>
+                    <code>part-001</code> on the web server. Line 4: <code>yum install -y http</code>
+                    — the package is <code>httpd</code>. <code>yum</code> exits non-zero, and the
+                    shebang <code>#!/bin/bash -ex</code> aborts the rest of the script.
+                  </figcaption>
+                </figure>
+              </div>
+
+              <div class="insight" style="margin-top: 1rem;">
+                <strong>How the typo turns into a stack failure:</strong>
+                <ol style="margin: 0.5rem 0 0 1.2rem; color: #fde7c2;">
+                  <li><code>yum install -y http</code> → <em>No package http available</em>, exit code 1.</li>
+                  <li><code>#!/bin/bash -e</code> (the <code>-e</code> flag) → script aborts on the first error.</li>
+                  <li><code>cfn-signal</code> at the end of the script never executes.</li>
+                  <li><code>WaitCondition</code> never receives the success signal → times out after 60 s.</li>
+                  <li>CloudFormation marks the stack <code>CREATE_FAILED</code>.</li>
+                </ol>
+              </div>
+            </div>
+          </article>
+
+          <!-- 2.5 Fix and verify -->
+          <article class="step">
+            <div class="step-num">2.5</div>
+            <div>
+              <h3>Fix &amp; redeploy</h3>
+              <ul>
+                <li>Edited <code>template1.yaml</code> line ~128 in the userdata section:
+                  <code>http</code> → <code>httpd</code>.</li>
+                <li><code>delete-stack</code> to clear the failed stack, then
+                  <code>create-stack</code> with the corrected template (left
+                  <code>--on-failure DO_NOTHING</code> in place — harmless when the deploy works).</li>
+                <li>All 11 resources reached <code>CREATE_COMPLETE</code>:</li>
+              </ul>
+
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig scroll-viewport">
+                  <img src="assets/screenshots/06-stack-resources-create-complete.png"
+                       alt="describe-stack-resources showing every resource at CREATE_COMPLETE after the fix"
+                       loading="lazy" />
+                  <figcaption>
+                    Post-fix at 11:43 — every resource <code>CREATE_COMPLETE</code>, including
+                    <code>AWS::CloudFormation::WaitCondition</code>. The web server signalled success.
+                  </figcaption>
+                </figure>
+              </div>
+
+              <ul style="margin-top: 0.8rem;">
+                <li>Pulled the public IP from the stack <code>Outputs</code> and opened it in a browser:</li>
+              </ul>
+
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/07-web-server-live.png"
+                       alt="Browser showing Hello from your web server! served from the deployed instance"
+                       loading="lazy" />
+                  <figcaption>
+                    End-to-end verification at <code>35.95.123.139</code>:
+                    <em>"Hello from your web server!"</em> served by <code>httpd</code>.
+                  </figcaption>
+                </figure>
+              </div>
+            </div>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════ TASK 3 ══════ -->
+    <section id="task3">
+      <div class="container">
+        <h2 class="section-title">Task 3 — Manual Modifications and Drift Detection</h2>
+        <p class="section-subtitle">
+          Two manual changes (one to the SG, one to the S3 bucket), then ask CloudFormation if it
+          notices. No screenshots were captured for this task — documented here as commands and
+          observed results.
+        </p>
+
+        <article class="step">
+          <div class="step-num">3.1</div>
+          <div>
+            <h3>Manual changes outside CloudFormation</h3>
+            <ul>
+              <li><strong>Security group:</strong> in the EC2 console, edited the inbound rule for
+                port 22 from <code>0.0.0.0/0</code> to <strong>My IP</strong>.</li>
+              <li><strong>S3 bucket:</strong> uploaded a small file named <code>myfile</code> to the
+                bucket created by the stack.</li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="step">
+          <div class="step-num">3.2</div>
+          <div>
+            <h3>Detect drift</h3>
+
+            <pre><code># Start the drift check (returns a StackDriftDetectionId)
+aws cloudformation detect-stack-drift --stack-name myStack
+
+# Poll the detection status
+aws cloudformation describe-stack-drift-detection-status \
+  --stack-drift-detection-id &lt;driftId&gt;
+
+# Get a readable per-resource drift table
+aws cloudformation describe-stack-resources \
+  --stack-name myStack \
+  --query 'StackResources[*].[ResourceType,ResourceStatus,DriftInformation.StackResourceDriftStatus]' \
+  --output table
+
+# Show only resources that drifted, with PropertyDifferences
+aws cloudformation describe-stack-resource-drifts \
+  --stack-name myStack \
+  --stack-resource-drift-status-filters MODIFIED</code></pre>
+
+            <p style="margin-top: 0.8rem;">Observed:</p>
+            <ul>
+              <li><code>AWS::EC2::SecurityGroup</code> → <code>MODIFIED</code>. The
+                <code>PropertyDifferences</code> output shows the CIDR changed from
+                <code>0.0.0.0/0</code> to the lab's public IP.</li>
+              <li><code>AWS::S3::Bucket</code> → <code>IN_SYNC</code>, despite the uploaded file.</li>
+              <li>Several other resources show <code>NOT_CHECKED</code> — drift detection has
+                per-resource-type coverage gaps.</li>
+            </ul>
+
+            <div class="insight info" style="margin-top: 1rem;">
+              <strong>Drift only covers template properties.</strong> Uploading objects to a bucket
+              does not register as drift — only changes to bucket <em>configuration</em> (e.g.
+              versioning, ACL) would. This is the key conceptual point of Task 3.
+            </div>
+          </div>
+        </article>
+
+        <article class="step">
+          <div class="step-num">3.3</div>
+          <div>
+            <h3><code>update-stack</code> does not heal drift</h3>
+            <p>Re-running <code>update-stack</code> with the original template returns an error
+              along the lines of <em>No updates are to be performed</em>. Drift has to be reconciled
+              manually — either by reverting the manual change, or by updating the template to
+              match the new desired state.</p>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- ══════ TASK 4 ══════ -->
+    <section id="task4">
+      <div class="container">
+        <h2 class="section-title">Task 4 — <code>delete-stack</code> Fails by Design</h2>
+        <p class="section-subtitle">
+          Standard cleanup attempt. CloudFormation deletes everything except the S3 bucket, because
+          the bucket now contains <code>myfile</code> from Task 3.
+        </p>
+
+        <article class="step">
+          <div class="step-num">4.1</div>
+          <div>
+            <h3>Delete attempt and resulting state</h3>
+
+            <pre><code>aws cloudformation delete-stack --stack-name myStack
+
+watch -n 5 -d \
+  aws cloudformation describe-stack-resources \
+  --stack-name myStack \
+  --query 'StackResources[*].[ResourceType,ResourceStatus]' \
+  --output table</code></pre>
+
+            <p style="margin-top: 0.8rem;">Every resource progresses to
+              <code>DELETE_COMPLETE</code> except one: <code>AWS::S3::Bucket</code> ends in
+              <code>DELETE_FAILED</code>. The stack itself enters
+              <code>DELETE_FAILED</code> rather than disappearing.</p>
+
+            <div class="screenshot-gallery">
+              <figure class="screenshot-fig">
+                <img src="assets/screenshots/08-delete-failed-s3-bucket.png"
+                     alt="describe-stack-resources output: every resource DELETE_COMPLETE except S3 Bucket which is DELETE_FAILED"
+                     loading="lazy" />
+                <figcaption>
+                  Post-delete at 11:50 — 10 resources <code>DELETE_COMPLETE</code>,
+                  <code>AWS::S3::Bucket</code> stuck at <code>DELETE_FAILED</code>. CloudFormation
+                  refuses to delete a non-empty bucket.
+                </figcaption>
+              </figure>
+            </div>
+
+            <div class="insight info" style="margin-top: 1rem;">
+              <strong>Why this is a feature, not a bug:</strong> S3 buckets can contain irreplaceable
+              data. CloudFormation will not silently empty a bucket during a stack delete, so the
+              <code>DELETE</code> action returns an error. This protects against accidental data loss.
+            </div>
+          </div>
+        </article>
+
+        <!-- Honesty block: challenge NOT completed -->
+        <article class="step">
+          <div class="step-num">4.2</div>
+          <div>
+            <h3>Challenge — not completed</h3>
+
+            <div class="insight warn">
+              <strong>Honesty note.</strong> The optional Challenge section asked to delete the
+              stack while <em>retaining</em> the S3 bucket and its object. This was not executed
+              during the lab run; the report stops at the <code>DELETE_FAILED</code> screenshot above.
+            </div>
+
+            <p style="margin-top: 1rem;">
+              The intended path, kept here as a theoretical reference and not as evidence of work
+              performed:
+            </p>
+
+            <pre><code># Retry delete-stack, telling CloudFormation to skip the bucket
+aws cloudformation delete-stack \
+  --stack-name myStack \
+  --retain-resources MyBucket</code></pre>
+
+            <p style="margin-top: 0.8rem;">Notes from reading the guide:</p>
+            <ul>
+              <li><code>--retain-resources</code> takes the <strong>logical IDs</strong> from the
+                template (in this lab the bucket's logical ID is <code>MyBucket</code> — confirmed
+                via JMESPath in Task 1's pattern).</li>
+              <li>The guide hints at chaining commands — using the output of one
+                (<code>describe-stack-resources</code> filtered to find the failed bucket's logical
+                ID) as input to the next (<code>delete-stack --retain-resources</code>).</li>
+              <li>The bucket and its objects would survive the stack deletion and would have to be
+                cleaned up manually afterwards if no longer needed.</li>
+            </ul>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- ══════ COMMAND REFERENCE ══════ -->
+    <section id="commands">
+      <div class="container">
+        <h2 class="section-title">Command Reference</h2>
+        <p class="section-subtitle">The CloudFormation CLI calls used across the lab, grouped by intent.</p>
+
+        <div class="timeline">
+          <article class="step">
+            <div class="step-num" style="font-size:0.8rem;">deploy</div>
+            <div>
+              <h3>Create &amp; observe</h3>
+              <ul>
+                <li><code>aws cloudformation create-stack --stack-name myStack --template-body file://template1.yaml --capabilities CAPABILITY_NAMED_IAM --parameters ParameterKey=KeyName,ParameterValue=vockey</code></li>
+                <li><code>--on-failure DO_NOTHING</code> — keep resources alive when the stack fails (essential for userdata troubleshooting).</li>
+                <li><code>watch -n 5 -d aws cloudformation describe-stack-resources …</code> — refresh every 5 s, highlight diffs.</li>
+              </ul>
+            </div>
+          </article>
+
+          <article class="step">
+            <div class="step-num" style="font-size:0.8rem;">diag</div>
+            <div>
+              <h3>Diagnose</h3>
+              <ul>
+                <li><code>aws cloudformation describe-stack-events --stack-name myStack --query "StackEvents[?ResourceStatus == 'CREATE_FAILED']"</code></li>
+                <li><code>aws cloudformation describe-stacks --stack-name myStack --output table</code></li>
+                <li>On the instance: <code>tail -50 /var/log/cloud-init-output.log</code> · <code>sudo cat /var/lib/cloud/instance/scripts/part-001</code></li>
+              </ul>
+            </div>
+          </article>
+
+          <article class="step">
+            <div class="step-num" style="font-size:0.8rem;">drift</div>
+            <div>
+              <h3>Detect drift</h3>
+              <ul>
+                <li><code>aws cloudformation detect-stack-drift --stack-name myStack</code></li>
+                <li><code>aws cloudformation describe-stack-drift-detection-status --stack-drift-detection-id &lt;id&gt;</code></li>
+                <li><code>aws cloudformation describe-stack-resource-drifts --stack-name myStack --stack-resource-drift-status-filters MODIFIED</code></li>
+                <li><code>aws cloudformation describe-stack-resources --query 'StackResources[*].[ResourceType,ResourceStatus,DriftInformation.StackResourceDriftStatus]' --output table</code></li>
+              </ul>
+            </div>
+          </article>
+
+          <article class="step">
+            <div class="step-num" style="font-size:0.8rem;">delete</div>
+            <div>
+              <h3>Delete</h3>
+              <ul>
+                <li><code>aws cloudformation delete-stack --stack-name myStack</code></li>
+                <li><code>aws cloudformation delete-stack --stack-name myStack --retain-resources MyBucket</code> — theoretical, not executed in this run.</li>
+              </ul>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════ KEY LEARNINGS ══════ -->
+    <section id="learnings">
+      <div class="container">
+        <h2 class="section-title">Key Learnings</h2>
+        <div class="grid-2">
+          <div class="card">
+            <h3>What was actually learned</h3>
+            <div class="checklist">
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div><strong>WaitCondition</strong> + <code>#!/bin/bash -e</code> form a fail-fast pair: any error in userdata stops the script and the stack fails loudly instead of silently producing a broken instance.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div><code>--on-failure DO_NOTHING</code> is the troubleshooting switch — without it, the instance whose logs explain the failure is deleted before it can be inspected.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>The real cause of a userdata failure lives in <code>/var/log/cloud-init-output.log</code> and <code>/var/lib/cloud/instance/scripts/part-001</code> on the instance, not in CloudFormation events.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>JMESPath <code>list[?attr == 'value'].field</code> is the universal filter-and-project pattern for AWS CLI <code>--query</code>.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>Drift detection only sees <em>template properties</em>. Uploading objects to a bucket is invisible to drift; modifying SG rules is visible.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div><code>update-stack</code> does not reconcile drift — it has to be fixed manually, either in the template or by reverting the change.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>S3 buckets with objects block <code>delete-stack</code> by design. <code>--retain-resources</code> is the documented escape hatch (not exercised in this lab).</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Technical conclusion</h3>
+            <p>
+              The lab's value is not the deployment — it's the failure. A one-character typo
+              (<code>http</code> vs <code>httpd</code>) produces a generic CloudFormation symptom
+              (<em>WaitCondition timed out</em>) that says nothing about the real problem.
+              Solving it requires using CloudFormation's own escape hatches:
+              <code>--on-failure DO_NOTHING</code> to preserve evidence, and
+              <code>describe-stack-events</code> with JMESPath filters to isolate signal from noise.
+            </p>
+            <p style="margin-top: 1rem;">
+              The drift and delete tasks reinforce that CloudFormation is a state machine over
+              <em>template properties</em>, not a full inventory tool. It does not track object
+              contents, and it refuses destructive operations on stateful resources — which is
+              correct behaviour, not a bug.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      Lab report documenting the Troubleshoot CloudFormation activity · AWS re/Start Program
+    </div>
+  </footer>
+</body>
+
+</html>

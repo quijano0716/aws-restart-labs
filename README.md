@@ -100,10 +100,10 @@ Technical documentation of hands-on labs completed during the **AWS re/Start** p
 | 186 | [JAWS] Monitoring with CloudWatch Agent and AWS Config       | Completed |
 | 187 | [JAWS] CloudTrail Incident Response                          | Completed |
 | 188 | [JAWS] EC2 Tags + JMESPath + Scripts                         | Completed |
-| 189 | [JAWS] Optimize Resource Utilization                         | Upcoming  |
-| 190 | [JAWS] Automating Deployments with AWS CloudFormation        | Upcoming  |
-| 191 | [JAWS] Café Lab — Troubleshooting CloudFormation Deployments | Upcoming  |
-| 192 | [JAWS] CloudFormation Challenge                              | Upcoming  |
+| 189 | [JAWS] Optimize Resource Utilization                         | Completed |
+| 190 | [JAWS] Automating Deployments with AWS CloudFormation        | Completed |
+| 191 | [JAWS] Café Lab — Troubleshooting CloudFormation Deployments | Completed |
+| 192 | [JAWS] CloudFormation Challenge                              | Completed |
 
 ---
 

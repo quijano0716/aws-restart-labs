@@ -1,0 +1,1037 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lab Report: Automating Deployments with AWS CloudFormation</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --bg-soft: #111827;
+      --card: rgba(255, 255, 255, 0.08);
+      --card-strong: rgba(255, 255, 255, 0.12);
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --accent: #ff9900;
+      --accent-2: #38bdf8;
+      --ok: #22c55e;
+      --warn: #f59e0b;
+      --border: rgba(255, 255, 255, 0.12);
+      --shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+      --radius: 22px;
+      --max: 1120px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(255, 153, 0, 0.16), transparent 28%),
+        radial-gradient(circle at top right, rgba(56, 189, 248, 0.14), transparent 24%),
+        linear-gradient(180deg, #020617 0%, #0f172a 48%, #111827 100%);
+      color: var(--text);
+      line-height: 1.65;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .container {
+      width: min(var(--max), calc(100% - 2rem));
+      margin: 0 auto;
+    }
+
+    /* ── Nav ── */
+    .nav {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      backdrop-filter: blur(16px);
+      background: rgba(2, 6, 23, 0.72);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .nav-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.9rem 0;
+      gap: 1rem;
+    }
+
+    .brand {
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+    }
+
+    .brand-badge {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, var(--accent), #ffb84d);
+      color: #111827;
+      font-weight: 900;
+      box-shadow: var(--shadow);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .nav-links a:hover {
+      color: var(--text);
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      color: var(--muted);
+      font-size: 0.9rem;
+      transition: color 0.2s;
+    }
+
+    .back-link:hover {
+      color: var(--accent);
+    }
+
+    /* ── Hero ── */
+    .hero {
+      padding: 4.8rem 0 2rem;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 1.5rem;
+      align-items: stretch;
+    }
+
+    .panel {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.05));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .hero-main {
+      padding: 2rem;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.45rem 0.8rem;
+      border-radius: 999px;
+      background: rgba(255, 153, 0, 0.12);
+      color: #ffd28a;
+      border: 1px solid rgba(255, 153, 0, 0.25);
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+    }
+
+    h1,
+    h2,
+    h3 {
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+      margin: 0;
+    }
+
+    h1 {
+      font-size: clamp(2rem, 4vw, 3.7rem);
+      margin-bottom: 0.9rem;
+    }
+
+    .hero-main p {
+      margin: 0;
+      color: #cbd5e1;
+      font-size: 1.05rem;
+      max-width: 65ch;
+    }
+
+    .hero-side {
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .hero-side .callout {
+      padding: 1rem 1.1rem;
+      border-radius: 18px;
+      border: 1px solid rgba(56, 189, 248, 0.18);
+      background: rgba(56, 189, 248, 0.08);
+    }
+
+    .hero-side .callout strong {
+      display: block;
+      margin-bottom: 0.35rem;
+    }
+
+    .tech-stack {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.55rem;
+    }
+
+    .chip {
+      padding: 0.45rem 0.75rem;
+      border-radius: 999px;
+      font-size: 0.88rem;
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #dbeafe;
+    }
+
+    .small {
+      font-size: 0.92rem;
+      color: var(--muted);
+    }
+
+    /* ── Sections ── */
+    section {
+      padding: 1rem 0 0.4rem;
+    }
+
+    .section-title {
+      margin-bottom: 1rem;
+      font-size: clamp(1.5rem, 2vw, 2.2rem);
+    }
+
+    .section-subtitle {
+      color: var(--muted);
+      margin-top: 0.45rem;
+      max-width: 75ch;
+    }
+
+    /* ── Grids ── */
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .card {
+      padding: 1.3rem;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+    }
+
+    .card h3 {
+      font-size: 1.05rem;
+      margin-bottom: 0.6rem;
+    }
+
+    .card p {
+      margin: 0;
+      color: #cbd5e1;
+    }
+
+    /* ── Timeline ── */
+    .timeline {
+      display: grid;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .step {
+      display: grid;
+      grid-template-columns: 90px 1fr;
+      gap: 1rem;
+      align-items: start;
+      padding: 1.25rem;
+      border-radius: 22px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: var(--shadow);
+    }
+
+    .step-num {
+      width: 72px;
+      height: 72px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, rgba(255, 153, 0, 0.18), rgba(56, 189, 248, 0.18));
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      display: grid;
+      place-items: center;
+      font-size: 1.1rem;
+      font-weight: 900;
+      color: #fff;
+    }
+
+    .step h3 {
+      margin-bottom: 0.55rem;
+      font-size: 1.2rem;
+    }
+
+    .step ul {
+      margin: 0.3rem 0 0;
+      padding-left: 1.1rem;
+      color: #dbe4f0;
+    }
+
+    .step li+li {
+      margin-top: 0.4rem;
+    }
+
+    .highlight {
+      color: #ffd28a;
+      font-weight: 700;
+    }
+
+    /* ── Screenshots ── */
+    .screenshot-gallery {
+      display: grid;
+      gap: 0.8rem;
+      margin-top: 1rem;
+    }
+
+    .screenshot-gallery.cols-2 {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .screenshot-fig {
+      margin: 0;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(2, 6, 23, 0.5);
+    }
+
+    .screenshot-fig img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .screenshot-fig figcaption {
+      padding: 0.6rem 0.8rem;
+      color: var(--muted);
+      font-size: 0.84rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    /* ── Callouts ── */
+    .insight {
+      padding: 1.15rem 1.2rem;
+      border-left: 4px solid var(--accent);
+      border-radius: 16px;
+      background: rgba(255, 153, 0, 0.08);
+      color: #fde7c2;
+    }
+
+    .info {
+      border-left-color: var(--accent-2);
+      background: rgba(56, 189, 248, 0.08);
+      color: #d8f3ff;
+    }
+
+    /* ── Checklist ── */
+    .checklist {
+      display: grid;
+      gap: 0.7rem;
+      margin-top: 1rem;
+    }
+
+    .check {
+      display: flex;
+      gap: 0.75rem;
+      align-items: flex-start;
+      padding: 0.9rem 1rem;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+    }
+
+    .check-mark {
+      flex: 0 0 auto;
+      width: 28px;
+      height: 28px;
+      display: grid;
+      place-items: center;
+      border-radius: 999px;
+      background: rgba(34, 197, 94, 0.15);
+      color: #86efac;
+      font-weight: 800;
+    }
+
+    /* ── Code ── */
+    code {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 0.15rem 0.4rem;
+      border-radius: 6px;
+      font-size: 0.9em;
+      font-family: "Cascadia Code", "Fira Code", monospace;
+    }
+
+    pre {
+      background: rgba(2, 6, 23, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 14px;
+      padding: 1rem 1.1rem;
+      overflow-x: auto;
+      margin: 0.9rem 0 0.2rem;
+      box-shadow: var(--shadow);
+    }
+
+    pre code {
+      background: transparent;
+      padding: 0;
+      border-radius: 0;
+      font-size: 0.86rem;
+      color: #e2e8f0;
+      line-height: 1.55;
+    }
+
+    /* ── Footer ── */
+    .footer {
+      padding: 2.2rem 0 3.5rem;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    /* ── Custom: YAML anatomy table ── */
+    .yaml-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+      font-size: 0.95rem;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+
+    .yaml-table th,
+    .yaml-table td {
+      padding: 0.85rem 1rem;
+      text-align: left;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      vertical-align: top;
+    }
+
+    .yaml-table thead {
+      background: rgba(255, 153, 0, 0.1);
+    }
+
+    .yaml-table th {
+      color: #ffd28a;
+      font-weight: 700;
+    }
+
+    .yaml-table tbody tr:hover {
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .yaml-table tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    /* ── Custom: stack lifecycle pill ── */
+    .status-pill {
+      display: inline-block;
+      padding: 0.2rem 0.55rem;
+      border-radius: 6px;
+      font-family: "Cascadia Code", "Fira Code", monospace;
+      font-size: 0.8rem;
+      font-weight: 600;
+      background: rgba(34, 197, 94, 0.15);
+      color: #86efac;
+      border: 1px solid rgba(34, 197, 94, 0.25);
+    }
+
+    .status-pill.warn {
+      background: rgba(245, 158, 11, 0.15);
+      color: #fcd34d;
+      border-color: rgba(245, 158, 11, 0.25);
+    }
+
+    .status-pill.danger {
+      background: rgba(248, 113, 113, 0.15);
+      color: #fca5a5;
+      border-color: rgba(248, 113, 113, 0.25);
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 920px) {
+
+      .hero-grid,
+      .grid-3,
+      .grid-2,
+      .screenshot-gallery.cols-2 {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 680px) {
+      .nav-inner {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .step {
+        grid-template-columns: 1fr;
+      }
+
+      .step-num {
+        width: 60px;
+        height: 60px;
+        border-radius: 16px;
+      }
+
+      .yaml-table {
+        font-size: 0.85rem;
+      }
+
+      .yaml-table th,
+      .yaml-table td {
+        padding: 0.6rem 0.7rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <nav class="nav">
+    <div class="container nav-inner">
+      <div class="brand">
+        <div class="brand-badge">AWS</div>
+        <div>Lab Report · JAWS</div>
+      </div>
+      <div class="nav-links">
+        <a href="../index.html" class="back-link">← All Labs</a>
+        <a href="#summary">Summary</a>
+        <a href="#template">Template</a>
+        <a href="#walkthrough">Walkthrough</a>
+        <a href="#cli">CLI Reference</a>
+        <a href="#learnings">Learnings</a>
+      </div>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <div class="container hero-grid">
+      <div class="panel hero-main">
+        <div class="eyebrow">AWS re/Start Lab · JAWS · Infrastructure as Code</div>
+        <h1>Automating Deployments with AWS CloudFormation</h1>
+        <p>
+          Deploy, modify, and destroy AWS infrastructure as a single declarative unit using CloudFormation
+          stacks. The lab walks a YAML template from a bare VPC + Security Group baseline to a fully wired
+          stack that includes an S3 bucket and an EC2 instance, then tears everything down with a single
+          delete operation.
+        </p>
+      </div>
+
+      <aside class="panel hero-side">
+        <div class="callout">
+          <strong>Lab Objective</strong>
+          Use CloudFormation to deploy a stack, edit the template incrementally (S3 bucket, then EC2
+          instance), preview changes through change sets, and delete the stack so AWS cleans up all
+          managed resources automatically.
+        </div>
+
+        <div>
+          <div class="small" style="margin-bottom:0.7rem;">Services &amp; Concepts</div>
+          <div class="tech-stack">
+            <span class="chip">CloudFormation</span>
+            <span class="chip">YAML</span>
+            <span class="chip">VPC</span>
+            <span class="chip">EC2</span>
+            <span class="chip">S3</span>
+            <span class="chip">SSM Parameter Store</span>
+            <span class="chip">Change Sets</span>
+            <span class="chip">!Ref</span>
+          </div>
+        </div>
+
+        <div class="callout" style="border-color: rgba(34,197,94,0.2); background: rgba(34,197,94,0.08);">
+          <strong>Key Insight</strong>
+          A change set is the declarative diff between the running stack and the new template. CloudFormation
+          calculates exactly which resources will be added, modified, or replaced before any change touches
+          the environment.
+        </div>
+      </aside>
+    </div>
+  </header>
+
+  <main>
+    <section id="summary">
+      <div class="container">
+        <h2 class="section-title">Lab Summary</h2>
+        <p class="section-subtitle">
+          Built and torn down a CloudFormation stack named <span class="highlight">Lab</span> across four
+          tasks. Each task isolates one IaC concept: initial deploy, incremental edit with a minimal
+          resource, incremental edit with cross-references, and full teardown.
+        </p>
+
+        <div class="grid-3" style="margin-top:1rem;">
+          <article class="card">
+            <h3>Task 1 — Deploy</h3>
+            <p>Uploaded <code>task1.yaml</code> and created the <strong>Lab</strong> stack with 8 networking
+              resources: VPC, Subnet, IGW, Route Table, Route, Route Table Association, IGW Attachment, and a
+              Security Group.</p>
+          </article>
+          <article class="card">
+            <h3>Tasks 2 &amp; 3 — Configure</h3>
+            <p>Edited the template to add an <strong>S3 bucket</strong> (2 lines) and an <strong>EC2
+                instance</strong> with 5 properties wired to the VPC resources via <code>!Ref</code>.
+              Updated the stack via change sets.</p>
+          </article>
+          <article class="card">
+            <h3>Task 4 — Terminate</h3>
+            <p>Deleted the stack. CloudFormation removed every resource it managed in reverse dependency
+              order, no manual cleanup required.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="template">
+      <div class="container">
+        <h2 class="section-title">Anatomy of a CloudFormation Template</h2>
+        <p class="section-subtitle">
+          CloudFormation templates are YAML (or JSON) documents with three primary sections. Indentation is
+          significant: two spaces per level, hyphens for list items.
+        </p>
+
+        <table class="yaml-table">
+          <thead>
+            <tr>
+              <th style="width: 18%;">Section</th>
+              <th style="width: 42%;">Purpose</th>
+              <th>What this lab used it for</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>Parameters</code></td>
+              <td>Inputs prompted at deploy/update time. Can have defaults and types.</td>
+              <td>Two CIDR ranges for VPC and Subnet. In Task 3, the SSM-backed
+                <code>AmazonLinuxAMIID</code> parameter.</td>
+            </tr>
+            <tr>
+              <td><code>Resources</code></td>
+              <td>The infrastructure to create. Each resource has a logical ID, a type, and optional
+                properties.</td>
+              <td>VPC + 6 networking resources + Security Group baseline. Later: S3 bucket and EC2 instance.
+              </td>
+            </tr>
+            <tr>
+              <td><code>Outputs</code></td>
+              <td>Selective information exported from the stack (e.g. ARNs, IDs) for humans or other stacks
+                to reference.</td>
+              <td>The default Security Group ID of the created VPC.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="insight info" style="margin-top:1.2rem;">
+          <strong>Cross-references with <code>!Ref</code>:</strong> CloudFormation does not require explicit
+          ordering of resources. When <code>PublicRouteTable</code> declares <code>VpcId: !Ref LabVPC</code>,
+          CloudFormation infers the dependency and creates the VPC first. This implicit dependency graph is
+          one of the highest-value features of IaC.
+        </div>
+      </div>
+    </section>
+
+    <section id="walkthrough">
+      <div class="container">
+        <h2 class="section-title">Step-by-Step Walkthrough</h2>
+        <p class="section-subtitle">
+          Four tasks, executed against the same stack named <strong>Lab</strong> in <code>us-west-2</code>.
+          Evidence captured at the points where the lifecycle status visibly changes.
+        </p>
+
+        <div class="timeline">
+
+          <!-- ══════ TASK 1 ══════ -->
+          <article class="step">
+            <div class="step-num">01</div>
+            <div>
+              <h3>Deploy the base stack (VPC + Security Group)</h3>
+              <ul>
+                <li>Downloaded <code>task1.yaml</code> and inspected the three sections: two CIDR parameters
+                  (VPC and Subnet) under <code>Parameters</code>, eight resources under
+                  <code>Resources</code>, and one Security Group ID under <code>Outputs</code>.</li>
+                <li>In the CloudFormation console, chose <strong>Create stack → With new resources
+                    (standard)</strong>, selected <strong>Upload a template file</strong>, and uploaded
+                  <code>task1.yaml</code>.</li>
+                <li>Set the stack name to <strong>Lab</strong>. Kept the default CIDR values from the
+                  template parameters. Acknowledged the IAM capability prompt on the review page (some
+                  resources use custom names).</li>
+                <li>The stack entered <span class="status-pill warn">CREATE_IN_PROGRESS</span>. CloudFormation
+                  determined the optimal creation order automatically — the <strong>VPC</strong> before any
+                  resource that depends on its ID, the <strong>IGW</strong> before its
+                  <code>VPCGatewayAttachment</code>, and so on.</li>
+                <li>After roughly one minute, the status moved to <span class="status-pill">CREATE_COMPLETE</span>
+                  with all 8 resources in the green state.</li>
+              </ul>
+
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/01-resources-being-created.png"
+                    alt="CloudFormation Resources tab showing 8 EC2 resources in CREATE_COMPLETE" loading="lazy" />
+                  <figcaption>Resources tab — 8 networking resources of type <code>AWS::EC2::*</code> all in
+                    <strong>CREATE_COMPLETE</strong> after Task 1.</figcaption>
+                </figure>
+              </div>
+
+              <div class="insight info" style="margin-top:1rem;">
+                <strong>What the 8 resources actually are:</strong> <code>LabVPC</code> (VPC),
+                <code>PublicSubnet</code> (Subnet), <code>IGW</code> (Internet Gateway),
+                <code>VPCtoIGWConnection</code> (VPCGatewayAttachment), <code>PublicRouteTable</code>,
+                <code>PublicRoute</code> (the 0.0.0.0/0 route via the IGW),
+                <code>PublicRouteTableAssociation</code>, and <code>AppSecurityGroup</code>. This is the
+                minimum viable public network in AWS.
+              </div>
+            </div>
+          </article>
+
+          <!-- ══════ TASK 2 ══════ -->
+          <article class="step">
+            <div class="step-num">02</div>
+            <div>
+              <h3>Add an S3 bucket via stack update</h3>
+              <ul>
+                <li>Edited <code>task1.yaml</code> locally and appended the minimum-viable S3 resource under
+                  <code>Resources</code>. Two lines total — logical ID and type:</li>
+              </ul>
+
+<pre><code>Resources:
+  # ... existing VPC / Subnet / SG resources above ...
+
+  S3Bucket:
+    Type: AWS::S3::Bucket</code></pre>
+
+              <ul>
+                <li>In the console, selected the <strong>Lab</strong> stack, clicked <strong>Update</strong>,
+                  chose <strong>Replace current template</strong>, and uploaded the edited file.</li>
+                <li>CloudFormation calculated a <strong>change set</strong> and showed exactly one change:
+                  <em>Add</em> a new resource of type <code>AWS::S3::Bucket</code>. Every other resource was
+                  marked <em>unchanged</em>, confirming no redeployment of the networking layer.</li>
+                <li>Executed the change set. Stack moved
+                  <span class="status-pill warn">UPDATE_IN_PROGRESS</span> →
+                  <span class="status-pill">UPDATE_COMPLETE</span> in under a minute. The bucket appeared in
+                  the Resources tab with a CloudFormation-generated physical name.</li>
+              </ul>
+
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/02-s3-bucket-change-set.png"
+                    alt="Change set showing one Add action for an S3 bucket" loading="lazy" />
+                  <figcaption>Change set <code>Lab-a1akjxh3y9j-duwvae0qn8l</code> — exactly one resource
+                    change: <strong>Add S3Bucket (AWS::S3::Bucket)</strong>.</figcaption>
+                </figure>
+              </div>
+
+              <div class="insight" style="margin-top:1rem;">
+                <strong>Why this matters:</strong> the change set is a dry run. Before clicking Execute, the
+                operator sees the exact diff against the live stack. In a production environment this is the
+                review gate — replacement actions on stateful resources like RDS or EBS are flagged here
+                before any disruption.
+              </div>
+            </div>
+          </article>
+
+          <!-- ══════ TASK 3 ══════ -->
+          <article class="step">
+            <div class="step-num">03</div>
+            <div>
+              <h3>Add an EC2 instance with cross-referenced resources</h3>
+              <p style="color:#cbd5e1; margin:0 0 0.6rem;">
+                EC2 is harder than S3 because the instance depends on three other resources in the same
+                template (AMI, Security Group, Subnet). The lab introduces two techniques to solve that
+                cleanly.
+              </p>
+
+              <h4 style="color:#ffd28a; margin:1rem 0 0.3rem;">3a. SSM-backed AMI parameter (region-agnostic)</h4>
+              <p style="color:#cbd5e1; margin:0;">
+                Hard-coding an AMI ID would tie the template to a single region. Instead, the AMI is resolved
+                at deploy time from the SSM public parameter store:
+              </p>
+
+<pre><code>Parameters:
+  AmazonLinuxAMIID:
+    Type: AWS::SSM::Parameter::Value&lt;AWS::EC2::Image::Id&gt;
+    Default: /aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2</code></pre>
+
+              <p style="color:#cbd5e1; margin:0.6rem 0 0;">
+                The same template will now resolve to the correct Amazon Linux 2 AMI in <em>any</em> region
+                CloudFormation deploys to. The AMI ID never appears in the template itself.
+              </p>
+
+              <h4 style="color:#ffd28a; margin:1.4rem 0 0.3rem;">3b. The EC2 resource (5 properties, three <code>!Ref</code>s)</h4>
+
+<pre><code>AppServer:
+  Type: AWS::EC2::Instance
+  Properties:
+    ImageId: !Ref AmazonLinuxAMIID
+    InstanceType: t3.micro
+    SecurityGroupIds:
+      - !Ref AppSecurityGroup
+    SubnetId: !Ref PublicSubnet
+    Tags:
+      - Key: Name
+        Value: App Server</code></pre>
+
+              <ul>
+                <li><code>SecurityGroupIds</code> is a list — even with a single SG, the YAML uses the
+                  hyphen list syntax. This was the most common gotcha flagged in the lab tips.</li>
+                <li>The three <code>!Ref</code> calls (<code>AmazonLinuxAMIID</code>,
+                  <code>AppSecurityGroup</code>, <code>PublicSubnet</code>) create implicit dependencies.
+                  CloudFormation guarantees the referenced resources exist before EC2 launch.</li>
+                <li>Uploaded the revised template via <strong>Update stack → Replace current template</strong>.
+                  The change set showed one <em>Add</em> action for the EC2 instance and no replacements on
+                  existing resources. Executed and the stack reached
+                  <span class="status-pill">UPDATE_COMPLETE</span>.</li>
+              </ul>
+
+              <div class="insight info" style="margin-top:1rem;">
+                <strong>No screenshot for this task:</strong> the lab transcript captures the change set
+                event for S3 (Task 2) and the delete (Task 4). The EC2 addition is documented above with the
+                exact YAML committed to the template — that is the source of truth for what was deployed.
+              </div>
+            </div>
+          </article>
+
+          <!-- ══════ TASK 4 ══════ -->
+          <article class="step">
+            <div class="step-num">04</div>
+            <div>
+              <h3>Delete the stack — automatic teardown</h3>
+              <ul>
+                <li>In the CloudFormation console, selected the <strong>Lab</strong> stack and clicked
+                  <strong>Delete</strong>. Confirmed in the modal.</li>
+                <li>Stack moved to <span class="status-pill danger">DELETE_IN_PROGRESS</span>. CloudFormation
+                  deleted resources in reverse dependency order: EC2 instance and S3 bucket first, then route
+                  table association, route, route table, IGW attachment, IGW, subnet, security group, and
+                  finally the VPC.</li>
+                <li>The deletion timeline in the console showed each of the 8 networking resources
+                  decommissioning in sequence between 06:01 and 06:08 UTC-0500. After the timeline finished,
+                  the stack disappeared from the active stacks list.</li>
+              </ul>
+
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/03-delete-initiated.png"
+                    alt="CloudFormation delete initiated banner with stack in DELETE_IN_PROGRESS" loading="lazy" />
+                  <figcaption>Banner <strong>Delete initiated</strong> + stack <code>Lab</code> in
+                    <strong>DELETE_IN_PROGRESS</strong>. The timeline view shows all 8 networking resources
+                    queued for teardown.</figcaption>
+                </figure>
+              </div>
+
+              <div class="insight info" style="margin-top:1rem;">
+                <strong>Why this is the killer feature of IaC:</strong> a single click reverses everything
+                the stack created, in the correct order, with no manual tracking. Compare to deleting these
+                resources manually — you would hit dependency errors deleting the VPC first because of the
+                attached IGW, the subnet because of the route table association, and so on.
+              </div>
+            </div>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+    <section id="cli">
+      <div class="container">
+        <h2 class="section-title">CloudFormation via the AWS CLI</h2>
+        <p class="section-subtitle">
+          The lab was performed through the console. For reference and future runs, here are the equivalent
+          AWS CLI commands that produce the same lifecycle.
+        </p>
+
+        <div class="timeline">
+          <article class="step">
+            <div class="step-num" style="font-size:0.85rem;">deploy</div>
+            <div>
+              <h3>Create the stack (Task 1)</h3>
+<pre><code>aws cloudformation create-stack \
+  --stack-name Lab \
+  --template-body file://task1.yaml \
+  --capabilities CAPABILITY_NAMED_IAM \
+  --region us-west-2
+
+# Block until the stack reaches CREATE_COMPLETE
+aws cloudformation wait stack-create-complete \
+  --stack-name Lab --region us-west-2
+
+# Inspect the result
+aws cloudformation describe-stacks \
+  --stack-name Lab --region us-west-2 \
+  --query 'Stacks[0].{Status:StackStatus,Outputs:Outputs}'</code></pre>
+            </div>
+          </article>
+
+          <article class="step">
+            <div class="step-num" style="font-size:0.85rem;">diff</div>
+            <div>
+              <h3>Preview an update via change set (Tasks 2 &amp; 3)</h3>
+<pre><code># Create a change set against the running stack
+aws cloudformation create-change-set \
+  --stack-name Lab \
+  --change-set-name add-s3-bucket \
+  --template-body file://task2.yaml \
+  --capabilities CAPABILITY_NAMED_IAM \
+  --region us-west-2
+
+# Inspect what will change before applying
+aws cloudformation describe-change-set \
+  --stack-name Lab \
+  --change-set-name add-s3-bucket \
+  --region us-west-2 \
+  --query 'Changes[*].ResourceChange.{Action:Action,Logical:LogicalResourceId,Type:ResourceType}'
+
+# Apply the change set
+aws cloudformation execute-change-set \
+  --stack-name Lab \
+  --change-set-name add-s3-bucket \
+  --region us-west-2
+
+aws cloudformation wait stack-update-complete \
+  --stack-name Lab --region us-west-2</code></pre>
+            </div>
+          </article>
+
+          <article class="step">
+            <div class="step-num" style="font-size:0.85rem;">events</div>
+            <div>
+              <h3>Watch the lifecycle in real time</h3>
+<pre><code># Stream the most recent stack events (timestamps + resource status)
+aws cloudformation describe-stack-events \
+  --stack-name Lab --region us-west-2 \
+  --query 'StackEvents[*].{T:Timestamp,Status:ResourceStatus,Logical:LogicalResourceId,Reason:ResourceStatusReason}' \
+  --output table
+
+# List resources currently managed by the stack
+aws cloudformation list-stack-resources \
+  --stack-name Lab --region us-west-2 \
+  --output table</code></pre>
+            </div>
+          </article>
+
+          <article class="step">
+            <div class="step-num" style="font-size:0.85rem;">delete</div>
+            <div>
+              <h3>Tear down the stack (Task 4)</h3>
+<pre><code>aws cloudformation delete-stack \
+  --stack-name Lab --region us-west-2
+
+aws cloudformation wait stack-delete-complete \
+  --stack-name Lab --region us-west-2
+
+# Confirm the stack is gone (DELETE_COMPLETE stacks are filtered out by default)
+aws cloudformation list-stacks \
+  --region us-west-2 \
+  --stack-status-filter CREATE_COMPLETE UPDATE_COMPLETE \
+  --query 'StackSummaries[?StackName==`Lab`]'</code></pre>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="learnings">
+      <div class="container">
+        <h2 class="section-title">Key Learnings</h2>
+        <div class="grid-2">
+          <div class="card">
+            <h3>What Was Actually Learned</h3>
+            <div class="checklist">
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>How to structure a CloudFormation template into <strong>Parameters</strong>,
+                  <strong>Resources</strong>, and <strong>Outputs</strong>.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>How a <strong>change set</strong> previews a stack update before it touches any live
+                  resource.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>Use <code>AWS::SSM::Parameter::Value&lt;…&gt;</code> to make a template region-agnostic
+                  by resolving the AMI at deploy time.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>Cross-reference resources within a template using <code>!Ref</code>; CloudFormation
+                  derives the dependency order from the references.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div><code>SecurityGroupIds</code> is a YAML <em>list</em> — even a single SG must use the
+                  hyphen syntax.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>Stack deletion is the inverse of creation: CloudFormation removes resources in
+                  reverse dependency order automatically.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Technical Conclusion</h3>
+            <p>
+              CloudFormation closes the gap between a manually-clicked AWS console and a reproducible,
+              versionable deployment. The same YAML file that built this lab can be committed to a git
+              repository, peer-reviewed, deployed into multiple regions, and deleted on demand —
+              identically each time.
+            </p>
+            <p style="margin-top: 1rem;">
+              The two non-obvious primitives are <strong>change sets</strong> (a declarative dry run before
+              any change is applied) and <strong>SSM Parameter references</strong> (which decouple
+              region-specific data from the template itself). Together they make stacks safe to update in
+              production and portable across regions.
+            </p>
+            <p style="margin-top: 1rem;">
+              The <em>Optional</em> verification steps (browsing the VPC, S3, and EC2 consoles after each
+              task) were not performed — the Resources tab inside the CloudFormation console already lists
+              every managed object with its physical ID and link.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      Lab report documenting the Automating Deployments with AWS CloudFormation lab · AWS re/Start Program
+    </div>
+  </footer>
+</body>
+
+</html>

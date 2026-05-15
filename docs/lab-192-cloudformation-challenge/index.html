@@ -1,0 +1,1080 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lab Report: CloudFormation Challenge — VPC + EC2 in Private Subnet</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --bg-soft: #111827;
+      --card: rgba(255, 255, 255, 0.08);
+      --card-strong: rgba(255, 255, 255, 0.12);
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --accent: #ff9900;
+      --accent-2: #38bdf8;
+      --ok: #22c55e;
+      --warn: #f59e0b;
+      --danger: #ef4444;
+      --border: rgba(255, 255, 255, 0.12);
+      --shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+      --radius: 22px;
+      --max: 1120px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(255, 153, 0, 0.16), transparent 28%),
+        radial-gradient(circle at top right, rgba(56, 189, 248, 0.14), transparent 24%),
+        linear-gradient(180deg, #020617 0%, #0f172a 48%, #111827 100%);
+      color: var(--text);
+      line-height: 1.65;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    .container {
+      width: min(var(--max), calc(100% - 2rem));
+      margin: 0 auto;
+    }
+
+    /* ── Nav ── */
+    .nav {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      backdrop-filter: blur(16px);
+      background: rgba(2, 6, 23, 0.72);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .nav-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.9rem 0;
+      gap: 1rem;
+    }
+
+    .brand {
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+    }
+
+    .brand-badge {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, var(--accent), #ffb84d);
+      color: #111827;
+      font-weight: 900;
+      box-shadow: var(--shadow);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .nav-links a:hover { color: var(--text); }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      color: var(--muted);
+      font-size: 0.9rem;
+      transition: color 0.2s;
+    }
+
+    .back-link:hover { color: var(--accent); }
+
+    /* ── Hero ── */
+    .hero { padding: 4.8rem 0 2rem; }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 1.5rem;
+      align-items: stretch;
+    }
+
+    .panel {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.05));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .hero-main { padding: 2rem; }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.45rem 0.8rem;
+      border-radius: 999px;
+      background: rgba(255, 153, 0, 0.12);
+      color: #ffd28a;
+      border: 1px solid rgba(255, 153, 0, 0.25);
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+    }
+
+    h1, h2, h3 {
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+      margin: 0;
+    }
+
+    h1 {
+      font-size: clamp(2rem, 4vw, 3.7rem);
+      margin-bottom: 0.9rem;
+    }
+
+    .hero-main p {
+      margin: 0;
+      color: #cbd5e1;
+      font-size: 1.05rem;
+      max-width: 65ch;
+    }
+
+    .hero-side {
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .hero-side .callout {
+      padding: 1rem 1.1rem;
+      border-radius: 18px;
+      border: 1px solid rgba(56, 189, 248, 0.18);
+      background: rgba(56, 189, 248, 0.08);
+    }
+
+    .hero-side .callout strong {
+      display: block;
+      margin-bottom: 0.35rem;
+    }
+
+    .tech-stack {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.55rem;
+    }
+
+    .chip {
+      padding: 0.45rem 0.75rem;
+      border-radius: 999px;
+      font-size: 0.88rem;
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #dbeafe;
+    }
+
+    .small { font-size: 0.92rem; color: var(--muted); }
+
+    /* ── Sections ── */
+    section { padding: 1rem 0 0.4rem; }
+
+    .section-title {
+      margin-bottom: 1rem;
+      font-size: clamp(1.5rem, 2vw, 2.2rem);
+    }
+
+    .section-subtitle {
+      color: var(--muted);
+      margin-top: 0.45rem;
+      max-width: 75ch;
+    }
+
+    /* ── Grids ── */
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .card {
+      padding: 1.3rem;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+    }
+
+    .card h3 {
+      font-size: 1.05rem;
+      margin-bottom: 0.6rem;
+    }
+
+    .card p { margin: 0; color: #cbd5e1; }
+
+    /* ── Timeline ── */
+    .timeline {
+      display: grid;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .step {
+      display: grid;
+      grid-template-columns: 90px 1fr;
+      gap: 1rem;
+      align-items: start;
+      padding: 1.25rem;
+      border-radius: 22px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: var(--shadow);
+    }
+
+    .step-num {
+      width: 72px;
+      height: 72px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, rgba(255, 153, 0, 0.18), rgba(56, 189, 248, 0.18));
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      display: grid;
+      place-items: center;
+      font-size: 1.1rem;
+      font-weight: 900;
+      color: #fff;
+    }
+
+    .step h3 {
+      margin-bottom: 0.55rem;
+      font-size: 1.2rem;
+    }
+
+    .step ul {
+      margin: 0.3rem 0 0;
+      padding-left: 1.1rem;
+      color: #dbe4f0;
+    }
+
+    .step li + li { margin-top: 0.4rem; }
+
+    .highlight { color: #ffd28a; font-weight: 700; }
+
+    /* ── Screenshots ── */
+    .screenshot-gallery {
+      display: grid;
+      gap: 0.8rem;
+      margin-top: 1rem;
+    }
+
+    .screenshot-gallery.cols-2 { grid-template-columns: repeat(2, 1fr); }
+
+    .screenshot-fig {
+      margin: 0;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(2, 6, 23, 0.5);
+    }
+
+    .screenshot-fig img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .screenshot-fig figcaption {
+      padding: 0.6rem 0.8rem;
+      color: var(--muted);
+      font-size: 0.84rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    /* ── Callouts ── */
+    .insight {
+      padding: 1.15rem 1.2rem;
+      border-left: 4px solid var(--accent);
+      border-radius: 16px;
+      background: rgba(255, 153, 0, 0.08);
+      color: #fde7c2;
+    }
+
+    .info {
+      border-left-color: var(--accent-2);
+      background: rgba(56, 189, 248, 0.08);
+      color: #d8f3ff;
+    }
+
+    .insight.ok {
+      border-left-color: var(--ok);
+      background: rgba(34, 197, 94, 0.08);
+      color: #d1fae5;
+    }
+
+    /* ── Checklist ── */
+    .checklist {
+      display: grid;
+      gap: 0.7rem;
+      margin-top: 1rem;
+    }
+
+    .check {
+      display: flex;
+      gap: 0.75rem;
+      align-items: flex-start;
+      padding: 0.9rem 1rem;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+    }
+
+    .check-mark {
+      flex: 0 0 auto;
+      width: 28px;
+      height: 28px;
+      display: grid;
+      place-items: center;
+      border-radius: 999px;
+      background: rgba(34, 197, 94, 0.15);
+      color: #86efac;
+      font-weight: 800;
+    }
+
+    /* ── Code ── */
+    code {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 0.15rem 0.4rem;
+      border-radius: 6px;
+      font-size: 0.9em;
+      font-family: "Cascadia Code", "Fira Code", monospace;
+    }
+
+    /* ── Code Display ── */
+    .code-block-wrapper {
+      margin: 1.2rem 0;
+      background: #020617;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .code-header {
+      background: rgba(255, 255, 255, 0.06);
+      padding: 0.5rem 1rem;
+      font-size: 0.85rem;
+      color: var(--muted);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      font-family: monospace;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .code-header .tag {
+      font-size: 0.72rem;
+      padding: 0.15rem 0.5rem;
+      border-radius: 999px;
+      background: rgba(56, 189, 248, 0.15);
+      color: #7dd3fc;
+      border: 1px solid rgba(56, 189, 248, 0.2);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .code-block {
+      padding: 1.2rem;
+      margin: 0;
+      overflow-x: auto;
+      color: #e2e8f0;
+      font-family: "Cascadia Code", "Fira Code", monospace;
+      font-size: 0.88rem;
+      line-height: 1.55;
+      white-space: pre;
+    }
+
+    .code-block.tall { max-height: 560px; overflow-y: auto; }
+
+    /* ── Data tables ── */
+    .data-table-wrap {
+      overflow-x: auto;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 14px;
+      background: rgba(2, 6, 23, 0.45);
+      margin-top: 1rem;
+    }
+
+    table.data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+      min-width: 640px;
+    }
+
+    table.data-table th {
+      text-align: left;
+      padding: 0.75rem 1rem;
+      background: rgba(255, 255, 255, 0.06);
+      color: #cbd5e1;
+      font-weight: 700;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      letter-spacing: 0.02em;
+      font-size: 0.82rem;
+      text-transform: uppercase;
+    }
+
+    table.data-table td {
+      padding: 0.7rem 1rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      color: #e2e8f0;
+      font-family: "Cascadia Code", "Fira Code", monospace;
+      font-size: 0.85rem;
+      vertical-align: top;
+    }
+
+    table.data-table tbody tr:hover { background: rgba(255, 255, 255, 0.03); }
+
+    .badge-ok {
+      display: inline-block;
+      padding: 0.15rem 0.55rem;
+      border-radius: 999px;
+      background: rgba(34, 197, 94, 0.15);
+      color: #86efac;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      font-family: "Cascadia Code", "Fira Code", monospace;
+    }
+
+    .badge-none {
+      display: inline-block;
+      padding: 0.15rem 0.55rem;
+      border-radius: 999px;
+      background: rgba(239, 68, 68, 0.12);
+      color: #fca5a5;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      font-family: "Cascadia Code", "Fira Code", monospace;
+    }
+
+    /* ── Footer ── */
+    .footer {
+      padding: 2.2rem 0 3.5rem;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 920px) {
+      .hero-grid,
+      .grid-3,
+      .grid-2,
+      .screenshot-gallery.cols-2 {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 680px) {
+      .nav-inner {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .step { grid-template-columns: 1fr; }
+      .step-num { width: 60px; height: 60px; border-radius: 16px; }
+    }
+  </style>
+</head>
+
+<body>
+  <nav class="nav">
+    <div class="container nav-inner">
+      <div class="brand">
+        <div class="brand-badge">AWS</div>
+        <div>Lab Report · CloudFormation</div>
+      </div>
+      <div class="nav-links">
+        <a href="../index.html" class="back-link">← All Labs</a>
+        <a href="#summary">Summary</a>
+        <a href="#template">Template</a>
+        <a href="#deploy">Deploy</a>
+        <a href="#verify">Verification</a>
+        <a href="#learnings">Learnings</a>
+      </div>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <div class="container hero-grid">
+      <div class="panel hero-main">
+        <div class="eyebrow">AWS re/Start Challenge · Infrastructure as Code</div>
+        <h1>CloudFormation Challenge — VPC + EC2 in Private Subnet</h1>
+        <p>
+          Challenge lab without guided steps. A single CloudFormation YAML template provisions a complete
+          network stack: VPC, internet gateway, private subnet, route table, security group, and a
+          <code>t3.micro</code> EC2 instance launched without a public IP. The full deployment is driven
+          from the AWS CLI.
+        </p>
+      </div>
+
+      <aside class="panel hero-side">
+        <div class="callout">
+          <strong>Lab Objective</strong>
+          Build and deploy a CloudFormation template that creates a VPC with an internet gateway, a private
+          subnet, a security group, and a private EC2 instance — all in a single stack.
+        </div>
+
+        <div>
+          <div class="small" style="margin-bottom:0.7rem;">Tools &amp; Concepts</div>
+          <div class="tech-stack">
+            <span class="chip">CloudFormation</span>
+            <span class="chip">VPC</span>
+            <span class="chip">EC2 t3.micro</span>
+            <span class="chip">SSM Parameter Store</span>
+            <span class="chip">AWS CLI</span>
+            <span class="chip">JMESPath</span>
+          </div>
+        </div>
+
+        <div class="callout" style="border-color: rgba(34,197,94,0.2); background: rgba(34,197,94,0.08);">
+          <strong>Key Insight</strong>
+          Attaching an Internet Gateway to a VPC does not expose subnets. Without a route from the subnet's
+          route table to the IGW, the subnet remains private — which is exactly what the challenge requires.
+        </div>
+      </aside>
+    </div>
+  </header>
+
+  <main>
+    <section id="summary">
+      <div class="container">
+        <h2 class="section-title">Lab Summary</h2>
+        <p class="section-subtitle">
+          A challenge lab: the manual lists the required components and the constraint
+          (<span class="highlight">EC2 in a private subnet, no SSH access needed</span>), but it does not
+          dictate how to build the template. The full solution lives in one YAML file deployed via
+          <code>aws cloudformation create-stack</code>.
+        </p>
+
+        <div class="grid-3" style="margin-top:1rem;">
+          <article class="card">
+            <h3>Single Template</h3>
+            <p>One YAML file declares 8 resources (VPC, IGW, attachment, subnet, route table, association,
+              security group, EC2) plus 5 outputs.</p>
+          </article>
+          <article class="card">
+            <h3>Stack Region &amp; Name</h3>
+            <p>Deployed to <code>us-west-2</code> as stack <code>final-cfn-lab</code>. Final status:
+              <span class="badge-ok">CREATE_COMPLETE</span>.</p>
+          </article>
+          <article class="card">
+            <h3>Private by Design</h3>
+            <p>The EC2 launched with <code>PublicIpAddress: None</code> — proving the private subnet
+              constraint is satisfied.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="template">
+      <div class="container">
+        <h2 class="section-title">The CloudFormation Template</h2>
+        <p class="section-subtitle">
+          One YAML file describes the full stack. Each block below is explained by its purpose, not
+          line by line — CloudFormation reads top to bottom and CloudFormation alone decides the order
+          based on the dependency graph (<code>!Ref</code>, <code>DependsOn</code>).
+        </p>
+
+        <div class="code-block-wrapper">
+          <div class="code-header">
+            <span>task1.yaml</span>
+            <span class="tag">YAML</span>
+          </div>
+          <pre class="code-block tall"><code>AWSTemplateFormatVersion: '2010-09-09'
+Description: CloudFormation template to create a VPC, internet gateway, private subnet, security group, and EC2 instance.
+
+Parameters:
+  LatestAmiId:
+    Type: AWS::SSM::Parameter::Value&lt;AWS::EC2::Image::Id&gt;
+    Default: /aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2
+
+Resources:
+  LabVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.10.0.0/16
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: LabVPC
+
+  LabInternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: LabInternetGateway
+
+  AttachGateway:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref LabVPC
+      InternetGatewayId: !Ref LabInternetGateway
+
+  PrivateSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref LabVPC
+      CidrBlock: 10.10.1.0/24
+      AvailabilityZone: !Select [0, !GetAZs '']
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: PrivateSubnet
+
+  PrivateRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref LabVPC
+      Tags:
+        - Key: Name
+          Value: PrivateRouteTable
+
+  PrivateSubnetRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PrivateSubnet
+      RouteTableId: !Ref PrivateRouteTable
+
+  WebServerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow SSH access from anywhere
+      VpcId: !Ref LabVPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: WebServerSecurityGroup
+
+  PrivateEC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t3.micro
+      ImageId: !Ref LatestAmiId
+      SubnetId: !Ref PrivateSubnet
+      SecurityGroupIds:
+        - !Ref WebServerSecurityGroup
+      Tags:
+        - Key: Name
+          Value: PrivateEC2Instance
+
+Outputs:
+  VPCId:
+    Description: Created VPC ID
+    Value: !Ref LabVPC
+  InternetGatewayId:
+    Description: Created internet gateway ID
+    Value: !Ref LabInternetGateway
+  PrivateSubnetId:
+    Description: Created private subnet ID
+    Value: !Ref PrivateSubnet
+  SecurityGroupId:
+    Description: Created security group ID
+    Value: !Ref WebServerSecurityGroup
+  EC2InstanceId:
+    Description: Created EC2 instance ID
+    Value: !Ref PrivateEC2Instance
+</code></pre>
+        </div>
+
+        <h3 style="margin-top:1.6rem; font-size:1.2rem;">How the template breaks down</h3>
+
+        <div class="grid-2" style="margin-top:0.8rem;">
+          <article class="card">
+            <h3>Parameters → LatestAmiId</h3>
+            <p>
+              Uses the special type <code>AWS::SSM::Parameter::Value&lt;AWS::EC2::Image::Id&gt;</code> to read
+              the latest Amazon Linux 2 AMI ID from SSM Parameter Store. This avoids hardcoding AMI IDs that
+              change every few weeks and break the template across regions.
+            </p>
+          </article>
+
+          <article class="card">
+            <h3>LabVPC</h3>
+            <p>
+              VPC with CIDR <code>10.10.0.0/16</code>. <code>EnableDnsHostnames: true</code> is required so
+              EC2 instances inside the VPC can receive DNS names — useful even when no public IP is assigned,
+              since AWS internal services rely on internal DNS.
+            </p>
+          </article>
+
+          <article class="card">
+            <h3>LabInternetGateway + AttachGateway</h3>
+            <p>
+              The IGW is declared as a standalone resource, then attached to the VPC through a separate
+              <code>AWS::EC2::VPCGatewayAttachment</code>. This is the canonical pattern — declaring and
+              attaching are two distinct CloudFormation resources, which lets you detach without deleting
+              the gateway.
+            </p>
+          </article>
+
+          <article class="card">
+            <h3>PrivateSubnet</h3>
+            <p>
+              CIDR <code>10.10.1.0/24</code> placed in the first AZ via
+              <code>!Select [0, !GetAZs '']</code> (portable across regions).
+              <code>MapPublicIpOnLaunch: false</code> guarantees instances launched here do not get a public
+              IP automatically — the first half of the "private" guarantee.
+            </p>
+          </article>
+
+          <article class="card">
+            <h3>PrivateRouteTable + Association</h3>
+            <p>
+              An empty route table is created and associated with the subnet. Crucially, <strong>no route
+              to the IGW is added</strong>. This is the second half of the "private" guarantee: even though
+              the IGW exists in the VPC, this subnet's traffic has no path to it.
+            </p>
+          </article>
+
+          <article class="card">
+            <h3>WebServerSecurityGroup</h3>
+            <p>
+              Allows inbound SSH (port 22) from <code>0.0.0.0/0</code>. The lab guide requires this rule even
+              though the EC2 cannot be reached from the internet (no public IP, no IGW route). The SG is
+              created as the declared posture, not as an actual access path.
+            </p>
+          </article>
+
+          <article class="card">
+            <h3>PrivateEC2Instance</h3>
+            <p>
+              <code>t3.micro</code> launched into <code>PrivateSubnet</code> with the SG attached.
+              <code>ImageId</code> resolves through the SSM parameter — the user never sees the AMI ID, AWS
+              substitutes the latest one at stack-create time.
+            </p>
+          </article>
+
+          <article class="card">
+            <h3>Outputs</h3>
+            <p>
+              Five IDs exported: VPC, IGW, subnet, security group, and EC2 instance. These show up under
+              <strong>Outputs</strong> in the console and can be referenced from other stacks via
+              <code>!ImportValue</code> if exports were declared.
+            </p>
+          </article>
+        </div>
+
+        <div class="insight info" style="margin-top:1.2rem;">
+          <strong>Why this is genuinely a private subnet:</strong> AWS classifies a subnet as private not by
+          a checkbox but by its <em>route table</em>. The IGW exists and is attached to the VPC, but
+          <code>PrivateRouteTable</code> has zero routes pointing to it. Therefore traffic from the EC2
+          cannot reach <code>0.0.0.0/0</code> through the gateway. Adding a route
+          <code>0.0.0.0/0 → LabInternetGateway</code> would instantly convert this into a public subnet.
+        </div>
+      </div>
+    </section>
+
+    <section id="deploy">
+      <div class="container">
+        <h2 class="section-title">Deploy from the AWS CLI</h2>
+        <p class="section-subtitle">
+          Everything runs from the terminal — no console clicks. Validation first, then create, then wait
+          for completion before checking results.
+        </p>
+
+        <div class="timeline">
+
+          <article class="step">
+            <div class="step-num">01</div>
+            <div>
+              <h3>Validate the template</h3>
+              <p>Catch syntax errors before paying for any resource. <code>validate-template</code>
+                parses the file and checks YAML well-formedness plus basic property names.</p>
+              <div class="code-block-wrapper">
+                <div class="code-header">
+                  <span>terminal</span>
+                  <span class="tag">CLI</span>
+                </div>
+                <pre class="code-block"><code>aws cloudformation validate-template \
+  --template-body file://task1.yaml</code></pre>
+              </div>
+            </div>
+          </article>
+
+          <article class="step">
+            <div class="step-num">02</div>
+            <div>
+              <h3>Create the stack</h3>
+              <p>One command triggers the entire provisioning pipeline. CloudFormation returns the stack
+                ARN immediately and works in the background.</p>
+              <div class="code-block-wrapper">
+                <div class="code-header">
+                  <span>terminal</span>
+                  <span class="tag">CLI</span>
+                </div>
+                <pre class="code-block"><code>aws cloudformation create-stack \
+  --stack-name final-cfn-lab \
+  --template-body file://task1.yaml</code></pre>
+              </div>
+              <p style="margin-top:0.8rem;">Returned StackId:</p>
+              <div class="code-block-wrapper">
+                <div class="code-header">
+                  <span>output</span>
+                  <span class="tag">ARN</span>
+                </div>
+                <pre class="code-block"><code>arn:aws:cloudformation:us-west-2:265659577547:stack/final-cfn-lab/cecf07c0-5056-11f1-b1f2-069c60ff0039</code></pre>
+              </div>
+            </div>
+          </article>
+
+          <article class="step">
+            <div class="step-num">03</div>
+            <div>
+              <h3>Wait until creation completes</h3>
+              <p><code>wait</code> blocks the terminal and polls every few seconds until the stack reaches
+                a terminal state. Exits cleanly on <code>CREATE_COMPLETE</code>; exits with an error on any
+                rollback state.</p>
+              <div class="code-block-wrapper">
+                <div class="code-header">
+                  <span>terminal</span>
+                  <span class="tag">CLI</span>
+                </div>
+                <pre class="code-block"><code>aws cloudformation wait stack-create-complete \
+  --stack-name final-cfn-lab</code></pre>
+              </div>
+              <p style="margin-top:0.8rem;">Final status:
+                <span class="badge-ok">CREATE_COMPLETE</span></p>
+            </div>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+    <section id="verify">
+      <div class="container">
+        <h2 class="section-title">Verification of Resources</h2>
+        <p class="section-subtitle">
+          Two CLI queries to prove the stack delivered what the challenge asked for: <strong>all 8 resources
+          created</strong> and <strong>the EC2 actually launched without a public IP</strong>. The
+          <code>--query</code> flag uses JMESPath to project the relevant columns and <code>--output
+          table</code> renders them readably in the terminal.
+        </p>
+
+        <h3 style="margin-top:1.4rem; font-size:1.15rem;">3.1 — List the stack resources</h3>
+
+        <div class="code-block-wrapper">
+          <div class="code-header">
+            <span>terminal</span>
+            <span class="tag">CLI</span>
+          </div>
+          <pre class="code-block"><code>aws cloudformation describe-stack-resources \
+  --stack-name final-cfn-lab \
+  --query 'StackResources[*].[LogicalResourceId,ResourceType,ResourceStatus,PhysicalResourceId]' \
+  --output table</code></pre>
+        </div>
+
+        <div class="data-table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Logical ID</th>
+                <th>Resource Type</th>
+                <th>Status</th>
+                <th>Physical ID</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>LabVPC</td>
+                <td>AWS::EC2::VPC</td>
+                <td><span class="badge-ok">CREATE_COMPLETE</span></td>
+                <td>vpc-0bdfe206b49918e46</td>
+              </tr>
+              <tr>
+                <td>LabInternetGateway</td>
+                <td>AWS::EC2::InternetGateway</td>
+                <td><span class="badge-ok">CREATE_COMPLETE</span></td>
+                <td>igw-001ee7239d384ade4</td>
+              </tr>
+              <tr>
+                <td>AttachGateway</td>
+                <td>AWS::EC2::VPCGatewayAttachment</td>
+                <td><span class="badge-ok">CREATE_COMPLETE</span></td>
+                <td>IGW|vpc-0bdfe206b49918e46</td>
+              </tr>
+              <tr>
+                <td>PrivateSubnet</td>
+                <td>AWS::EC2::Subnet</td>
+                <td><span class="badge-ok">CREATE_COMPLETE</span></td>
+                <td>subnet-0c7024e01b930fc87</td>
+              </tr>
+              <tr>
+                <td>PrivateRouteTable</td>
+                <td>AWS::EC2::RouteTable</td>
+                <td><span class="badge-ok">CREATE_COMPLETE</span></td>
+                <td>rtb-0c0175d2675c9e01f</td>
+              </tr>
+              <tr>
+                <td>PrivateSubnetRouteTableAssociation</td>
+                <td>AWS::EC2::SubnetRouteTableAssociation</td>
+                <td><span class="badge-ok">CREATE_COMPLETE</span></td>
+                <td>rtbassoc-0d8242c4721abdcaa</td>
+              </tr>
+              <tr>
+                <td>WebServerSecurityGroup</td>
+                <td>AWS::EC2::SecurityGroup</td>
+                <td><span class="badge-ok">CREATE_COMPLETE</span></td>
+                <td>sg-07bcc6de74a74e783</td>
+              </tr>
+              <tr>
+                <td>PrivateEC2Instance</td>
+                <td>AWS::EC2::Instance</td>
+                <td><span class="badge-ok">CREATE_COMPLETE</span></td>
+                <td>i-08597d72c3f7e54a6</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 style="margin-top:1.6rem; font-size:1.15rem;">3.2 — Inspect the EC2 instance</h3>
+
+        <p style="margin-top:0.5rem;">Filter by the instance tag and project only the fields needed to prove
+          the private placement.</p>
+
+        <div class="code-block-wrapper">
+          <div class="code-header">
+            <span>terminal</span>
+            <span class="tag">CLI</span>
+          </div>
+          <pre class="code-block"><code>aws ec2 describe-instances \
+  --filters "Name=tag:Name,Values=PrivateEC2Instance" \
+  --query 'Reservations[*].Instances[*].[InstanceId,InstanceType,SubnetId,PublicIpAddress,State.Name]' \
+  --output table</code></pre>
+        </div>
+
+        <div class="data-table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>InstanceId</th>
+                <th>InstanceType</th>
+                <th>SubnetId</th>
+                <th>PublicIpAddress</th>
+                <th>State</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>i-08597d72c3f7e54a6</td>
+                <td>t3.micro</td>
+                <td>subnet-0c7024e01b930fc87</td>
+                <td><span class="badge-none">None</span></td>
+                <td><span class="badge-ok">running</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="insight ok" style="margin-top:1.2rem;">
+          <strong>Challenge satisfied.</strong> <code>PublicIpAddress: None</code> confirms the instance
+          launched without a public IP. The subnet ID matches the one created by the stack, and the state
+          is <code>running</code> — the template delivered a working, private EC2 in a single deploy.
+        </div>
+
+        <div class="screenshot-gallery" style="margin-top:1.4rem;">
+          <figure class="screenshot-fig">
+            <img src="assets/screenshots/01-stack-resources-and-instance.png"
+                 alt="Terminal output: describe-stack-resources and describe-instances showing all 8 resources CREATE_COMPLETE and the EC2 with PublicIpAddress None"
+                 loading="lazy" />
+            <figcaption>Terminal evidence: both queries side by side — the 8 stack resources and the private EC2 with PublicIpAddress = None.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section id="learnings">
+      <div class="container">
+        <h2 class="section-title">Key Learnings</h2>
+        <div class="grid-2">
+          <div class="card">
+            <h3>What Was Actually Learned</h3>
+            <div class="checklist">
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>How to declare an entire VPC + EC2 stack in a single CloudFormation YAML and deploy it from the CLI.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>The <strong>private subnet</strong> property comes from the <strong>route table</strong>, not the IGW's presence.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>Using <code>AWS::SSM::Parameter::Value&lt;AWS::EC2::Image::Id&gt;</code> to dynamically resolve the latest AMI.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>Using <code>--query</code> with JMESPath and <code>--output table</code> to project specific columns from AWS API responses.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>The <code>wait</code> subcommand turns asynchronous stack creation into a blocking, scriptable operation.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Technical Conclusion</h3>
+            <p>
+              The challenge had no step-by-step guide — only a list of required components and one
+              constraint. Writing one YAML template that produces the entire infrastructure, then driving
+              the deploy from the CLI, demonstrates the actual Infrastructure as Code mindset: describe
+              the desired state once, let CloudFormation resolve the dependency graph, and verify with
+              queries instead of console clicks.
+            </p>
+            <p style="margin-top: 1rem;">
+              The most useful nuance was realizing that an IGW attached to a VPC is harmless on its own.
+              Subnets become public only when their route table points <code>0.0.0.0/0</code> at the
+              gateway — a single missing route is the difference between a private workload and a
+              publicly reachable one.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      Lab report documenting the AWS CloudFormation Challenge Lab · AWS re/Start Program
+    </div>
+  </footer>
+</body>
+
+</html>
