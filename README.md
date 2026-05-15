@@ -80,30 +80,30 @@ Technical documentation of hands-on labs completed during the **AWS re/Start** p
 
 | #   | Lab                                                          | Status    |
 |-----|--------------------------------------------------------------|-----------|
-| 169 | AWS Systems Manager                                          | Completed |
-| 170 | Creating a Website on S3                                     | Completed |
-| 171 | Creating EC2 Instances (Console + CLI)                       | Completed |
-| 172 | EC2 Instances Challenge — Custom VPC                         | Completed |
-| 173 | Troubleshooting EC2 LAMP with AWS CLI                        | Completed |
-| 174 | Scaling and Load Balancing                                   | Completed |
-| 175 | Auto Scaling with a Custom AMI                               | Completed |
-| 176 | Route 53 Failover Routing                                    | Completed |
-| 177 | Lambda Word Count Challenge                                  | Completed |
-| 178 | Lambda Sales Analysis Report                                 | Completed |
-| 179 | Migrating to Amazon RDS MariaDB                              | Completed |
-| 180 | VPC with Bastion and NAT Gateway                             | Completed |
-| 181 | Troubleshooting a VPC with Flow Logs                         | Completed |
-| 182 | Working with Amazon EBS                                      | Completed |
-| 183 | Managing Storage: EBS Snapshots & S3 Versioning              | Completed |
-| 184 | S3 Challenge from CLI                                        | Completed |
-| 185 | S3 File Sharing with IAM and SNS                             | Completed |
-| 186 | Monitoring with CloudWatch Agent and AWS Config              | Completed |
-| 187 | CloudTrail Incident Response                                 | Completed |
-| 188 | EC2 Tags + JMESPath + Scripts                                | Completed |
-| 189 | [JAWS] Optimizar la utilización                              | Pending   |
-| 190 | [JAWS] Automatización de implementaciones con CloudFormation | Pending   |
-| 191 | [JAWS] Café Lab de resolución de problemas en CloudFormation | Pending   |
-| 192 | [JAWS] Desafío de CloudFormation                             | Pending   |
+| 169 | [JAWS] AWS Systems Manager                                   | Completed |
+| 170 | [JAWS] Creating a Website on S3                              | Completed |
+| 171 | [JAWS] Creating EC2 Instances (Console + CLI)                | Completed |
+| 172 | [JAWS] EC2 Instances Challenge — Custom VPC                  | Completed |
+| 173 | [JAWS] Troubleshooting EC2 LAMP with AWS CLI                 | Completed |
+| 174 | [JAWS] Scaling and Load Balancing                            | Completed |
+| 175 | [JAWS] Auto Scaling with a Custom AMI                        | Completed |
+| 176 | [JAWS] Route 53 Failover Routing                             | Completed |
+| 177 | [JAWS] Lambda Word Count Challenge                           | Completed |
+| 178 | [JAWS] Lambda Sales Analysis Report                          | Completed |
+| 179 | [JAWS] Migrating to Amazon RDS MariaDB                       | Completed |
+| 180 | [JAWS] VPC with Bastion and NAT Gateway                      | Completed |
+| 181 | [JAWS] Troubleshooting a VPC with Flow Logs                  | Completed |
+| 182 | [JAWS] Working with Amazon EBS                               | Completed |
+| 183 | [JAWS] Managing Storage: EBS Snapshots & S3 Versioning       | Completed |
+| 184 | [JAWS] S3 Challenge from CLI                                 | Completed |
+| 185 | [JAWS] S3 File Sharing with IAM and SNS                      | Completed |
+| 186 | [JAWS] Monitoring with CloudWatch Agent and AWS Config       | Completed |
+| 187 | [JAWS] CloudTrail Incident Response                          | Completed |
+| 188 | [JAWS] EC2 Tags + JMESPath + Scripts                         | Completed |
+| 189 | [JAWS] Optimize Resource Utilization                         | Upcoming  |
+| 190 | [JAWS] Automating Deployments with AWS CloudFormation        | Upcoming  |
+| 191 | [JAWS] Café Lab — Troubleshooting CloudFormation Deployments | Upcoming  |
+| 192 | [JAWS] CloudFormation Challenge                              | Upcoming  |
 
 ---
 
