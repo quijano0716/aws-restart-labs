@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lab Report: Working with Amazon S3 — File Sharing with IAM &amp; SNS</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --bg-soft: #111827;
+      --card: rgba(255, 255, 255, 0.08);
+      --card-strong: rgba(255, 255, 255, 0.12);
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --accent: #ff9900;
+      --accent-2: #38bdf8;
+      --ok: #22c55e;
+      --warn: #f59e0b;
+      --danger: #ef4444;
+      --border: rgba(255, 255, 255, 0.12);
+      --shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+      --radius: 22px;
+      --max: 1120px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(255, 153, 0, 0.16), transparent 28%),
+        radial-gradient(circle at top right, rgba(56, 189, 248, 0.14), transparent 24%),
+        linear-gradient(180deg, #020617 0%, #0f172a 48%, #111827 100%);
+      color: var(--text);
+      line-height: 1.65;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    .container {
+      width: min(var(--max), calc(100% - 2rem));
+      margin: 0 auto;
+    }
+
+    /* ── Nav ── */
+    .nav {
+      position: sticky; top: 0; z-index: 10;
+      backdrop-filter: blur(16px);
+      background: rgba(2, 6, 23, 0.72);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .nav-inner {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 0.9rem 0; gap: 1rem;
+    }
+    .brand {
+      font-weight: 800; letter-spacing: -0.02em;
+      display: flex; align-items: center; gap: 0.7rem;
+    }
+    .brand-badge {
+      width: 38px; height: 38px; border-radius: 12px;
+      display: grid; place-items: center;
+      background: linear-gradient(135deg, var(--accent), #ffb84d);
+      color: #111827; font-weight: 900; box-shadow: var(--shadow);
+    }
+    .nav-links {
+      display: flex; gap: 1rem; flex-wrap: wrap;
+      color: var(--muted); font-size: 0.95rem;
+    }
+    .nav-links a:hover { color: var(--text); }
+    .back-link {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      color: var(--muted); font-size: 0.9rem; transition: color 0.2s;
+    }
+    .back-link:hover { color: var(--accent); }
+
+    /* ── Hero ── */
+    .hero { padding: 4.8rem 0 2rem; }
+    .hero-grid {
+      display: grid; grid-template-columns: 1.2fr 0.8fr;
+      gap: 1.5rem; align-items: stretch;
+    }
+    .panel {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.05));
+      border: 1px solid var(--border); border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+    .hero-main { padding: 2rem; }
+    .eyebrow {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      padding: 0.45rem 0.8rem; border-radius: 999px;
+      background: rgba(255, 153, 0, 0.12); color: #ffd28a;
+      border: 1px solid rgba(255, 153, 0, 0.25);
+      font-size: 0.9rem; margin-bottom: 1rem;
+    }
+    h1, h2, h3 { line-height: 1.15; letter-spacing: -0.03em; margin: 0; }
+    h1 { font-size: clamp(2rem, 4vw, 3.7rem); margin-bottom: 0.9rem; }
+    .hero-main p { margin: 0; color: #cbd5e1; font-size: 1.05rem; max-width: 65ch; }
+    .hero-side {
+      padding: 1.5rem; display: flex; flex-direction: column;
+      justify-content: space-between; gap: 1rem;
+    }
+    .hero-side .callout {
+      padding: 1rem 1.1rem; border-radius: 18px;
+      border: 1px solid rgba(56, 189, 248, 0.18);
+      background: rgba(56, 189, 248, 0.08);
+    }
+    .hero-side .callout strong { display: block; margin-bottom: 0.35rem; }
+    .tech-stack { display: flex; flex-wrap: wrap; gap: 0.55rem; }
+    .chip {
+      padding: 0.45rem 0.75rem; border-radius: 999px;
+      font-size: 0.88rem;
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #dbeafe;
+    }
+    .small { font-size: 0.92rem; color: var(--muted); }
+
+    /* ── Sections ── */
+    section { padding: 1rem 0 0.4rem; }
+    .section-title { margin-bottom: 1rem; font-size: clamp(1.5rem, 2vw, 2.2rem); }
+    .section-subtitle { color: var(--muted); margin-top: 0.45rem; max-width: 75ch; }
+
+    /* ── Grids ── */
+    .grid-3 {
+      display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1rem;
+    }
+    .grid-2 {
+      display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+    }
+    .card {
+      padding: 1.3rem; background: var(--card);
+      border: 1px solid var(--border); border-radius: 20px;
+      box-shadow: var(--shadow);
+    }
+    .card h3 { font-size: 1.05rem; margin-bottom: 0.6rem; }
+    .card p { margin: 0; color: #cbd5e1; }
+
+    /* ── Timeline ── */
+    .timeline { display: grid; gap: 1rem; margin-top: 1rem; }
+    .step {
+      display: grid; grid-template-columns: 90px 1fr;
+      gap: 1rem; align-items: start;
+      padding: 1.25rem; border-radius: 22px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: var(--shadow);
+    }
+    .step-num {
+      width: 72px; height: 72px; border-radius: 20px;
+      background: linear-gradient(135deg, rgba(255, 153, 0, 0.18), rgba(56, 189, 248, 0.18));
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      display: grid; place-items: center;
+      font-size: 1.1rem; font-weight: 900; color: #fff;
+    }
+    .step h3 { margin-bottom: 0.55rem; font-size: 1.2rem; }
+    .step ul { margin: 0.3rem 0 0; padding-left: 1.1rem; color: #dbe4f0; }
+    .step li + li { margin-top: 0.4rem; }
+    .highlight { color: #ffd28a; font-weight: 700; }
+
+    /* ── Screenshots ── */
+    .screenshot-gallery { display: grid; gap: 0.8rem; margin-top: 1rem; }
+    .screenshot-gallery.cols-2 { grid-template-columns: repeat(2, 1fr); }
+    .screenshot-fig {
+      margin: 0; border-radius: 16px; overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(2, 6, 23, 0.5);
+    }
+    .screenshot-fig img { width: 100%; height: auto; display: block; }
+    .screenshot-fig figcaption {
+      padding: 0.6rem 0.8rem; color: var(--muted);
+      font-size: 0.84rem; border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    /* ── Callouts ── */
+    .insight {
+      padding: 1.15rem 1.2rem;
+      border-left: 4px solid var(--accent);
+      border-radius: 16px;
+      background: rgba(255, 153, 0, 0.08);
+      color: #fde7c2;
+    }
+    .info {
+      border-left-color: var(--accent-2);
+      background: rgba(56, 189, 248, 0.08);
+      color: #d8f3ff;
+    }
+    .warn-callout {
+      border-left-color: var(--warn);
+      background: rgba(245, 158, 11, 0.08);
+      color: #fde2a8;
+    }
+    .danger-callout {
+      border-left-color: var(--danger);
+      background: rgba(239, 68, 68, 0.08);
+      color: #fecaca;
+    }
+
+    /* ── Code ── */
+    code {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 0.15rem 0.4rem; border-radius: 6px;
+      font-size: 0.9em;
+      font-family: "Cascadia Code", "Fira Code", monospace;
+    }
+    pre { margin: 0.8rem 0 0; }
+    pre code {
+      display: block; padding: 1rem 1.2rem;
+      background: #020617; border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      overflow-x: auto; color: #e5e7eb;
+      font-size: 0.88rem; line-height: 1.55;
+      white-space: pre;
+    }
+    pre code .c { color: #94a3b8; }
+    pre code .k { color: #ff9900; }
+    pre code .s { color: #86efac; }
+
+    /* ── Tables ── */
+    table.lab-table {
+      width: 100%; border-collapse: collapse; margin-top: 1rem;
+      border-radius: 14px; overflow: hidden;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border);
+    }
+    table.lab-table th, table.lab-table td {
+      padding: 0.7rem 0.95rem; text-align: left;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+      font-size: 0.93rem; vertical-align: top;
+    }
+    table.lab-table th {
+      background: rgba(255, 153, 0, 0.08);
+      color: #ffd28a; font-weight: 700;
+      letter-spacing: 0.02em; text-transform: uppercase;
+      font-size: 0.78rem;
+    }
+    table.lab-table tr:last-child td { border-bottom: none; }
+    table.lab-table code { font-size: 0.85em; }
+
+    /* ── Wide image viewport ── */
+    .viewport-scrollable {
+      max-height: 560px; overflow: auto;
+      border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(2, 6, 23, 0.6);
+    }
+    .viewport-scrollable img {
+      display: block; max-width: none; width: auto; height: auto;
+    }
+    .viewport-fig { margin: 0; }
+    .viewport-fig figcaption {
+      padding: 0.55rem 0.85rem 0.1rem;
+      color: var(--muted); font-size: 0.83rem;
+    }
+
+    /* ── Flow diagram (architecture) ── */
+    .flow {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.6rem;
+      margin-top: 1rem;
+    }
+    .flow .step-box {
+      padding: 0.9rem 1rem;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      font-size: 0.88rem;
+    }
+    .flow .step-box strong {
+      display: block;
+      color: var(--accent-2);
+      margin-bottom: 0.25rem;
+      font-size: 0.82rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    /* ── Permission grid (Sid cards for IAM policy) ── */
+    .sid-card {
+      padding: 1rem 1.15rem;
+      border-radius: 16px;
+      background: rgba(34, 197, 94, 0.06);
+      border: 1px solid rgba(34, 197, 94, 0.2);
+      margin-top: 0.7rem;
+    }
+    .sid-card h4 {
+      margin: 0 0 0.45rem;
+      font-size: 0.92rem;
+      color: #86efac;
+      letter-spacing: 0.02em;
+    }
+    .sid-card p { margin: 0; color: #cbd5e1; font-size: 0.92rem; }
+    .sid-card code { font-size: 0.85em; }
+
+    /* ── Error card (Symptom → Cause → Lesson) ── */
+    .err-card {
+      padding: 1.1rem 1.2rem;
+      border-radius: 16px;
+      background: rgba(239, 68, 68, 0.06);
+      border: 1px solid rgba(239, 68, 68, 0.2);
+      margin-top: 0.8rem;
+    }
+    .err-card h4 {
+      margin: 0 0 0.5rem;
+      color: #fca5a5;
+      font-size: 1rem;
+    }
+    .err-card dl {
+      margin: 0;
+      display: grid;
+      grid-template-columns: 110px 1fr;
+      gap: 0.35rem 1rem;
+      font-size: 0.92rem;
+    }
+    .err-card dt {
+      color: var(--muted);
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding-top: 0.1rem;
+    }
+    .err-card dd { margin: 0; color: #fde7c2; }
+    .err-card .lesson {
+      margin-top: 0.55rem;
+      padding-top: 0.55rem;
+      border-top: 1px solid rgba(239, 68, 68, 0.15);
+      color: #fde7c2;
+      font-size: 0.9rem;
+    }
+
+    /* ── Footer ── */
+    .footer {
+      padding: 2.2rem 0 3.5rem;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 920px) {
+      .hero-grid, .grid-3, .grid-2,
+      .screenshot-gallery.cols-2 { grid-template-columns: 1fr; }
+      .flow { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 680px) {
+      .nav-inner { flex-direction: column; align-items: flex-start; }
+      .step { grid-template-columns: 1fr; }
+      .step-num { width: 60px; height: 60px; border-radius: 16px; }
+      .flow { grid-template-columns: 1fr; }
+      .err-card dl { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+
+<body>
+  <nav class="nav">
+    <div class="container nav-inner">
+      <div class="brand">
+        <div class="brand-badge">AWS</div>
+        <div>Lab Report · Storage &amp; Security</div>
+      </div>
+      <div class="nav-links">
+        <a href="../index.html" class="back-link">← All labs</a>
+        <a href="#summary">Summary</a>
+        <a href="#task1">Setup</a>
+        <a href="#task2">IAM</a>
+        <a href="#task3">Tests</a>
+        <a href="#task4">SNS</a>
+        <a href="#task5">E2E</a>
+        <a href="#errors">Errors</a>
+      </div>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <div class="container hero-grid">
+      <div class="panel hero-main">
+        <span class="eyebrow">Lab 185 · S3 · IAM · SNS</span>
+        <h1>Working with Amazon S3: File Sharing with IAM &amp; SNS</h1>
+        <p>
+          Three services wired together to share images with an external user: an S3 bucket
+          scoped to the <code>images/</code> prefix, an IAM group/policy that enforces least
+          privilege on <strong>mediacouser</strong>, and an SNS topic that emails the
+          administrator on every <code>ObjectCreated:*</code> and <code>ObjectRemoved:*</code>
+          event.
+        </p>
+      </div>
+
+      <aside class="panel hero-side">
+        <div class="callout">
+          <strong>Environment</strong>
+          Pre-provisioned CLI Host EC2 (Amazon Linux), pre-created <code>mediaco</code> IAM
+          group + <code>mediacouser</code>, three seed images in <code>~/initial-images/</code>,
+          one extra in <code>~/new-images/</code>.
+        </div>
+        <div class="tech-stack">
+          <span class="chip">Amazon S3</span>
+          <span class="chip">s3api CLI</span>
+          <span class="chip">IAM Policies</span>
+          <span class="chip">IAM Groups</span>
+          <span class="chip">Amazon SNS</span>
+          <span class="chip">Event Notifications</span>
+          <span class="chip">Least Privilege</span>
+        </div>
+        <p class="small">Estimated duration: ~90 min · Complexity: medium-high · Region: us-west-2</p>
+      </aside>
+    </div>
+  </header>
+
+  <main>
+    <section id="summary" class="container">
+      <h2 class="section-title">Summary &amp; architecture</h2>
+      <p class="section-subtitle">
+        The lab builds a small file-sharing system. An external user uploads or deletes
+        product images inside <code>cafe-23melo23/images/</code>. Every mutation triggers an
+        SNS notification that emails the admin. The interesting parts are <em>which</em>
+        events fire (created / removed only, not <code>get-object</code>) and <em>which</em>
+        operations the external user is denied (anything outside the prefix, anything that
+        changes ACLs or bucket-level metadata).
+      </p>
+
+      <div class="flow">
+        <div class="step-box">
+          <strong>1 · mediacouser</strong>
+          Console or CLI uploads/deletes in the <code>images/</code> prefix.
+        </div>
+        <div class="step-box">
+          <strong>2 · S3 bucket</strong>
+          Detects <code>ObjectCreated:*</code> / <code>ObjectRemoved:*</code> on prefix.
+        </div>
+        <div class="step-box">
+          <strong>3 · SNS topic</strong>
+          <code>s3NotificationTopic</code> receives the event JSON from S3.
+        </div>
+        <div class="step-box">
+          <strong>4 · Email</strong>
+          Subscribed admin gets the full <code>Records[]</code> payload.
+        </div>
+      </div>
+
+      <div class="grid-3" style="margin-top: 1.2rem;">
+        <div class="card">
+          <h3>S3 with prefix-scoped access</h3>
+          <p>
+            All <code>GetObject</code>/<code>PutObject</code>/<code>DeleteObject</code>
+            calls are restricted to <code>cafe-*/images/*</code> via the
+            <strong>mediaCoPolicy</strong>. Nothing else in the bucket is reachable.
+          </p>
+        </div>
+        <div class="card">
+          <h3>SNS as the fan-out for change events</h3>
+          <p>
+            S3 cannot send email directly. The pattern is
+            <code>S3 → SNS → email subscription</code>. The topic's access policy lets
+            S3 publish; the subscription delivers to the admin.
+          </p>
+        </div>
+        <div class="card">
+          <h3>What this proves</h3>
+          <p>
+            The denials are <strong>not bugs</strong> — they are the deliverable.
+            <code>GetBucketPublicAccessBlock</code> and <code>put-object-acl</code> both
+            fail on mediacouser, which is exactly what least privilege should look like.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section id="task1" class="container">
+      <h2 class="section-title">Task 1 — CLI Host, bucket creation &amp; initial sync</h2>
+      <p class="section-subtitle">
+        Configure the AWS CLI on the pre-provisioned CLI Host with the lab's
+        <code>voclabs</code> credentials, create the share bucket, and push the three seed
+        images into the <code>images/</code> prefix.
+      </p>
+
+      <h3 style="margin-top: 1.2rem; font-size: 1.1rem; color: var(--accent-2);">Configure the CLI</h3>
+      <p>
+        <code>aws configure</code> was run with the lab's Access Key / Secret Access Key,
+        region <code>us-west-2</code>, output format <code>json</code>. Standard step, no
+        evidence needed — the next commands prove the profile is active.
+      </p>
+
+      <h3 style="margin-top: 1.4rem; font-size: 1.1rem; color: var(--accent-2);">Create the bucket and sync the seed images</h3>
+      <p>
+        Bucket name chosen: <code>cafe-23melo23</code> (must start with <code>cafe-</code>,
+        lowercase only, globally unique). Three product images were synced from
+        <code>~/initial-images/</code> under the <code>images/</code> prefix:
+        Cup-of-Hot-Chocolate.jpg, Donuts.jpg, Strawberry-Tarts.jpg.
+      </p>
+      <pre><code>aws s3 mb s3://cafe-23melo23 --region 'us-west-2'
+
+aws s3 sync ~/initial-images/ s3://cafe-23melo23/images
+
+aws s3 ls s3://cafe-23melo23/images/ --human-readable --summarize</code></pre>
+
+      <figure class="screenshot-fig" style="margin-top: 1.2rem;">
+        <img src="assets/screenshots/01-cli-bucket-create-sync.png"
+          alt="EC2 Instance Connect terminal showing aws configure, the failed mb attempt with angle brackets, the successful mb, the sync of three images, and ls --summarize showing 3 objects 1.1 MiB total" />
+        <figcaption>
+          CLI Host terminal: <code>aws configure</code> with lab credentials → first
+          <code>mb</code> attempt fails because the bracketed placeholder was kept literal →
+          retry with the clean bucket name succeeds → <code>sync</code> uploads the three
+          seed images → <code>ls --summarize</code> reports <strong>3 objects, 1.1 MiB
+          total</strong>.
+        </figcaption>
+      </figure>
+
+      <div class="insight warn-callout" style="margin-top: 1rem;">
+        <strong>Gotcha — angle brackets are bash redirection.</strong>
+        The first attempt used <code>aws s3 mb s3://&lt;cafe-23melo23&gt;</code> with the
+        brackets copied verbatim from the lab guide. Bash interpreted <code>&lt;</code> as
+        input redirection and tried to open a file called <code>cafe-23melo23</code>, which
+        does not exist. Result: <code>-bash: cafe-23melo23: No such file or directory</code>.
+        Fix: drop the angle brackets — they are <em>placeholder syntax</em> in the manual,
+        not literal characters. This is the same trap with any
+        <code>&lt;value&gt;</code> placeholder in a shell command.
+      </div>
+    </section>
+
+    <section id="task2" class="container">
+      <h2 class="section-title">Task 2 — IAM: the <code>mediaco</code> group &amp; least privilege</h2>
+      <p class="section-subtitle">
+        The lab pre-creates a group called <strong>mediaco</strong> with two attached
+        policies: <code>IAMUserChangePassword</code> (AWS-managed, lets the user rotate
+        their own password) and <code>mediaCoPolicy</code> (custom, the interesting one).
+        <strong>mediacouser</strong> is a member of the group and inherits both.
+      </p>
+
+      <h3 style="margin-top: 1.2rem; font-size: 1.1rem; color: var(--accent-2);">The three <code>Sid</code> statements in <code>mediaCoPolicy</code></h3>
+
+      <div class="sid-card">
+        <h4>Sid 1 — AllowGroupToSeeBucketListInTheConsole</h4>
+        <p>
+          Allows <code>s3:ListAllMyBuckets</code> and <code>s3:GetBucketLocation</code> on
+          <code>*</code>. Without this, the S3 console is empty when mediacouser signs in —
+          they can't even see the bucket exists.
+        </p>
+      </div>
+
+      <div class="sid-card">
+        <h4>Sid 2 — AllowRootLevelListingOfTheBucket</h4>
+        <p>
+          Allows <code>s3:ListBucket</code> on <code>arn:aws:s3:::cafe-*</code>. This is
+          what makes the bucket clickable in the console and lets the user enumerate the
+          first-level prefixes (i.e. see the <code>images/</code> folder).
+        </p>
+      </div>
+
+      <div class="sid-card">
+        <h4>Sid 3 — AllowUserSpecificActionsOnlyInTheSpecificPrefix</h4>
+        <p>
+          The core of the policy. Grants <code>s3:GetObject</code>,
+          <code>s3:PutObject</code>, <code>s3:DeleteObject</code> (plus the
+          <code>*Version</code> variants) on <code>arn:aws:s3:::cafe-*/images/*</code>.
+          Everything <em>not</em> under <code>images/</code> is implicitly denied, and so
+          are operations like <code>s3:PutObjectAcl</code> or
+          <code>s3:GetBucketPublicAccessBlock</code>.
+        </p>
+      </div>
+
+      <h3 style="margin-top: 1.6rem; font-size: 1.1rem; color: var(--accent-2);">Sign-in evidence as <code>mediacouser</code></h3>
+      <p>
+        An access key was minted for <code>mediacouser</code> (kept for Task 5's CLI tests)
+        and the console sign-in link was used in an incognito session to keep both
+        identities active in parallel.
+      </p>
+
+      <figure class="screenshot-fig">
+        <img src="assets/screenshots/02-mediacouser-console-signed-in.png"
+          alt="AWS Management Console header showing the user mediacouser signed in with Account ID 5876-7460-2776" />
+        <figcaption>
+          AWS Console header confirming the second session is signed in as
+          <strong>mediacouser</strong>, account <code>5876-7460-2776</code>. The
+          <code>voclabs</code> session stays open in a separate browser for the admin
+          tasks.
+        </figcaption>
+      </figure>
+    </section>
+
+    <section id="task3" class="container">
+      <h2 class="section-title">Task 3 — Testing permissions: happy path &amp; the expected deny</h2>
+      <p class="section-subtitle">
+        Three authorized operations from the console as mediacouser, then the
+        <strong>unauthorized</strong> case that the policy is designed to block.
+      </p>
+
+      <div class="grid-2">
+        <div class="card">
+          <h3>View — <code>GetObject</code></h3>
+          <p>
+            Opened <code>cafe-23melo23/images/Donuts.jpg</code> from the S3 console.
+            Worked — the policy grants <code>s3:GetObject</code> inside the prefix.
+          </p>
+        </div>
+        <div class="card">
+          <h3>Upload — <code>PutObject</code></h3>
+          <p>
+            Uploaded a local image into <code>images/</code> via the console's Upload
+            wizard. Worked — Sid 3 covers <code>s3:PutObject</code> on
+            <code>cafe-*/images/*</code>.
+          </p>
+        </div>
+        <div class="card">
+          <h3>Delete — <code>DeleteObject</code></h3>
+          <p>
+            Deleted <code>Cup-of-Hot-Chocolate.jpg</code> using the typed-confirmation
+            dialog. Worked — Sid 3 also covers <code>s3:DeleteObject</code>.
+          </p>
+        </div>
+        <div class="card">
+          <h3>Permissions tab — <strong>DENIED</strong></h3>
+          <p>
+            Opening the Permissions tab of the bucket returns
+            <code>Access denied</code> on
+            <code>s3:GetBucketPublicAccessBlock</code>. This is the policy working as
+            intended.
+          </p>
+        </div>
+      </div>
+
+      <figure class="screenshot-fig" style="margin-top: 1.2rem;">
+        <img src="assets/screenshots/03-mediacouser-permissions-denied.png"
+          alt="S3 console Permissions tab on bucket cafe-23melo23, showing the Access denied banner with API response: User arn:aws:iam::587674602776:user/mediacouser is not authorized to perform s3:GetBucketPublicAccessBlock on resource arn:aws:s3:::cafe-23melo23 because no identity-based policy allows the action" />
+        <figcaption>
+          Permissions tab of <code>cafe-23melo23</code> while signed in as mediacouser.
+          The error message is the deliverable: <strong>least privilege confirmed</strong> —
+          the policy does not grant any bucket-level metadata or configuration action, so
+          IAM denies it by default.
+        </figcaption>
+      </figure>
+
+      <div class="insight info" style="margin-top: 1rem;">
+        <strong>Why this denial is success, not failure.</strong>
+        An external user (the media company) should be able to add / remove product
+        images. They should <em>not</em> be able to inspect or change bucket-level
+        settings, flip Block Public Access, or read access logs. The
+        <code>s3:GetBucketPublicAccessBlock</code> denial proves the policy's scope is
+        tight enough to refuse anything outside the contract.
+      </div>
+    </section>
+
+    <section id="task4" class="container">
+      <h2 class="section-title">Task 4 — SNS event notifications</h2>
+      <p class="section-subtitle">
+        Four moving parts: create the SNS topic, give S3 permission to publish to it,
+        subscribe an email endpoint, and finally attach the event configuration to the
+        bucket. No console screenshots from this segment — the JSON below is the
+        evidence, and Task 5 closes the loop with the delivered emails.
+      </p>
+
+      <h3 style="margin-top: 1.2rem; font-size: 1.1rem; color: var(--accent-2);">4.1 — Create the topic</h3>
+      <p>
+        A <strong>Standard</strong> SNS topic named <code>s3NotificationTopic</code> was
+        created in the same region as the bucket. The topic's ARN was copied for the
+        next two JSON files.
+      </p>
+
+      <h3 style="margin-top: 1.4rem; font-size: 1.1rem; color: var(--accent-2);">4.2 — Topic access policy (<code>S3PublishPolicy</code>)</h3>
+      <p>
+        The topic needs an access policy that lets the S3 service principal
+        (<code>s3.amazonaws.com</code>) publish messages, but only when those messages
+        originate from <em>this</em> bucket. The <code>ArnLike</code> condition on
+        <code>aws:SourceArn</code> is what enforces that scoping.
+      </p>
+      <pre><code>{
+  "Version": "2008-10-17",
+  "Id": "S3PublishPolicy",
+  "Statement": [
+    {
+      "Sid": "AllowPublishFromS3",
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "s3.amazonaws.com"
+      },
+      "Action": "SNS:Publish",
+      "Resource": "arn:aws:sns:us-west-2:587674602776:s3NotificationTopic",
+      "Condition": {
+        "ArnLike": {
+          "aws:SourceArn": "arn:aws:s3:*:*:cafe-23melo23"
+        }
+      }
+    }
+  ]
+}</code></pre>
+
+      <h3 style="margin-top: 1.4rem; font-size: 1.1rem; color: var(--accent-2);">4.3 — Email subscription</h3>
+      <p>
+        Created an <strong>Email</strong> subscription to the topic with a personal
+        address as the endpoint. AWS sent the standard confirmation email — clicking
+        <em>Confirm subscription</em> activated the endpoint. From this point on the
+        topic has one confirmed deliverable subscriber.
+      </p>
+
+      <h3 style="margin-top: 1.4rem; font-size: 1.1rem; color: var(--accent-2);">4.4 — Wire the bucket to the topic</h3>
+      <p>
+        The event-notification configuration JSON was written into
+        <code>s3EventNotification.json</code> on the CLI Host. It subscribes to two
+        event families and filters on the <code>images/</code> prefix only — anything
+        outside <code>images/</code> is silently ignored by the rule.
+      </p>
+      <pre><code>{
+  "TopicConfigurations": [
+    {
+      "TopicArn": "arn:aws:sns:us-west-2:587674602776:s3NotificationTopic",
+      "Events": ["s3:ObjectCreated:*", "s3:ObjectRemoved:*"],
+      "Filter": {
+        "Key": {
+          "FilterRules": [
+            { "Name": "prefix", "Value": "images/" }
+          ]
+        }
+      }
+    }
+  ]
+}</code></pre>
+      <pre><code>aws s3api put-bucket-notification-configuration \
+  --bucket cafe-23melo23 \
+  --notification-configuration file://s3EventNotification.json</code></pre>
+
+      <p style="margin-top: 0.9rem;">
+        Immediately after attaching the configuration, S3 sent a sanity-check event:
+        a payload with <code>"Event": "s3:TestEvent"</code> arrived at the mailbox.
+        That message confirms the topic-access-policy chain works end-to-end before any
+        real object event fires.
+      </p>
+    </section>
+
+    <section id="task5" class="container">
+      <h2 class="section-title">Task 5 — End-to-end test from mediacouser via CLI</h2>
+      <p class="section-subtitle">
+        Switched the CLI Host's profile to mediacouser's access keys (second
+        <code>aws configure</code> pass) and exercised <code>put</code>, <code>get</code>,
+        <code>delete</code>, and the deny case for <code>put-object-acl</code>. Only put
+        and delete generate SNS emails — get does not, because the filter only matches
+        <code>ObjectCreated:*</code> / <code>ObjectRemoved:*</code>.
+      </p>
+
+      <table class="lab-table">
+        <thead>
+          <tr>
+            <th>Operation</th>
+            <th>Command</th>
+            <th>SNS email?</th>
+            <th>Result</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Put</td>
+            <td><code>aws s3api put-object --bucket cafe-23melo23 --key images/Caramel-Delight.jpg --body ~/new-images/Caramel-Delight.jpg</code></td>
+            <td>Yes — <code>ObjectCreated:Put</code></td>
+            <td>OK · returns ETag</td>
+          </tr>
+          <tr>
+            <td>Get</td>
+            <td><code>aws s3api get-object --bucket cafe-23melo23 --key images/Donuts.jpg Donuts.jpg</code></td>
+            <td>No — reads are not in the filter</td>
+            <td>OK · file downloaded</td>
+          </tr>
+          <tr>
+            <td>Delete</td>
+            <td><code>aws s3api delete-object --bucket cafe-23melo23 --key images/Strawberry-Tarts.jpg</code></td>
+            <td>Yes — <code>ObjectRemoved:Delete</code></td>
+            <td>OK · object removed</td>
+          </tr>
+          <tr>
+            <td>Put ACL (unauthorized)</td>
+            <td><code>aws s3api put-object-acl --bucket cafe-23melo23 --key images/Donuts.jpg --acl public-read</code></td>
+            <td>—</td>
+            <td><span class="highlight">AccessDenied</span> · expected</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <figure class="screenshot-fig" style="margin-top: 1.2rem;">
+        <img src="assets/screenshots/04-sns-emails-created-removed.png"
+          alt="Gmail inbox showing two AWS Notifications emails. The first contains an SNS Records payload with eventName ObjectCreated:Put for object key images/Caramel-Delight.jpg and size 239148 bytes. The second contains eventName ObjectRemoved:Delete for object key images/Strawberry-Tarts.jpg" />
+        <figcaption>
+          Two SNS deliveries from <code>no-reply@sns.amazonaws.com</code>. Top message:
+          <strong>ObjectCreated:Put</strong> for <code>images/Caramel-Delight.jpg</code>
+          (239,148 bytes). Bottom message: <strong>ObjectRemoved:Delete</strong> for
+          <code>images/Strawberry-Tarts.jpg</code>. Each payload carries the full
+          <code>Records[]</code> array with bucket name, owner principalId, source IP,
+          and request IDs.
+        </figcaption>
+      </figure>
+
+      <div class="insight info" style="margin-top: 1rem;">
+        <strong>Why <code>get-object</code> is intentionally silent.</strong>
+        The event configuration in §4.4 only subscribes to <code>ObjectCreated:*</code>
+        and <code>ObjectRemoved:*</code>. <code>s3:ObjectAccessed:*</code> exists but
+        was deliberately not registered — flooding the admin with one email per read
+        would be useless noise. The filter is part of the design, not a missing piece.
+      </div>
+    </section>
+
+    <section id="errors" class="container">
+      <h2 class="section-title">Errors &amp; expected denials — the proof</h2>
+      <p class="section-subtitle">
+        Three documented failures during the lab. The first is a real user mistake
+        worth keeping as a lesson. The other two are the policy doing its job.
+      </p>
+
+      <div class="err-card">
+        <h4>① Literal angle brackets in <code>aws s3 mb</code></h4>
+        <dl>
+          <dt>Symptom</dt>
+          <dd><code>-bash: cafe-23melo23: No such file or directory</code> right after running <code>aws s3 mb s3://&lt;cafe-23melo23&gt; --region 'us-west-2'</code></dd>
+          <dt>Root cause</dt>
+          <dd>The lab guide uses <code>&lt;cafe-xxxnnn&gt;</code> as a placeholder. Bash sees <code>&lt;</code> as input redirection and tries to open a file named <code>cafe-23melo23</code> before <code>aws</code> ever runs.</dd>
+          <dt>Fix</dt>
+          <dd>Re-run without the angle brackets: <code>aws s3 mb s3://cafe-23melo23 --region 'us-west-2'</code></dd>
+        </dl>
+        <p class="lesson">
+          <strong>Lesson:</strong> never paste a manual's <code>&lt;placeholder&gt;</code>
+          syntax into a shell verbatim. The brackets aren't decoration — they're
+          metacharacters. Same trap applies to <code>$</code>, <code>!</code>,
+          <code>*</code>, <code>{</code>, <code>}</code> in unquoted strings.
+        </p>
+      </div>
+
+      <div class="err-card">
+        <h4>② <code>s3:GetBucketPublicAccessBlock</code> denied as mediacouser</h4>
+        <dl>
+          <dt>Symptom</dt>
+          <dd>S3 console Permissions tab shows <code>Access denied</code> with the API response naming the user, the action, and the resource.</dd>
+          <dt>Root cause</dt>
+          <dd>The <code>mediaCoPolicy</code> only grants object-level actions inside <code>cafe-*/images/*</code>. Bucket-level metadata calls are not in any allow statement, so IAM's default-deny applies.</dd>
+          <dt>Fix</dt>
+          <dd>None — this is the desired behavior. The external user is not supposed to inspect or change bucket configuration.</dd>
+        </dl>
+        <p class="lesson">
+          <strong>Lesson:</strong> a clean denial on a sibling action is the cleanest
+          signal that a policy is correctly scoped. If this had succeeded, the policy
+          would be too permissive and need tightening.
+        </p>
+      </div>
+
+      <div class="err-card">
+        <h4>③ <code>put-object-acl --acl public-read</code> denied as mediacouser</h4>
+        <dl>
+          <dt>Symptom</dt>
+          <dd><code>An error occurred (AccessDenied) when calling the PutObjectAcl operation: Access Denied</code></dd>
+          <dt>Root cause</dt>
+          <dd><code>s3:PutObjectAcl</code> is not in the <code>mediaCoPolicy</code> allow set. Even though the object lives inside the user's allowed prefix, changing its visibility is a separate action that was deliberately excluded.</dd>
+          <dt>Fix</dt>
+          <dd>None — expected. An external partner uploading product photos has no business making them publicly readable.</dd>
+        </dl>
+        <p class="lesson">
+          <strong>Lesson:</strong> S3 access control has multiple orthogonal axes —
+          <code>GetObject</code> ≠ <code>PutObjectAcl</code>, <code>PutObject</code>
+          ≠ <code>PutBucketPolicy</code>. A well-written policy enumerates only the
+          operations the role actually needs, even when they look related.
+        </p>
+      </div>
+    </section>
+
+    <section id="concepts" class="container">
+      <h2 class="section-title">Concepts &amp; takeaways</h2>
+      <ul style="margin-top: 0.8rem; padding-left: 1.1rem; color: #dbe4f0;">
+        <li>
+          <strong>Prefix-scoped IAM policies</strong> are how S3 implements multi-tenant
+          buckets without splitting buckets. The wildcard
+          <code>arn:aws:s3:::cafe-*/images/*</code> on Sid 3 is what isolates mediacouser
+          from anything outside the contract.
+        </li>
+        <li>
+          <strong>S3 cannot send email.</strong> The canonical pattern for "notify me on
+          bucket change" is <code>S3 event notification → SNS topic → email
+          subscription</code>. The topic's access policy + the bucket's notification
+          configuration are the two halves of the link; both must be in place.
+        </li>
+        <li>
+          <strong>The <code>ArnLike</code> condition on <code>aws:SourceArn</code></strong>
+          inside the SNS access policy prevents the confused-deputy problem — only this
+          specific bucket can publish to this topic, not any other S3 bucket in the
+          account.
+        </li>
+        <li>
+          <strong>Event filters are part of the design.</strong> Subscribing to
+          <code>s3:ObjectAccessed:*</code> would have generated one email per read,
+          drowning the admin in noise. Choosing only <code>ObjectCreated:*</code> and
+          <code>ObjectRemoved:*</code> is the correct trade-off for an audit-of-changes
+          use case.
+        </li>
+        <li>
+          <strong>Default deny in IAM</strong> means a missing action in the policy
+          behaves the same as an explicit deny. The mediacouser case study shows three
+          examples: bucket metadata, ACL mutation, root-of-bucket uploads — none of them
+          require an explicit <code>Deny</code> statement to be blocked.
+        </li>
+      </ul>
+
+      <h2 class="section-title" style="margin-top: 1.8rem;">CLI reference</h2>
+      <table class="lab-table">
+        <thead>
+          <tr>
+            <th>Phase</th>
+            <th>Command</th>
+            <th>Purpose</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>CLI setup</td>
+            <td><code>aws configure</code></td>
+            <td>Switch the CLI Host between voclabs and mediacouser credentials.</td>
+          </tr>
+          <tr>
+            <td>Bucket create</td>
+            <td><code>aws s3 mb s3://&lt;bucket&gt; --region 'us-west-2'</code></td>
+            <td>Create the share bucket. Region required for buckets outside us-east-1.</td>
+          </tr>
+          <tr>
+            <td>Bulk upload</td>
+            <td><code>aws s3 sync ~/initial-images/ s3://&lt;bucket&gt;/images</code></td>
+            <td>One-way mirror of a local folder into a prefix.</td>
+          </tr>
+          <tr>
+            <td>Inventory</td>
+            <td><code>aws s3 ls s3://&lt;bucket&gt;/images/ --human-readable --summarize</code></td>
+            <td>List the prefix with size totals.</td>
+          </tr>
+          <tr>
+            <td>Wire events</td>
+            <td><code>aws s3api put-bucket-notification-configuration --bucket &lt;bucket&gt; --notification-configuration file://s3EventNotification.json</code></td>
+            <td>Attach the SNS event configuration to the bucket.</td>
+          </tr>
+          <tr>
+            <td>Put (mediacouser)</td>
+            <td><code>aws s3api put-object --bucket &lt;bucket&gt; --key images/&lt;file&gt; --body &lt;path&gt;</code></td>
+            <td>Authorized — triggers <code>ObjectCreated:Put</code>.</td>
+          </tr>
+          <tr>
+            <td>Get (mediacouser)</td>
+            <td><code>aws s3api get-object --bucket &lt;bucket&gt; --key images/&lt;file&gt; &lt;out&gt;</code></td>
+            <td>Authorized — does <strong>not</strong> trigger an email.</td>
+          </tr>
+          <tr>
+            <td>Delete (mediacouser)</td>
+            <td><code>aws s3api delete-object --bucket &lt;bucket&gt; --key images/&lt;file&gt;</code></td>
+            <td>Authorized — triggers <code>ObjectRemoved:Delete</code>.</td>
+          </tr>
+          <tr>
+            <td>ACL (mediacouser)</td>
+            <td><code>aws s3api put-object-acl --bucket &lt;bucket&gt; --key images/&lt;file&gt; --acl public-read</code></td>
+            <td><strong>Denied</strong> — proves the policy excludes ACL mutations.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <p>Lab 185 · Working with Amazon S3 — File Sharing with IAM &amp; SNS · AWS re/Start logbook</p>
+      <p class="small">Student: Julian David Quijano · Lab duration: ~90 min · Region: us-west-2</p>
+    </div>
+  </footer>
+</body>
+
+</html>

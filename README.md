@@ -10,9 +10,14 @@ Technical documentation of hands-on labs completed during the **AWS re/Start** p
 
 ### Compute
 
-| #   | Lab                            | Status        |
-|-----|--------------------------------|---------------|
-| 11  | Introduction to Amazon EC2     | Completed     |
+| #   | Lab                                            | Status    |
+|-----|------------------------------------------------|-----------|
+| 11  | Introduction to Amazon EC2                     | Completed |
+| 171 | Creating EC2 Instances (Console + CLI)         | Completed |
+| 172 | EC2 Instances Challenge — Custom VPC           | Completed |
+| 173 | Troubleshooting EC2 LAMP with AWS CLI          | Completed |
+| 174 | Scaling and Load Balancing                     | Completed |
+| 175 | Auto Scaling with a Custom AMI                 | Completed |
 
 ### Linux Fundamentals
 
@@ -50,32 +55,66 @@ Technical documentation of hands-on labs completed during the **AWS re/Start** p
 | 265 | Internet Protocol Troubleshooting Commands         | Completed |
 | 266 | Troubleshooting a Network Issue                    | Completed |
 | 267 | Build Your VPC and Launch a Web Server             | Completed |
+| 180 | VPC with Bastion and NAT Gateway                   | Completed |
+| 181 | Troubleshooting a VPC with Flow Logs               | Completed |
 
 ### Seguridad
 
-| #   | Lab                                               | Status    |
-|-----|---------------------------------------------------|-----------|
-| 276 | Scanning AWS Lambda Functions with Amazon Inspector | Completed |
+| #   | Lab                                                     | Status    |
+|-----|---------------------------------------------------------|-----------|
+| 276 | Scanning AWS Lambda Functions with Amazon Inspector     | Completed |
 | 277 | Update EC2 instances with Systems Manager Patch Manager | Completed |
-| 279 | Introduction to AWS IAM | Completed |
-| 280 | Malware Protection Using an AWS Network Firewall | Completed |
-| 281 | Monitor an EC2 Instance with CloudWatch Alarms | Completed |
+| 279 | Introduction to AWS IAM                                 | Completed |
+| 280 | Malware Protection Using an AWS Network Firewall        | Completed |
+| 281 | Monitor an EC2 Instance with CloudWatch Alarms          | Completed |
+| 187 | CloudTrail Incident Response                            | Completed |
 
+### Storage (S3 & EBS)
+
+| #   | Lab                                                     | Status    |
+|-----|---------------------------------------------------------|-----------|
+| 170 | Creating a Website on S3                                | Completed |
+| 182 | Working with Amazon EBS                                 | Completed |
+| 183 | Managing Storage: EBS Snapshots & S3 Versioning         | Completed |
+| 184 | S3 Challenge from CLI                                   | Completed |
+| 185 | S3 File Sharing with IAM and SNS                        | Completed |
+
+### Serverless (Lambda)
+
+| #   | Lab                                                     | Status    |
+|-----|---------------------------------------------------------|-----------|
+| 177 | Lambda Word Count Challenge                             | Completed |
+| 178 | Lambda Sales Analysis Report                            | Completed |
+
+### DNS & High Availability
+
+| #   | Lab                                                     | Status    |
+|-----|---------------------------------------------------------|-----------|
+| 176 | Route 53 Failover Routing                               | Completed |
+
+### Operations & Monitoring
+
+| #   | Lab                                                     | Status    |
+|-----|---------------------------------------------------------|-----------|
+| 169 | AWS Systems Manager                                     | Completed |
+| 186 | Monitoring with CloudWatch Agent and AWS Config         | Completed |
+| 188 | EC2 Tags + JMESPath + Scripts                           | Completed |
 
 ### Bases de Datos
 
-| #   | Lab                                           | Status    |
-|-----|-----------------------------------------------|-----------|
+| #   | Lab                                                     | Status    |
+|-----|---------------------------------------------------------|-----------|
 | 160 | Build Your DB Server and Interact With Your DB Using an App | Completed |
 | 162 | Challenge Lab: Build Your DB Server and Interact With Your DB | Completed |
-| 268 | Create and Drop Databases and Tables          | Completed |
-| 269 | Insert, Update, and Delete Data in a Database | Completed |
-| 270 | Selecting Data from a Database                | Completed |
-| 271 | Query the World Database with Functions and Conditions | Completed |
-| 272 | Working with Functions | Completed |
-| 273 | Organizing Data | Completed |
-| 274 | Introducción a Amazon Aurora | Completed |
-| 275 | Introducción a Amazon DynamoDB | Completed |
+| 268 | Create and Drop Databases and Tables                    | Completed |
+| 269 | Insert, Update, and Delete Data in a Database           | Completed |
+| 270 | Selecting Data from a Database                          | Completed |
+| 271 | Query the World Database with Functions and Conditions  | Completed |
+| 272 | Working with Functions                                  | Completed |
+| 273 | Organizing Data                                         | Completed |
+| 274 | Introducción a Amazon Aurora                            | Completed |
+| 275 | Introducción a Amazon DynamoDB                          | Completed |
+| 179 | Migrating to Amazon RDS MariaDB                         | Completed |
 
 ---
 

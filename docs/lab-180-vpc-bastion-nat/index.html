@@ -1,0 +1,1052 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lab Report: Configuring a VPC with Bastion and NAT Gateway</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --bg-soft: #111827;
+      --card: rgba(255, 255, 255, 0.08);
+      --card-strong: rgba(255, 255, 255, 0.12);
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --accent: #ff9900;
+      --accent-2: #38bdf8;
+      --ok: #22c55e;
+      --warn: #f59e0b;
+      --border: rgba(255, 255, 255, 0.12);
+      --shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+      --radius: 22px;
+      --max: 1120px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(255, 153, 0, 0.16), transparent 28%),
+        radial-gradient(circle at top right, rgba(56, 189, 248, 0.14), transparent 24%),
+        linear-gradient(180deg, #020617 0%, #0f172a 48%, #111827 100%);
+      color: var(--text);
+      line-height: 1.65;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    .container {
+      width: min(var(--max), calc(100% - 2rem));
+      margin: 0 auto;
+    }
+
+    /* ── Nav ── */
+    .nav {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      backdrop-filter: blur(16px);
+      background: rgba(2, 6, 23, 0.72);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .nav-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.9rem 0;
+      gap: 1rem;
+    }
+
+    .brand {
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+    }
+
+    .brand-badge {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, var(--accent), #ffb84d);
+      color: #111827;
+      font-weight: 900;
+      box-shadow: var(--shadow);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .nav-links a:hover { color: var(--text); }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      color: var(--muted);
+      font-size: 0.9rem;
+      transition: color 0.2s;
+    }
+
+    .back-link:hover { color: var(--accent); }
+
+    /* ── Hero ── */
+    .hero { padding: 4.8rem 0 2rem; }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 1.5rem;
+      align-items: stretch;
+    }
+
+    .panel {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.05));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .hero-main { padding: 2rem; }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.45rem 0.8rem;
+      border-radius: 999px;
+      background: rgba(255, 153, 0, 0.12);
+      color: #ffd28a;
+      border: 1px solid rgba(255, 153, 0, 0.25);
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+    }
+
+    h1, h2, h3 {
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+      margin: 0;
+    }
+
+    h1 {
+      font-size: clamp(2rem, 4vw, 3.7rem);
+      margin-bottom: 0.9rem;
+    }
+
+    .hero-main p {
+      margin: 0;
+      color: #cbd5e1;
+      font-size: 1.05rem;
+      max-width: 65ch;
+    }
+
+    .hero-side {
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .hero-side .callout {
+      padding: 1rem 1.1rem;
+      border-radius: 18px;
+      border: 1px solid rgba(56, 189, 248, 0.18);
+      background: rgba(56, 189, 248, 0.08);
+    }
+
+    .hero-side .callout strong {
+      display: block;
+      margin-bottom: 0.35rem;
+    }
+
+    .tech-stack {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.55rem;
+    }
+
+    .chip {
+      padding: 0.45rem 0.75rem;
+      border-radius: 999px;
+      font-size: 0.88rem;
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #dbeafe;
+    }
+
+    .small {
+      font-size: 0.92rem;
+      color: var(--muted);
+    }
+
+    /* ── Sections ── */
+    section { padding: 1rem 0 0.4rem; }
+
+    .section-title {
+      margin-bottom: 1rem;
+      font-size: clamp(1.5rem, 2vw, 2.2rem);
+    }
+
+    .section-subtitle {
+      color: var(--muted);
+      margin-top: 0.45rem;
+      max-width: 75ch;
+    }
+
+    /* ── Grids ── */
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .card {
+      padding: 1.3rem;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+    }
+
+    .card h3 {
+      font-size: 1.05rem;
+      margin-bottom: 0.6rem;
+    }
+
+    .card p {
+      margin: 0;
+      color: #cbd5e1;
+    }
+
+    /* ── Timeline ── */
+    .timeline {
+      display: grid;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .step {
+      display: grid;
+      grid-template-columns: 90px 1fr;
+      gap: 1rem;
+      align-items: start;
+      padding: 1.25rem;
+      border-radius: 22px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: var(--shadow);
+    }
+
+    .step-num {
+      width: 72px;
+      height: 72px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, rgba(255, 153, 0, 0.18), rgba(56, 189, 248, 0.18));
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      display: grid;
+      place-items: center;
+      font-size: 1.1rem;
+      font-weight: 900;
+      color: #fff;
+    }
+
+    .step h3 {
+      margin-bottom: 0.55rem;
+      font-size: 1.2rem;
+    }
+
+    .step ul {
+      margin: 0.3rem 0 0;
+      padding-left: 1.1rem;
+      color: #dbe4f0;
+    }
+
+    .step li + li { margin-top: 0.4rem; }
+
+    .highlight {
+      color: #ffd28a;
+      font-weight: 700;
+    }
+
+    /* ── Screenshots ── */
+    .screenshot-gallery {
+      display: grid;
+      gap: 0.8rem;
+      margin-top: 1rem;
+    }
+
+    .screenshot-fig {
+      margin: 0;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(2, 6, 23, 0.5);
+    }
+
+    .screenshot-fig img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .screenshot-fig figcaption {
+      padding: 0.6rem 0.8rem;
+      color: var(--muted);
+      font-size: 0.84rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    /* ── Callouts ── */
+    .insight {
+      padding: 1.15rem 1.2rem;
+      border-left: 4px solid var(--accent);
+      border-radius: 16px;
+      background: rgba(255, 153, 0, 0.08);
+      color: #fde7c2;
+    }
+
+    .info {
+      border-left-color: var(--accent-2);
+      background: rgba(56, 189, 248, 0.08);
+      color: #d8f3ff;
+    }
+
+    /* ── Checklist ── */
+    .checklist {
+      display: grid;
+      gap: 0.7rem;
+      margin-top: 1rem;
+    }
+
+    .check {
+      display: flex;
+      gap: 0.75rem;
+      align-items: flex-start;
+      padding: 0.9rem 1rem;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+    }
+
+    .check-mark {
+      flex: 0 0 auto;
+      width: 28px;
+      height: 28px;
+      display: grid;
+      place-items: center;
+      border-radius: 999px;
+      background: rgba(34, 197, 94, 0.15);
+      color: #86efac;
+      font-weight: 800;
+    }
+
+    /* ── Code ── */
+    code {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 0.15rem 0.4rem;
+      border-radius: 6px;
+      font-size: 0.9em;
+      font-family: "Cascadia Code", "Fira Code", monospace;
+    }
+
+    pre {
+      background: rgba(2, 6, 23, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 14px;
+      padding: 1rem 1.1rem;
+      overflow-x: auto;
+      margin: 1rem 0 0;
+    }
+
+    pre code {
+      background: transparent;
+      padding: 0;
+      color: #e2e8f0;
+      font-size: 0.88rem;
+      line-height: 1.55;
+    }
+
+    /* ── Footer ── */
+    .footer {
+      padding: 2.2rem 0 3.5rem;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    /* ──────────── Custom for Lab 180 ──────────── */
+
+    /* Resource table — VPC components */
+    .res-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+      font-size: 0.9rem;
+    }
+
+    .res-table th,
+    .res-table td {
+      padding: 0.65rem 0.85rem;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    .res-table th {
+      background: rgba(255, 153, 0, 0.12);
+      color: #ffd28a;
+      font-weight: 700;
+    }
+
+    .res-table td {
+      background: rgba(255, 255, 255, 0.04);
+      color: #dbe4f0;
+    }
+
+    .res-table tr:hover td {
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .res-table code {
+      font-size: 0.85em;
+    }
+
+    /* Route table comparison (Public RT vs Private RT) */
+    .rt-compare {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      margin-top: 1rem;
+    }
+
+    .rt-col {
+      padding: 1.2rem;
+    }
+
+    .rt-col:first-child {
+      background: rgba(56, 189, 248, 0.06);
+      border-right: 1px solid var(--border);
+    }
+
+    .rt-col:last-child {
+      background: rgba(255, 153, 0, 0.06);
+    }
+
+    .rt-col h4 {
+      margin: 0 0 0.6rem;
+      font-size: 1.05rem;
+      letter-spacing: -0.01em;
+    }
+
+    .rt-col .rt-tag {
+      display: inline-block;
+      font-size: 0.75rem;
+      padding: 0.15rem 0.55rem;
+      border-radius: 999px;
+      margin-bottom: 0.6rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+
+    .rt-col:first-child .rt-tag {
+      background: rgba(56, 189, 248, 0.15);
+      color: #93c5fd;
+    }
+
+    .rt-col:last-child .rt-tag {
+      background: rgba(255, 153, 0, 0.15);
+      color: #ffd28a;
+    }
+
+    .rt-col .rt-route {
+      font-family: "Cascadia Code", "Fira Code", monospace;
+      font-size: 0.85rem;
+      padding: 0.5rem 0.7rem;
+      background: rgba(2, 6, 23, 0.55);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+      margin-top: 0.5rem;
+      color: #e2e8f0;
+    }
+
+    .rt-col p {
+      margin: 0.4rem 0 0;
+      color: #cbd5e1;
+      font-size: 0.92rem;
+    }
+
+    /* Concept callouts (3-col) */
+    .concept-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .concept-card {
+      padding: 1.1rem 1.2rem;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+    }
+
+    .concept-card h4 {
+      margin: 0 0 0.5rem;
+      font-size: 1rem;
+      color: #ffd28a;
+    }
+
+    .concept-card p {
+      margin: 0;
+      font-size: 0.92rem;
+      color: #dbe4f0;
+    }
+
+    /* Bastion flow diagram (ASCII-style box) */
+    .flow-diagram {
+      margin-top: 1rem;
+      padding: 1.2rem;
+      border-radius: 16px;
+      background: rgba(2, 6, 23, 0.55);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      font-family: "Cascadia Code", "Fira Code", monospace;
+      font-size: 0.9rem;
+      line-height: 1.8;
+      color: #e2e8f0;
+      overflow-x: auto;
+    }
+
+    .flow-diagram .arrow {
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    .flow-diagram .pub {
+      color: #93c5fd;
+    }
+
+    .flow-diagram .priv {
+      color: #fde7c2;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 920px) {
+      .hero-grid,
+      .grid-3,
+      .grid-2,
+      .rt-compare,
+      .concept-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .rt-col:first-child {
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+      }
+    }
+
+    @media (max-width: 680px) {
+      .nav-inner {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .step {
+        grid-template-columns: 1fr;
+      }
+
+      .step-num {
+        width: 60px;
+        height: 60px;
+        border-radius: 16px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <nav class="nav">
+    <div class="container nav-inner">
+      <div class="brand">
+        <div class="brand-badge">AWS</div>
+        <div>Lab Report · Networking</div>
+      </div>
+      <div class="nav-links">
+        <a href="../index.html" class="back-link">← All Labs</a>
+        <a href="#summary">Summary</a>
+        <a href="#architecture">Architecture</a>
+        <a href="#route-tables">Route Tables</a>
+        <a href="#bastion">Bastion</a>
+        <a href="#nat">NAT Gateway</a>
+        <a href="#challenge">Challenge</a>
+        <a href="#learnings">Learnings</a>
+      </div>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <div class="container hero-grid">
+      <div class="panel hero-main">
+        <div class="eyebrow">AWS re/Start Lab · Networking</div>
+        <h1>Configuring a VPC with Bastion and NAT Gateway</h1>
+        <p>
+          Built a Virtual Private Cloud from scratch with a public and private subnet, an Internet Gateway,
+          a NAT Gateway, and a bastion server. The goal was to design a network where private instances can
+          reach the internet for updates without being directly exposed, and where administrators connect to
+          them through a controlled jump host.
+        </p>
+      </div>
+
+      <aside class="panel hero-side">
+        <div class="callout">
+          <strong>Lab Objective</strong>
+          Design a two-tier VPC topology where the public subnet hosts a bastion server reachable from the
+          internet, and the private subnet hosts workloads with outbound-only internet access via a NAT Gateway.
+        </div>
+
+        <div>
+          <div class="small" style="margin-bottom:0.7rem;">Tools &amp; Concepts</div>
+          <div class="tech-stack">
+            <span class="chip">Amazon VPC</span>
+            <span class="chip">Internet Gateway</span>
+            <span class="chip">NAT Gateway</span>
+            <span class="chip">Route Tables</span>
+            <span class="chip">Bastion / Jump Host</span>
+            <span class="chip">EC2</span>
+            <span class="chip">Elastic IP</span>
+          </div>
+        </div>
+
+        <div class="callout" style="border-color: rgba(34,197,94,0.2); background: rgba(34,197,94,0.08);">
+          <strong>Key Insight</strong>
+          A VPC's behavior is defined by its <code>route tables</code> and the gateways they point to. The same
+          subnet becomes "public" or "private" purely based on which route table it associates with.
+        </div>
+      </aside>
+    </div>
+  </header>
+
+  <main>
+    <!-- ══════ SUMMARY ══════ -->
+    <section id="summary">
+      <div class="container">
+        <h2 class="section-title">Lab Summary</h2>
+        <p class="section-subtitle">
+          A single VPC (<code>10.0.0.0/16</code>) was carved into two subnets with distinct roles. The public
+          side hosts the entry point — an internet-facing bastion. The private side hosts workloads that need
+          outbound internet without being reachable inbound. The plumbing in between is two route tables
+          and two gateways: an Internet Gateway for the public path, and a NAT Gateway for the private path's
+          one-way exit.
+        </p>
+
+        <div class="grid-2" style="margin-top:1rem;">
+          <article class="card">
+            <h3>Public Side</h3>
+            <p>
+              Subnet <code>10.0.0.0/24</code> with auto-assigned public IPs. Its route table sends
+              <code>0.0.0.0/0</code> to the <strong>Internet Gateway</strong>. The bastion server lives here
+              and is the only thing reachable from outside.
+            </p>
+          </article>
+          <article class="card">
+            <h3>Private Side</h3>
+            <p>
+              Subnet <code>10.0.2.0/23</code> with no public IPs. Its route table sends <code>0.0.0.0/0</code>
+              to the <strong>NAT Gateway</strong>, which lives in the public subnet. Outbound internet works;
+              inbound from the internet is impossible.
+            </p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════ ARCHITECTURE ══════ -->
+    <section id="architecture">
+      <div class="container">
+        <h2 class="section-title">Network Architecture</h2>
+        <p class="section-subtitle">
+          The full set of resources created in this lab. Note the deliberate CIDR sizing: the private subnet
+          is twice the size of the public one because real workloads usually outnumber bastions and load
+          balancers.
+        </p>
+
+        <table class="res-table">
+          <thead>
+            <tr>
+              <th>Resource</th>
+              <th>Name / CIDR</th>
+              <th>Role</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>VPC</strong></td>
+              <td><code>Lab VPC</code><br>10.0.0.0/16</td>
+              <td>Root network. DNS hostnames enabled so EC2 instances get resolvable internal DNS names.</td>
+            </tr>
+            <tr>
+              <td><strong>Public Subnet</strong></td>
+              <td><code>Public Subnet</code><br>10.0.0.0/24 (256 IPs)</td>
+              <td>Hosts bastion + NAT Gateway. Auto-assign public IPv4 enabled.</td>
+            </tr>
+            <tr>
+              <td><strong>Private Subnet</strong></td>
+              <td><code>Private Subnet</code><br>10.0.2.0/23 (512 IPs)</td>
+              <td>Hosts workload instances. No public IPs. Twice the size of the public subnet.</td>
+            </tr>
+            <tr>
+              <td><strong>Internet Gateway</strong></td>
+              <td><code>Lab IGW</code></td>
+              <td>Attached to the VPC. Provides bidirectional internet access for the public subnet.</td>
+            </tr>
+            <tr>
+              <td><strong>NAT Gateway</strong></td>
+              <td><code>Lab NAT gateway</code><br>+ Elastic IP</td>
+              <td>Lives in the public subnet. Provides outbound-only internet for the private subnet.</td>
+            </tr>
+            <tr>
+              <td><strong>Public Route Table</strong></td>
+              <td><code>Public Route Table</code></td>
+              <td>Associated with the public subnet. Default route → IGW.</td>
+            </tr>
+            <tr>
+              <td><strong>Private Route Table</strong></td>
+              <td><code>Private Route Table</code></td>
+              <td>Associated with the private subnet. Default route → NAT Gateway.</td>
+            </tr>
+            <tr>
+              <td><strong>Bastion Server</strong></td>
+              <td><code>Bastion Server</code><br>t3.micro · Amazon Linux 2023</td>
+              <td>EC2 instance in the public subnet. SSH entry point for the entire VPC.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="concept-grid">
+          <div class="concept-card">
+            <h4>Why is the private subnet /23 and not /24?</h4>
+            <p>
+              A <code>/23</code> gives 512 addresses vs <code>/24</code>'s 256. In real deployments, the
+              private subnet usually holds far more compute (app servers, databases, queues) than the public
+              one (which only needs bastions, NAT, and load balancers). Sizing reflects that asymmetry.
+            </p>
+          </div>
+          <div class="concept-card">
+            <h4>Why does the public subnet need "auto-assign public IPv4"?</h4>
+            <p>
+              An IGW only routes traffic for resources that actually have a public IP. Without
+              auto-assign enabled (or a manually attached Elastic IP), instances launched in the subnet
+              would be unreachable from the internet even with a correct route table.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════ ROUTE TABLES ══════ -->
+    <section id="route-tables">
+      <div class="container">
+        <h2 class="section-title">Route Tables: The Heart of the Routing</h2>
+        <p class="section-subtitle">
+          The single most important difference between a "public" and a "private" subnet is the route table
+          it's associated with. Same VPC, same kind of subnet — the route table is what changes the behavior.
+        </p>
+
+        <div class="rt-compare">
+          <div class="rt-col">
+            <span class="rt-tag">Public Route Table</span>
+            <h4>Internet-facing</h4>
+            <div class="rt-route">10.0.0.0/16 → local</div>
+            <div class="rt-route">0.0.0.0/0 → <strong>Lab IGW</strong></div>
+            <p>
+              Default route points to the Internet Gateway. Combined with instances having public IPs,
+              this enables bidirectional internet traffic — inbound (SSH to bastion) and outbound
+              (package downloads, etc).
+            </p>
+          </div>
+          <div class="rt-col">
+            <span class="rt-tag">Private Route Table</span>
+            <h4>Outbound-only via NAT</h4>
+            <div class="rt-route">10.0.0.0/16 → local</div>
+            <div class="rt-route">0.0.0.0/0 → <strong>Lab NAT gateway</strong></div>
+            <p>
+              Default route points to the NAT Gateway in the public subnet. The NAT Gateway then forwards
+              traffic out through the IGW. Return traffic finds its way back via NAT state tables.
+              No inbound paths from the internet exist.
+            </p>
+          </div>
+        </div>
+
+        <div class="screenshot-gallery">
+          <figure class="screenshot-fig">
+            <img src="assets/screenshots/02-private-route-table-nat-active.png"
+              alt="Private Route Table showing 0.0.0.0/0 routed to the NAT Gateway with Active status"
+              loading="lazy" />
+            <figcaption>
+              Private Route Table after edit: <code>0.0.0.0/0</code> targets the NAT Gateway
+              (<code>nat-0c5b786be3f642cdb</code>) and the route is <strong>Active</strong>. The
+              <code>10.0.0.0/16 → local</code> entry is created by the VPC automatically and routes
+              intra-VPC traffic.
+            </figcaption>
+          </figure>
+        </div>
+
+        <div class="insight info" style="margin-top:1rem;">
+          <strong>Reminder:</strong> The <code>local</code> route in every VPC route table is implicit and
+          cannot be deleted. It guarantees that any two subnets inside the same VPC can talk to each other
+          regardless of public/private classification.
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════ BASTION ══════ -->
+    <section id="bastion">
+      <div class="container">
+        <h2 class="section-title">The Bastion Server (Jump Host)</h2>
+        <p class="section-subtitle">
+          A bastion is the only instance with a public IP and inbound SSH from the internet. Every administrative
+          connection to a private instance hops through it first — reducing the attack surface to a single
+          hardenable host.
+        </p>
+
+        <div class="flow-diagram">
+          <span class="pub">[ Internet ]</span>  <span class="arrow">─SSH/22──&gt;</span>  <span class="pub">[ Bastion 52.27.201.115 ]</span>  <span class="arrow">─SSH/22──&gt;</span>  <span class="priv">[ Private Instance 10.0.2.x ]</span>
+        </div>
+
+        <div class="grid-2" style="margin-top:1rem;">
+          <article class="card">
+            <h3>Bastion Configuration</h3>
+            <ul style="margin: 0.3rem 0 0; padding-left: 1.1rem; color: #dbe4f0;">
+              <li>AMI: <strong>Amazon Linux 2023</strong></li>
+              <li>Type: <strong>t3.micro</strong></li>
+              <li>Subnet: <strong>Public Subnet</strong> (auto-assign public IP)</li>
+              <li>Security Group: <strong>Bastion Security Group</strong> — inbound SSH (22) from <code>0.0.0.0/0</code></li>
+              <li>IMDSv2: <strong>Required</strong> (instance metadata hardening)</li>
+            </ul>
+          </article>
+          <article class="card">
+            <h3>Private Instance Security Group</h3>
+            <p style="color: #dbe4f0;">
+              The private instance accepts SSH <strong>only</strong> from the VPC CIDR
+              <code>10.0.0.0/16</code>. This is the lock that makes the bastion mandatory — even if someone
+              learned the private IP, they couldn't reach it from the internet because the security group
+              rejects any source outside the VPC.
+            </p>
+          </article>
+        </div>
+
+        <div class="screenshot-gallery">
+          <figure class="screenshot-fig">
+            <img src="assets/screenshots/01-bastion-instance-summary.png"
+              alt="EC2 Instance summary for the bastion server in Running state"
+              loading="lazy" />
+            <figcaption>
+              Bastion instance summary: state <strong>Running</strong>, public IPv4
+              <code>52.27.201.115</code>, private IPv4 <code>10.0.0.253</code>, launched into
+              <code>Lab VPC</code> &raquo; <code>Public Subnet</code>.
+            </figcaption>
+          </figure>
+        </div>
+
+        <div class="insight" style="margin-top:1rem;">
+          <strong>Why a bastion instead of opening SSH on every instance?</strong> One hardened host with a
+          public IP is dramatically easier to monitor and patch than dozens of private workloads each exposed
+          to the internet. Logs, MFA, and session recording all collapse onto one box.
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════ NAT GATEWAY ══════ -->
+    <section id="nat">
+      <div class="container">
+        <h2 class="section-title">NAT Gateway: Controlled Outbound</h2>
+        <p class="section-subtitle">
+          Private instances often need to reach the internet — to pull OS updates, fetch container images,
+          call third-party APIs. They must not be reachable <em>from</em> the internet. The NAT Gateway
+          delivers exactly that asymmetry.
+        </p>
+
+        <div class="flow-diagram">
+          <span class="priv">[ Private Instance 10.0.2.x ]</span>  <span class="arrow">─&gt;</span>  <span class="priv">Private RT 0.0.0.0/0</span>  <span class="arrow">─&gt;</span>  <span class="pub">[ NAT GW + EIP ]</span>  <span class="arrow">─&gt;</span>  <span class="pub">[ IGW ]</span>  <span class="arrow">─&gt;</span>  <span class="pub">Internet</span>
+        </div>
+
+        <div class="concept-grid">
+          <div class="concept-card">
+            <h4>Why does the NAT Gateway need an Elastic IP?</h4>
+            <p>
+              The NAT Gateway translates private source IPs to a single public IP visible on the internet.
+              That public IP must be stable (so firewalls and allow-lists on remote services keep working),
+              which is exactly what an Elastic IP provides — a static, account-owned public IPv4.
+            </p>
+          </div>
+          <div class="concept-card">
+            <h4>IGW vs NAT GW — what's the actual difference?</h4>
+            <p>
+              <strong>IGW</strong>: bidirectional, free, routes packets when source/destination has a public IP.<br>
+              <strong>NAT GW</strong>: outbound-only (from the VPC's perspective), billed per hour + per GB,
+              translates private IPs to its EIP. NAT is built <em>on top of</em> an IGW — it always needs one.
+            </p>
+          </div>
+        </div>
+
+        <div class="insight info" style="margin-top:1rem;">
+          <strong>Cost note:</strong> Unlike an Internet Gateway, the NAT Gateway is a managed,
+          billable resource (hourly charge + data processing). In production accounts, an unused NAT
+          Gateway running 24/7 is one of the more common surprise charges on a VPC bill.
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════ CHALLENGE ══════ -->
+    <section id="challenge">
+      <div class="container">
+        <h2 class="section-title">Optional Challenge — Reference Commands</h2>
+        <p class="section-subtitle">
+          The official guide ends with an optional challenge: launch a private EC2 instance, SSH into it
+          through the bastion, and prove outbound internet works via the NAT Gateway. The base lab was
+          completed; this section documents the <strong>reference commands</strong> for that challenge.
+          Not executed in this run, so there is no visual evidence — only the procedure.
+        </p>
+
+        <article class="step" style="margin-top:1rem;">
+          <div class="step-num" style="font-size: 0.85rem;">ref</div>
+          <div>
+            <h3>User-data script for the private instance</h3>
+            <p style="color: #cbd5e1;">
+              When launching the private instance, this user-data script enables password-based SSH so the
+              connection from the bastion can use a password (vockey isn't pre-installed there). In a real
+              environment you'd push the key with <code>ssh-copy-id</code> through the bastion instead.
+            </p>
+            <pre><code>#!/bin/bash
+echo 'lab-password' | passwd ec2-user --stdin
+sed -i 's|[#]*PasswordAuthentication no|PasswordAuthentication yes|g' /etc/ssh/sshd_config
+systemctl restart sshd.service</code></pre>
+
+            <ul style="margin-top:1rem;">
+              <li>Launch <strong>Amazon Linux 2023</strong>, <strong>t3.micro</strong>, in the <strong>Private Subnet</strong>.</li>
+              <li>No auto-assign public IP (and the subnet doesn't grant one anyway).</li>
+              <li>Security Group: <strong>Private Instance SG</strong> — inbound SSH (22) from <code>10.0.0.0/16</code> only.</li>
+              <li>Paste the script above into <strong>Advanced details &raquo; User data</strong> at launch time.</li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="step" style="margin-top:1rem;">
+          <div class="step-num" style="font-size: 0.85rem;">ref</div>
+          <div>
+            <h3>Connect through the bastion and verify NAT</h3>
+            <p style="color: #cbd5e1;">
+              Once both instances are running, use EC2 Instance Connect (or SSH) to reach the bastion, then
+              SSH from there into the private instance using its <em>private</em> IP. From inside, a ping to
+              an internet host proves the NAT Gateway path is working.
+            </p>
+            <pre><code># 1. Connect to the bastion (from EC2 console: "Connect" → EC2 Instance Connect)
+
+# 2. From the bastion, jump to the private instance:
+ssh ec2-user@10.0.2.X
+# (use the password set by user-data: lab-password)
+
+# 3. Verify outbound internet via NAT Gateway:
+ping -c 3 amazon.com</code></pre>
+
+            <ul style="margin-top:1rem;">
+              <li>Successful pings = the Private Route Table is correctly forwarding <code>0.0.0.0/0</code> to the NAT Gateway, the NAT GW reached the IGW, and return packets made it back.</li>
+              <li>Failed pings would point at one of: missing NAT route, NAT GW in the wrong subnet, security group blocking egress, or NACL issues.</li>
+            </ul>
+
+            <div class="insight info" style="margin-top:1rem;">
+              <strong>Why password auth instead of keys?</strong> The lab is intentionally simple. In
+              production you copy the bastion's public key (or use SSM Session Manager / AWS Systems Manager)
+              to avoid passwords on Linux entirely.
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- ══════ LEARNINGS ══════ -->
+    <section id="learnings">
+      <div class="container">
+        <h2 class="section-title">Key Learnings</h2>
+        <div class="grid-2">
+          <div class="card">
+            <h3>What Was Learned</h3>
+            <div class="checklist">
+              <div class="check">
+                <div class="check-mark">&#10003;</div>
+                <div>How to build a two-tier VPC manually (public + private subnet) instead of using the wizard.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">&#10003;</div>
+                <div>Public vs Private subnet is <strong>defined by the route table</strong>, not by any subnet flag.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">&#10003;</div>
+                <div>The role of an <strong>Internet Gateway</strong> (bidirectional, free) vs a <strong>NAT Gateway</strong> (outbound-only, billed).</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">&#10003;</div>
+                <div>Why a NAT Gateway requires an <strong>Elastic IP</strong> — a stable public address for outbound traffic.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">&#10003;</div>
+                <div>The <strong>bastion pattern</strong>: one hardened public host as the SSH entry point for an entire VPC.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">&#10003;</div>
+                <div>CIDR sizing logic — why the private subnet is intentionally larger than the public one.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Technical Conclusion</h3>
+            <p>
+              This lab consolidated the previous networking series (labs 263, 264, 267) into a single
+              real-world topology: a VPC where the public/private boundary is enforced by route tables and
+              gateways, and where administrative access is funneled through a bastion.
+            </p>
+            <p style="margin-top: 1rem;">
+              The two recurring lessons are worth restating. First, <strong>routing is the contract</strong>:
+              a subnet is "public" if and only if its route table points <code>0.0.0.0/0</code> at an IGW.
+              Second, <strong>NAT is one-way by design</strong>: it grants the private subnet outbound
+              internet without ever creating an inbound path, which is exactly the asymmetry production
+              workloads need.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      Lab report documenting the Configuring a VPC with Bastion and NAT Gateway lab · AWS re/Start Program
+    </div>
+  </footer>
+</body>
+
+</html>

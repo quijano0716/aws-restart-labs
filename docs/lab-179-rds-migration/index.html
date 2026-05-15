@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lab Report: Migrating to Amazon RDS</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --bg-soft: #111827;
+      --card: rgba(255, 255, 255, 0.08);
+      --card-strong: rgba(255, 255, 255, 0.12);
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --accent: #ff9900;
+      --accent-2: #38bdf8;
+      --ok: #22c55e;
+      --warn: #f59e0b;
+      --err: #ef4444;
+      --border: rgba(255, 255, 255, 0.12);
+      --shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+      --radius: 22px;
+      --max: 1120px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(255, 153, 0, 0.16), transparent 28%),
+        radial-gradient(circle at top right, rgba(56, 189, 248, 0.14), transparent 24%),
+        linear-gradient(180deg, #020617 0%, #0f172a 48%, #111827 100%);
+      color: var(--text);
+      line-height: 1.65;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    .container { width: min(var(--max), calc(100% - 2rem)); margin: 0 auto; }
+
+    /* ── Nav ── */
+    .nav {
+      position: sticky; top: 0; z-index: 10;
+      backdrop-filter: blur(16px);
+      background: rgba(2, 6, 23, 0.72);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .nav-inner { display: flex; justify-content: space-between; align-items: center; padding: 0.9rem 0; gap: 1rem; }
+    .brand { font-weight: 800; letter-spacing: -0.02em; display: flex; align-items: center; gap: 0.7rem; }
+    .brand-badge {
+      width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center;
+      background: linear-gradient(135deg, var(--accent), #ffb84d);
+      color: #111827; font-weight: 900; box-shadow: var(--shadow);
+    }
+    .nav-links { display: flex; gap: 1rem; flex-wrap: wrap; color: var(--muted); font-size: 0.95rem; }
+    .nav-links a:hover { color: var(--text); }
+    .back-link { display: inline-flex; align-items: center; gap: 0.4rem; color: var(--muted); font-size: 0.9rem; transition: color 0.2s; }
+    .back-link:hover { color: var(--accent); }
+
+    /* ── Hero ── */
+    .hero { padding: 4.8rem 0 2rem; }
+    .hero-grid { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 1.5rem; align-items: stretch; }
+    .panel {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.05));
+      border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow);
+    }
+    .hero-main { padding: 2rem; }
+    .eyebrow {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      padding: 0.45rem 0.8rem; border-radius: 999px;
+      background: rgba(255, 153, 0, 0.12); color: #ffd28a;
+      border: 1px solid rgba(255, 153, 0, 0.25);
+      font-size: 0.9rem; margin-bottom: 1rem;
+    }
+    h1, h2, h3 { line-height: 1.15; letter-spacing: -0.03em; margin: 0; }
+    h1 { font-size: clamp(2rem, 4vw, 3.7rem); margin-bottom: 0.9rem; }
+    .hero-main p { margin: 0; color: #cbd5e1; font-size: 1.05rem; max-width: 65ch; }
+    .hero-side { padding: 1.5rem; display: flex; flex-direction: column; justify-content: space-between; gap: 1rem; }
+    .hero-side .callout {
+      padding: 1rem 1.1rem; border-radius: 18px;
+      border: 1px solid rgba(56, 189, 248, 0.18);
+      background: rgba(56, 189, 248, 0.08);
+    }
+    .hero-side .callout strong { display: block; margin-bottom: 0.35rem; }
+    .tech-stack { display: flex; flex-wrap: wrap; gap: 0.55rem; }
+    .chip {
+      padding: 0.45rem 0.75rem; border-radius: 999px; font-size: 0.88rem;
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #dbeafe;
+    }
+    .small { font-size: 0.92rem; color: var(--muted); }
+
+    /* ── Sections ── */
+    section { padding: 1rem 0 0.4rem; }
+    .section-title { margin-bottom: 1rem; font-size: clamp(1.5rem, 2vw, 2.2rem); }
+    .section-subtitle { color: var(--muted); margin-top: 0.45rem; max-width: 75ch; }
+
+    /* ── Grids ── */
+    .grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
+    .grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+
+    .card {
+      padding: 1.3rem; background: var(--card);
+      border: 1px solid var(--border); border-radius: 20px; box-shadow: var(--shadow);
+    }
+    .card h3 { font-size: 1.05rem; margin-bottom: 0.6rem; }
+    .card p { margin: 0; color: #cbd5e1; }
+
+    /* ── Timeline ── */
+    .timeline { display: grid; gap: 1rem; margin-top: 1rem; }
+    .step {
+      display: grid; grid-template-columns: 90px 1fr; gap: 1rem; align-items: start;
+      padding: 1.25rem; border-radius: 22px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: var(--shadow);
+    }
+    .step-num {
+      width: 72px; height: 72px; border-radius: 20px;
+      background: linear-gradient(135deg, rgba(255, 153, 0, 0.18), rgba(56, 189, 248, 0.18));
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      display: grid; place-items: center;
+      font-size: 1.1rem; font-weight: 900; color: #fff;
+    }
+    .step h3 { margin-bottom: 0.55rem; font-size: 1.2rem; }
+    .step ul { margin: 0.3rem 0 0; padding-left: 1.1rem; color: #dbe4f0; }
+    .step li + li { margin-top: 0.4rem; }
+    .highlight { color: #ffd28a; font-weight: 700; }
+
+    /* ── Screenshots ── */
+    .screenshot-gallery { display: grid; gap: 0.8rem; margin-top: 1rem; }
+    .screenshot-gallery.cols-2 { grid-template-columns: repeat(2, 1fr); }
+    .screenshot-fig {
+      margin: 0; border-radius: 16px; overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(2, 6, 23, 0.5);
+    }
+    .screenshot-fig img { width: 100%; height: auto; display: block; }
+    .screenshot-fig figcaption {
+      padding: 0.6rem 0.8rem; color: var(--muted); font-size: 0.84rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    /* ── Callouts ── */
+    .insight {
+      padding: 1.15rem 1.2rem; border-left: 4px solid var(--accent); border-radius: 16px;
+      background: rgba(255, 153, 0, 0.08); color: #fde7c2;
+    }
+    .insight.info { border-left-color: var(--accent-2); background: rgba(56, 189, 248, 0.08); color: #d8f3ff; }
+    .insight.warn { border-left-color: var(--warn); background: rgba(245, 158, 11, 0.08); color: #fde68a; }
+
+    /* ── Checklist ── */
+    .checklist { display: grid; gap: 0.7rem; margin-top: 1rem; }
+    .check {
+      display: flex; gap: 0.75rem; align-items: flex-start;
+      padding: 0.9rem 1rem; border-radius: 16px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+    }
+    .check-mark {
+      flex: 0 0 auto; width: 28px; height: 28px;
+      display: grid; place-items: center; border-radius: 999px;
+      background: rgba(34, 197, 94, 0.15); color: #86efac; font-weight: 800;
+    }
+
+    /* ── Code ── */
+    code {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 0.15rem 0.4rem; border-radius: 6px;
+      font-size: 0.9em;
+      font-family: "Cascadia Code", "Fira Code", monospace;
+    }
+    pre {
+      margin: 0.8rem 0 0; padding: 1rem 1.1rem;
+      background: rgba(2, 6, 23, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 14px; overflow-x: auto;
+      font-size: 0.88rem; line-height: 1.55;
+    }
+    pre code {
+      background: transparent; padding: 0; border-radius: 0;
+      font-size: inherit; color: #e8efff;
+    }
+
+    /* ── Table ── */
+    .table-wrap { overflow-x: auto; margin-top: 1rem; border-radius: 14px; border: 1px solid rgba(255,255,255,0.1); }
+    table { width: 100%; border-collapse: collapse; font-size: 0.94rem; }
+    th, td { padding: 0.7rem 0.9rem; text-align: left; vertical-align: top; border-bottom: 1px solid rgba(255,255,255,0.07); }
+    th { background: rgba(255,255,255,0.05); color: #fef3c7; font-weight: 700; }
+    tr:last-child td { border-bottom: none; }
+    td code { font-size: 0.85em; }
+
+    /* ── No-evidence note ── */
+    .no-evidence {
+      display: inline-flex; align-items: center; gap: 0.45rem;
+      margin-top: 0.6rem; padding: 0.35rem 0.7rem;
+      border-radius: 999px; font-size: 0.8rem;
+      background: rgba(148, 163, 184, 0.12); color: #cbd5e1;
+      border: 1px dashed rgba(148, 163, 184, 0.3);
+    }
+
+    /* ── Footer ── */
+    .footer { padding: 2.2rem 0 3.5rem; color: var(--muted); text-align: center; }
+
+    /* ── Responsive ── */
+    @media (max-width: 920px) {
+      .hero-grid, .grid-3, .grid-2, .screenshot-gallery.cols-2 { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 680px) {
+      .nav-inner { flex-direction: column; align-items: flex-start; }
+      .step { grid-template-columns: 1fr; }
+      .step-num { width: 60px; height: 60px; border-radius: 16px; }
+    }
+  </style>
+</head>
+
+<body>
+  <nav class="nav">
+    <div class="container nav-inner">
+      <div class="brand">
+        <div class="brand-badge">RDS</div>
+        <div>Lab Report · Databases</div>
+      </div>
+      <div class="nav-links">
+        <a href="../index.html" class="back-link">← All Labs</a>
+        <a href="#summary">Summary</a>
+        <a href="#architecture">Architecture</a>
+        <a href="#walkthrough">Walkthrough</a>
+        <a href="#learnings">Learnings</a>
+      </div>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <div class="container hero-grid">
+      <div class="panel hero-main">
+        <div class="eyebrow">AWS re/Start Lab · Databases &amp; RDS</div>
+        <h1>Migrating to Amazon RDS</h1>
+        <p>
+          Migrate the café web app database from a local MariaDB running on EC2 to a managed
+          Amazon RDS MariaDB instance — built entirely from the AWS CLI, with TLS-encrypted
+          data restore and zero application code changes.
+        </p>
+      </div>
+
+      <aside class="panel hero-side">
+        <div class="callout">
+          <strong>Lab Objective</strong>
+          Stand up an RDS MariaDB instance, dump and restore the local database over SSL,
+          and switch the app over by changing a single Parameter Store value.
+        </div>
+
+        <div>
+          <div class="small" style="margin-bottom:0.7rem;">Tools &amp; Concepts</div>
+          <div class="tech-stack">
+            <span class="chip">Amazon RDS</span>
+            <span class="chip">MariaDB 10.11</span>
+            <span class="chip">AWS CLI</span>
+            <span class="chip">VPC subnets</span>
+            <span class="chip">DB Subnet Group</span>
+            <span class="chip">Security Groups</span>
+            <span class="chip">mysqldump</span>
+            <span class="chip">SSL / TLS</span>
+            <span class="chip">SSM Parameter Store</span>
+            <span class="chip">CloudWatch</span>
+          </div>
+        </div>
+
+        <div class="callout" style="border-color: rgba(34,197,94,0.2); background: rgba(34,197,94,0.08);">
+          <strong>Key Insight</strong>
+          Because the app reads its connection string from <code>/cafe/dbUrl</code> in Parameter Store,
+          the cutover is a one-value edit — no redeploy, no code change.
+        </div>
+      </aside>
+    </div>
+  </header>
+
+  <main>
+    <!-- ══════ SUMMARY ══════ -->
+    <section id="summary">
+      <div class="container">
+        <h2 class="section-title">Lab Summary</h2>
+        <p class="section-subtitle">
+          The café app started with its database on the same EC2 instance as the web tier — a LAMP stack
+          where MariaDB shared the host with Apache and PHP. The goal of this lab was to externalize that
+          database into <span class="highlight">Amazon RDS</span> without touching the application code.
+          The work is driven from the AWS CLI: build the network plumbing (private subnets across two AZs,
+          a dedicated SG, a DB subnet group), provision the RDS instance, dump and restore the data over
+          a TLS connection, and finally point the app at the new endpoint via SSM Parameter Store.
+        </p>
+
+        <div class="grid-2" style="margin-top:1rem;">
+          <article class="card">
+            <h3>What moved</h3>
+            <p>
+              <code>cafe_db</code> — 9 products plus orders and accounts — migrated from a local MariaDB
+              on the LAMP EC2 to a managed <strong>db.t3.micro</strong> RDS instance with 20&nbsp;GB of
+              allocated storage and automated daily backups.
+            </p>
+          </article>
+          <article class="card">
+            <h3>What stayed the same</h3>
+            <p>
+              The PHP application code. Connection details live in <code>/cafe/dbUrl</code> in SSM
+              Parameter Store, so the cutover is just an edit of that parameter — the app picks up the new
+              host on the next request.
+            </p>
+          </article>
+        </div>
+
+        <div class="insight info" style="margin-top:1rem;">
+          <strong>Coverage note.</strong> Only two terminal screenshots were captured during the lab — the
+          RDS provisioning poll and the SSL restore plus verification query. The rest of the workflow
+          (security group, subnets, Parameter Store edit, CloudWatch metric) is documented here as prose
+          plus the actual commands that were run. No captures were invented.
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════ ARCHITECTURE ══════ -->
+    <section id="architecture">
+      <div class="container">
+        <h2 class="section-title">Architecture: before vs. after</h2>
+        <p class="section-subtitle">
+          The starting topology bundled web tier and DB tier in one EC2 instance inside the public subnet.
+          The final topology splits the DB out into RDS, behind a dedicated security group, across two
+          private subnets in different AZs.
+        </p>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Component</th>
+                <th>Before (LAMP on EC2)</th>
+                <th>After (RDS migration)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Web tier</td>
+                <td>Apache + PHP on <strong>CafeInstance</strong> (public subnet, t3.small)</td>
+                <td>Unchanged</td>
+              </tr>
+              <tr>
+                <td>Database</td>
+                <td>MariaDB <strong>local on the same EC2</strong>, port 3306 listening on localhost</td>
+                <td><strong>Amazon RDS MariaDB 10.11.11</strong> · db.t3.micro · 20 GB · Single-AZ · private</td>
+              </tr>
+              <tr>
+                <td>Network placement</td>
+                <td>Public subnet 10.200.0.0/24 only</td>
+                <td>Adds private <code>10.200.2.0/23</code> (AZ-a) and <code>10.200.10.0/23</code> (AZ-b)</td>
+              </tr>
+              <tr>
+                <td>DB security</td>
+                <td>Implicit (loopback on the EC2)</td>
+                <td><strong>CafeDatabaseSG</strong> — TCP 3306 only from <strong>CafeSecurityGroup</strong> as source SG</td>
+              </tr>
+              <tr>
+                <td>Connection in transit</td>
+                <td>Loopback (no encryption needed)</td>
+                <td><strong>TLS required</strong> — clients must present the RDS CA bundle</td>
+              </tr>
+              <tr>
+                <td>Backups</td>
+                <td>None automatic</td>
+                <td>Daily automated, 30-min backup window, 1-day retention (default)</td>
+              </tr>
+              <tr>
+                <td>App cutover mechanism</td>
+                <td>—</td>
+                <td><code>/cafe/dbUrl</code> in <strong>SSM Parameter Store</strong> — value swap, no redeploy</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p class="small" style="margin-top: 0.8rem;">
+          The lab guide ships <em>Starting architecture</em> and <em>Final architecture</em> diagrams,
+          but they live as Vocareum-hosted images that aren't part of the local source — the table above
+          captures the same delta in text form.
+        </p>
+      </div>
+    </section>
+
+    <!-- ══════ WALKTHROUGH ══════ -->
+    <section id="walkthrough">
+      <div class="container">
+        <h2 class="section-title">Walkthrough</h2>
+        <p class="section-subtitle">
+          Five tasks, two screenshots. The CLI commands are reproduced verbatim because they are the lab
+          deliverable; the click-paths through the console are summarized.
+        </p>
+
+        <div class="timeline">
+
+          <!-- ══════ TASK 1 ══════ -->
+          <article class="step">
+            <div class="step-num">01</div>
+            <div>
+              <h3>Seed the existing database with order data</h3>
+              <p>
+                Opened the café website at <code>CafeInstanceURL</code>, placed a few orders from the
+                <strong>Menu</strong>, and noted the order count on the <strong>Order History</strong> tab.
+                That number is the integrity check at the other end of the migration: same number of orders
+                must show up after the cutover.
+              </p>
+              <div class="no-evidence">No screenshot — trivial console interaction; verified later via the Order History page after migration.</div>
+            </div>
+          </article>
+
+          <!-- ══════ TASK 2 ══════ -->
+          <article class="step">
+            <div class="step-num">02</div>
+            <div>
+              <h3>Build the network prerequisites for RDS (CLI)</h3>
+              <p>
+                Connected to the <strong>CLI Host</strong> via EC2 Instance Connect and ran
+                <code>aws configure</code> with the lab's <code>AccessKey</code>, <code>SecretKey</code>,
+                <code>LabRegion</code> and JSON output. All the following commands run from that host.
+              </p>
+
+              <p style="margin-top: 0.8rem;"><strong>2.1 — Dedicated security group for the DB</strong></p>
+              <p>
+                <code>CafeDatabaseSG</code> protects the future RDS instance. The inbound rule allows TCP
+                3306, but instead of opening a CIDR range it uses
+                <strong>another security group as the source</strong> — only instances attached to
+                <code>CafeSecurityGroup</code> can reach the DB. Cleaner than CIDRs because it follows the
+                workload, not the IP.
+              </p>
+<pre><code>aws ec2 create-security-group \
+  --group-name CafeDatabaseSG \
+  --description "Security group for Cafe database" \
+  --vpc-id &lt;CafeVpcID&gt;
+
+aws ec2 authorize-security-group-ingress \
+  --group-id &lt;CafeDatabaseSG Group ID&gt; \
+  --protocol tcp --port 3306 \
+  --source-group &lt;CafeSecurityGroup Group ID&gt;
+
+aws ec2 describe-security-groups \
+  --query "SecurityGroups[*].[GroupName,GroupId,IpPermissions]" \
+  --filters "Name=group-name,Values='CafeDatabaseSG'"</code></pre>
+
+              <p style="margin-top: 0.8rem;"><strong>2.2 — Two private subnets in different AZs</strong></p>
+              <p>
+                The VPC is <code>10.200.0.0/20</code> and the public subnet already occupies
+                <code>10.200.0.0/24</code>. RDS requires a <strong>DB subnet group with at least two
+                subnets in different Availability Zones</strong> — even for a Single-AZ instance — so
+                failover targets exist. Picked <code>10.200.2.0/23</code> in the same AZ as the app (for
+                proximity) and <code>10.200.10.0/23</code> in a second AZ as the failover slot.
+              </p>
+<pre><code># Private subnet 1 — same AZ as CafeInstance
+aws ec2 create-subnet \
+  --vpc-id &lt;CafeVpcID&gt; \
+  --cidr-block 10.200.2.0/23 \
+  --availability-zone &lt;CafeInstanceAZ&gt;
+
+# Private subnet 2 — a different AZ (e.g. us-west-2b)
+aws ec2 create-subnet \
+  --vpc-id &lt;CafeVpcID&gt; \
+  --cidr-block 10.200.10.0/23 \
+  --availability-zone &lt;other-AZ&gt;
+
+aws rds create-db-subnet-group \
+  --db-subnet-group-name "CafeDB Subnet Group" \
+  --db-subnet-group-description "DB subnet group for Cafe" \
+  --subnet-ids &lt;PrivateSubnet1ID&gt; &lt;PrivateSubnet2ID&gt; \
+  --tags "Key=Name,Value=CafeDatabaseSubnetGroup"</code></pre>
+
+              <div class="insight info" style="margin-top:1rem;">
+                <strong>Why two AZs even for Single-AZ RDS?</strong> RDS validates the DB subnet group at
+                creation time. Without two AZs, <code>create-db-instance</code> rejects the request — the
+                requirement exists so a Multi-AZ promotion later is a no-op networking-wise.
+              </div>
+              <div class="no-evidence">No screenshot — pure CLI plumbing; the resulting resources are exercised by Task 3.</div>
+            </div>
+          </article>
+
+          <!-- ══════ TASK 3 ══════ -->
+          <article class="step">
+            <div class="step-num">03</div>
+            <div>
+              <h3>Provision the RDS MariaDB instance with the CLI</h3>
+              <p>
+                One <code>create-db-instance</code> call with everything inlined: engine, version, size,
+                storage, AZ, SG, subnet group, no public access, root credentials. The call returns
+                immediately but the instance takes ~10 minutes to reach <strong>available</strong>.
+              </p>
+<pre><code>aws rds create-db-instance \
+  --db-instance-identifier CafeDBInstance \
+  --engine mariadb \
+  --engine-version 10.11.11 \
+  --db-instance-class db.t3.micro \
+  --allocated-storage 20 \
+  --availability-zone &lt;CafeInstanceAZ&gt; \
+  --db-subnet-group-name "CafeDB Subnet Group" \
+  --vpc-security-group-ids &lt;CafeDatabaseSG Group ID&gt; \
+  --no-publicly-accessible \
+  --master-username root \
+  --master-user-password 'Re:Start!9'</code></pre>
+
+              <p style="margin-top: 0.8rem;"><strong>Polling the lifecycle</strong></p>
+              <p>
+                Used <code>describe-db-instances</code> with a <code>--query</code> projection so the
+                output is a flat array of the five fields that actually matter while waiting: endpoint,
+                AZ, backup window, retention, and status. The status walks through
+                <code>creating → modifying → backing-up → configuring-enhanced-monitoring → available</code>,
+                and the endpoint is <code>null</code> until very late in that chain.
+              </p>
+<pre><code>aws rds describe-db-instances \
+  --db-instance-identifier CafeDBInstance \
+  --query "DBInstances[*].[Endpoint.Address,AvailabilityZone,PreferredBackupWindow,BackupRetentionPeriod,DBInstanceStatus]"</code></pre>
+
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/01-rds-instance-status-polling.png" alt="Three consecutive describe-db-instances calls showing the lifecycle from creating to configuring-enhanced-monitoring with endpoint assigned" loading="lazy" />
+                  <figcaption>Three consecutive polls of <code>describe-db-instances</code>: the first two return <code>null</code> for the endpoint and status <code>creating</code>; the third shows the assigned endpoint <code>cafedbinstance.cfm9rpzhbev6.us-west-2.rds.amazonaws.com</code> and status <code>configuring-enhanced-monitoring</code>. Backup window <code>10:50–11:20</code>, retention 1 day — both AWS defaults.</figcaption>
+                </figure>
+              </div>
+
+              <div class="insight" style="margin-top:1rem;">
+                <strong>Default backup posture.</strong> 1-day retention and a 30-minute backup window
+                are RDS defaults. Fine for a lab; in production raise retention to at least 7 days and
+                pick a window that doesn't overlap peak load.
+              </div>
+            </div>
+          </article>
+
+          <!-- ══════ TASK 4 ══════ -->
+          <article class="step">
+            <div class="step-num">04</div>
+            <div>
+              <h3>Migrate data: dump on the source, restore over TLS to RDS</h3>
+              <p>
+                Connected to the <strong>CafeInstance</strong> (web tier) via EC2 Instance Connect — this
+                is the host that can reach the new SG because <code>CafeSecurityGroup</code> is the
+                authorized source for <code>CafeDatabaseSG</code>.
+              </p>
+
+              <p style="margin-top: 0.8rem;"><strong>4.1 — Dump the local database</strong></p>
+              <p>
+                <code>--add-drop-database</code> makes the dump self-contained: the restore drops
+                <code>cafe_db</code> first if it exists, then recreates it. Safe to re-run.
+              </p>
+<pre><code>mysqldump --user=root --password='Re:Start!9' \
+  --databases cafe_db --add-drop-database &gt; cafedb-backup.sql
+
+less cafedb-backup.sql   # quick sanity check on schema + INSERTs</code></pre>
+
+              <p style="margin-top: 0.8rem;"><strong>4.2 — Pull the RDS CA bundle</strong></p>
+              <p>
+                Modern RDS requires TLS by default. Without <code>--ssl-ca</code> the connection is
+                refused. The CA bundle is a static URL — pulled once with <code>curl</code> to the local
+                working directory.
+              </p>
+<pre><code>curl -o global-bundle.pem \
+  https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem</code></pre>
+
+              <p style="margin-top: 0.8rem;"><strong>4.3 — Restore the dump and verify</strong></p>
+              <p>
+                Same <code>mysql</code> binary, now pointed at the RDS endpoint with the CA bundle and the
+                SQL file piped in via <code>&lt;</code>. Then an interactive session against
+                <code>cafe_db</code> and a <code>SELECT * FROM product</code> to confirm row integrity.
+                The product table is the catalog the website displays, so if it's intact, the menu page
+                will render correctly after the cutover.
+              </p>
+<pre><code># Restore (silent — no output on success)
+mysql --user=root --password='Re:Start!9' \
+  --host=&lt;RDS-Endpoint&gt; \
+  --ssl-ca=./global-bundle.pem \
+  &lt; cafedb-backup.sql
+
+# Verify
+mysql --user=root --password='Re:Start!9' \
+  --host=&lt;RDS-Endpoint&gt; \
+  --ssl-ca=./global-bundle.pem \
+  cafe_db
+MariaDB [cafe_db]&gt; select * from product;</code></pre>
+
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/02-data-migration-ssl-restore-and-select.png" alt="Terminal showing curl downloading the RDS CA bundle, the silent mysql restore over SSL, and an interactive session displaying all 9 products from cafe_db" loading="lazy" />
+                  <figcaption>End-to-end migration evidence: <code>curl</code> pulling the 161 KB CA bundle, the SSL-secured restore (silent on success), and the interactive session returning all 9 products from <code>cafe_db</code> — Croissant, Donut, Chocolate Chip Cookie, Muffin, Strawberry Blueberry Tart, Strawberry Tart, Coffee, Hot Chocolate, Latte. The MariaDB greeting confirms the host is <em>"managed by https://aws.amazon.com/rds/"</em>.</figcaption>
+                </figure>
+              </div>
+
+              <div class="insight info" style="margin-top:1rem;">
+                <strong>SSL gotcha worth remembering.</strong> Drop <code>--ssl-ca</code> and the same
+                command fails with a TLS handshake error against RDS. The CA bundle has to live alongside
+                whatever client connects to the database — that's a deployment artifact, not just a
+                lab quirk.
+              </div>
+            </div>
+          </article>
+
+          <!-- ══════ TASK 5 ══════ -->
+          <article class="step">
+            <div class="step-num">05</div>
+            <div>
+              <h3>Cut the app over via Parameter Store</h3>
+              <p>
+                The PHP café app doesn't hardcode its DB URL — it reads
+                <code>/cafe/dbUrl</code> from <strong>AWS Systems Manager Parameter Store</strong> on
+                each request. The cutover is therefore a single edit:
+              </p>
+              <ul>
+                <li>Systems Manager → <strong>Parameter Store</strong> → <code>/cafe/dbUrl</code> → <strong>Edit</strong>.</li>
+                <li>Replace the value (previously <code>localhost</code> or the EC2 private IP) with the RDS endpoint <code>cafedbinstance.cfm9rpzhbev6.us-west-2.rds.amazonaws.com</code>.</li>
+                <li>Save. No restart, no redeploy.</li>
+              </ul>
+              <p>
+                Verification: reload <code>CafeInstanceURL</code> in the browser, open
+                <strong>Order History</strong>, and confirm the order count matches what was recorded in
+                Task&nbsp;1. Same number → same data → migration succeeded.
+              </p>
+
+              <div class="insight" style="margin-top:1rem;">
+                <strong>Pattern worth keeping.</strong> Externalizing connection strings (Parameter Store,
+                Secrets Manager, environment variables injected at boot) decouples infra from code. The
+                app didn't even need to know it was being migrated — that's how a cutover should feel.
+              </div>
+              <div class="no-evidence">No screenshot — single-field edit in Parameter Store; verified end-to-end via the Order History tab.</div>
+            </div>
+          </article>
+
+          <!-- ══════ TASK 6 ══════ -->
+          <article class="step">
+            <div class="step-num">06</div>
+            <div>
+              <h3>Sanity-check monitoring in CloudWatch</h3>
+              <p>
+                RDS publishes a fixed set of instance metrics to CloudWatch every minute, no extra setup
+                required. The <strong>Monitoring</strong> tab on the DB instance page exposes them as
+                pre-built graphs.
+              </p>
+
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Metric</th>
+                      <th>What it tracks</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr><td><code>CPUUtilization</code></td><td>Percent CPU used by the DB engine</td></tr>
+                    <tr><td><code>DatabaseConnections</code></td><td>Number of active client connections</td></tr>
+                    <tr><td><code>FreeStorageSpace</code></td><td>Remaining bytes of the allocated storage</td></tr>
+                    <tr><td><code>FreeableMemory</code></td><td>RAM available on the instance</td></tr>
+                    <tr><td><code>WriteIOPS</code> / <code>ReadIOPS</code></td><td>Avg disk I/O ops per second</td></tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <p style="margin-top: 0.8rem;">
+                Sanity-checked the live signal: opened an interactive <code>mysql</code> session from the
+                CafeInstance to RDS and waited a minute — the <code>DatabaseConnections</code> graph went
+                from 0 to 1. Ran <code>exit</code>, waited another minute, refreshed — back to 0.
+                Confirms metrics are flowing on the standard 1-minute granularity.
+              </p>
+              <div class="no-evidence">No screenshot — the metric graph isn't worth a capture; the qualitative behavior is the deliverable.</div>
+            </div>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════ LEARNINGS ══════ -->
+    <section id="learnings">
+      <div class="container">
+        <h2 class="section-title">Key Learnings</h2>
+        <div class="grid-2">
+          <div class="card">
+            <h3>Concepts that stuck</h3>
+            <div class="checklist">
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div><strong>DB Subnet Group</strong> requires 2+ subnets in different AZs — even for Single-AZ. It's a placement contract for future failover.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div><strong>Security group as source</strong> (instead of a CIDR) follows the workload, not the IP — the cleaner default for service-to-service traffic inside a VPC.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>RDS enforces <strong>TLS by default</strong>. Clients need the CA bundle from <code>truststore.pki.rds.amazonaws.com</code> — treat it as a deployment artifact.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div><code>mysqldump --add-drop-database</code> produces an <strong>idempotent</strong> dump — re-running the restore is safe.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div><strong>Externalize connection strings</strong> (Parameter Store, Secrets Manager). The migration cutover became a one-field edit.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>Default RDS backup retention is <strong>1 day</strong> — fine for a lab, raise it in production.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Conclusion</h3>
+            <p>
+              The actual data move (<code>mysqldump</code> → <code>mysql &lt;</code>) is the trivial part.
+              The valuable AWS-specific work was upstream: carving out private subnets across two AZs,
+              wiring a security group whose source is another SG, and accepting that the encrypted-by-default
+              connection is non-negotiable.
+            </p>
+            <p style="margin-top: 1rem;">
+              Downstream, the Parameter Store cutover demonstrated why managed configuration matters: a
+              database tier got swapped out and the application didn't notice. That decoupling is what
+              makes RDS adoption realistic for existing workloads — not the provisioning, the cutover.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      Lab report documenting the Migrating to Amazon RDS lab · AWS re/Start Program
+    </div>
+  </footer>
+</body>
+
+</html>

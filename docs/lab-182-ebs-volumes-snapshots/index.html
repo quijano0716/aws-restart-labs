@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lab Report: Working with Amazon EBS</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --bg-soft: #111827;
+      --card: rgba(255, 255, 255, 0.08);
+      --card-strong: rgba(255, 255, 255, 0.12);
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --accent: #ff9900;
+      --accent-2: #38bdf8;
+      --ok: #22c55e;
+      --warn: #f59e0b;
+      --border: rgba(255, 255, 255, 0.12);
+      --shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+      --radius: 22px;
+      --max: 1120px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(255, 153, 0, 0.16), transparent 28%),
+        radial-gradient(circle at top right, rgba(56, 189, 248, 0.14), transparent 24%),
+        linear-gradient(180deg, #020617 0%, #0f172a 48%, #111827 100%);
+      color: var(--text);
+      line-height: 1.65;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .container {
+      width: min(var(--max), calc(100% - 2rem));
+      margin: 0 auto;
+    }
+
+    /* ── Nav ── */
+    .nav {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      backdrop-filter: blur(16px);
+      background: rgba(2, 6, 23, 0.72);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .nav-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.9rem 0;
+      gap: 1rem;
+    }
+
+    .brand {
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+    }
+
+    .brand-badge {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, var(--accent), #ffb84d);
+      color: #111827;
+      font-weight: 900;
+      box-shadow: var(--shadow);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .nav-links a:hover {
+      color: var(--text);
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      color: var(--muted);
+      font-size: 0.9rem;
+      transition: color 0.2s;
+    }
+
+    .back-link:hover {
+      color: var(--accent);
+    }
+
+    /* ── Hero ── */
+    .hero {
+      padding: 4.8rem 0 2rem;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 1.5rem;
+      align-items: stretch;
+    }
+
+    .panel {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.05));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .hero-main {
+      padding: 2rem;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.45rem 0.8rem;
+      border-radius: 999px;
+      background: rgba(255, 153, 0, 0.12);
+      color: #ffd28a;
+      border: 1px solid rgba(255, 153, 0, 0.25);
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+    }
+
+    h1,
+    h2,
+    h3 {
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+      margin: 0;
+    }
+
+    h1 {
+      font-size: clamp(2rem, 4vw, 3.7rem);
+      margin-bottom: 0.9rem;
+    }
+
+    .hero-main p {
+      margin: 0;
+      color: #cbd5e1;
+      font-size: 1.05rem;
+      max-width: 65ch;
+    }
+
+    .hero-side {
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .hero-side .callout {
+      padding: 1rem 1.1rem;
+      border-radius: 18px;
+      border: 1px solid rgba(56, 189, 248, 0.18);
+      background: rgba(56, 189, 248, 0.08);
+    }
+
+    .hero-side .callout strong {
+      display: block;
+      margin-bottom: 0.35rem;
+    }
+
+    .tech-stack {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.55rem;
+    }
+
+    .chip {
+      padding: 0.45rem 0.75rem;
+      border-radius: 999px;
+      font-size: 0.88rem;
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #dbeafe;
+    }
+
+    .small {
+      font-size: 0.92rem;
+      color: var(--muted);
+    }
+
+    /* ── Sections ── */
+    section {
+      padding: 1rem 0 0.4rem;
+    }
+
+    .section-title {
+      margin-bottom: 1rem;
+      font-size: clamp(1.5rem, 2vw, 2.2rem);
+    }
+
+    .section-subtitle {
+      color: var(--muted);
+      margin-top: 0.45rem;
+      max-width: 75ch;
+    }
+
+    /* ── Grids ── */
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .card {
+      padding: 1.3rem;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+    }
+
+    .card h3 {
+      font-size: 1.05rem;
+      margin-bottom: 0.6rem;
+    }
+
+    .card p {
+      margin: 0;
+      color: #cbd5e1;
+    }
+
+    /* ── Timeline ── */
+    .timeline {
+      display: grid;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .step {
+      display: grid;
+      grid-template-columns: 90px 1fr;
+      gap: 1rem;
+      align-items: start;
+      padding: 1.25rem;
+      border-radius: 22px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: var(--shadow);
+    }
+
+    .step-num {
+      width: 72px;
+      height: 72px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, rgba(255, 153, 0, 0.18), rgba(56, 189, 248, 0.18));
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      display: grid;
+      place-items: center;
+      font-size: 1.1rem;
+      font-weight: 900;
+      color: #fff;
+    }
+
+    .step h3 {
+      margin-bottom: 0.55rem;
+      font-size: 1.2rem;
+    }
+
+    .step ul {
+      margin: 0.3rem 0 0;
+      padding-left: 1.1rem;
+      color: #dbe4f0;
+    }
+
+    .step li+li {
+      margin-top: 0.4rem;
+    }
+
+    .highlight {
+      color: #ffd28a;
+      font-weight: 700;
+    }
+
+    /* ── Screenshots ── */
+    .screenshot-gallery {
+      display: grid;
+      gap: 0.8rem;
+      margin-top: 1rem;
+    }
+
+    .screenshot-gallery.cols-2 {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .screenshot-fig {
+      margin: 0;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(2, 6, 23, 0.5);
+    }
+
+    .screenshot-fig img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .screenshot-fig figcaption {
+      padding: 0.6rem 0.8rem;
+      color: var(--muted);
+      font-size: 0.84rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    /* ── Callouts ── */
+    .insight {
+      padding: 1.15rem 1.2rem;
+      border-left: 4px solid var(--accent);
+      border-radius: 16px;
+      background: rgba(255, 153, 0, 0.08);
+      color: #fde7c2;
+    }
+
+    .info {
+      border-left-color: var(--accent-2);
+      background: rgba(56, 189, 248, 0.08);
+      color: #d8f3ff;
+    }
+
+    /* ── Checklist ── */
+    .checklist {
+      display: grid;
+      gap: 0.7rem;
+      margin-top: 1rem;
+    }
+
+    .check {
+      display: flex;
+      gap: 0.75rem;
+      align-items: flex-start;
+      padding: 0.9rem 1rem;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+    }
+
+    .check-mark {
+      flex: 0 0 auto;
+      width: 28px;
+      height: 28px;
+      display: grid;
+      place-items: center;
+      border-radius: 999px;
+      background: rgba(34, 197, 94, 0.15);
+      color: #86efac;
+      font-weight: 800;
+    }
+
+    /* ── Code ── */
+    code {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 0.15rem 0.4rem;
+      border-radius: 6px;
+      font-size: 0.9em;
+      font-family: "Cascadia Code", "Fira Code", monospace;
+    }
+
+    pre code {
+      display: block;
+      padding: 1rem;
+      background: #020617;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      overflow-x: auto;
+      color: #e2e8f0;
+      line-height: 1.55;
+    }
+
+    pre {
+      margin: 0.8rem 0 0;
+    }
+
+    /* ── Tables ── */
+    .lab-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+    }
+
+    .lab-table th,
+    .lab-table td {
+      padding: 0.75rem 0.9rem;
+      text-align: left;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      vertical-align: top;
+    }
+
+    .lab-table th {
+      background: rgba(255, 153, 0, 0.08);
+      color: #ffd28a;
+      font-weight: 700;
+      font-size: 0.92rem;
+    }
+
+    .lab-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .lab-table td code {
+      font-size: 0.85em;
+    }
+
+    /* ── Bounded scrollable figure (for tall terminal screenshots) ── */
+    .screenshot-fig.bounded {
+      max-height: 560px;
+      overflow: auto;
+    }
+
+    .screenshot-fig.bounded img {
+      width: auto;
+      max-width: none;
+    }
+
+    /* ── Gotcha cards ── */
+    .gotcha-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.9rem;
+      margin-top: 1rem;
+    }
+
+    .gotcha {
+      padding: 1rem 1.1rem;
+      border-radius: 16px;
+      border: 1px solid rgba(245, 158, 11, 0.25);
+      background: rgba(245, 158, 11, 0.06);
+    }
+
+    .gotcha h4 {
+      margin: 0 0 0.4rem;
+      color: #fcd34d;
+      font-size: 0.98rem;
+    }
+
+    .gotcha p {
+      margin: 0;
+      color: #fde7c2;
+      font-size: 0.93rem;
+    }
+
+    /* ── Footer ── */
+    .footer {
+      padding: 2.2rem 0 3.5rem;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 920px) {
+
+      .hero-grid,
+      .grid-3,
+      .grid-2,
+      .gotcha-grid,
+      .screenshot-gallery.cols-2 {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 680px) {
+      .nav-inner {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .step {
+        grid-template-columns: 1fr;
+      }
+
+      .step-num {
+        width: 60px;
+        height: 60px;
+        border-radius: 16px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <nav class="nav">
+    <div class="container nav-inner">
+      <div class="brand">
+        <div class="brand-badge">AWS</div>
+        <div>Lab Report · Storage</div>
+      </div>
+      <div class="nav-links">
+        <a href="../index.html" class="back-link">← All Labs</a>
+        <a href="#summary">Summary</a>
+        <a href="#walkthrough">Walkthrough</a>
+        <a href="#commands">Commands</a>
+        <a href="#learnings">Learnings</a>
+      </div>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <div class="container hero-grid">
+      <div class="panel hero-main">
+        <div class="eyebrow">AWS re/Start Lab · Storage</div>
+        <h1>Working with Amazon EBS</h1>
+        <p>
+          Create an EBS volume, attach it to an EC2 instance, format it with ext3, persist the mount through
+          <code>/etc/fstab</code>, take a snapshot to S3, and restore the snapshot into a new volume to recover
+          deleted data.
+        </p>
+      </div>
+
+      <aside class="panel hero-side">
+        <div class="callout">
+          <strong>Lab Objective</strong>
+          Exercise the full EBS lifecycle: provision → attach → mount → snapshot → restore.
+        </div>
+
+        <div>
+          <div class="small" style="margin-bottom:0.7rem;">Tools &amp; Concepts</div>
+          <div class="tech-stack">
+            <span class="chip">Amazon EBS</span>
+            <span class="chip">EC2</span>
+            <span class="chip">ext3</span>
+            <span class="chip">mkfs · mount · fstab</span>
+            <span class="chip">Snapshots → S3</span>
+          </div>
+        </div>
+
+        <div class="callout" style="border-color: rgba(34,197,94,0.2); background: rgba(34,197,94,0.08);">
+          <strong>Key Insight</strong>
+          Snapshots are point-in-time backups stored in S3 and are incremental — only used blocks are copied,
+          so a 1 GiB volume with one small file produces a snapshot of just <code>53 MiB</code>.
+        </div>
+      </aside>
+    </div>
+  </header>
+
+  <main>
+    <section id="summary">
+      <div class="container">
+        <h2 class="section-title">Lab Summary</h2>
+        <p class="section-subtitle">
+          Provisioned a <span class="highlight">gp2 1 GiB</span> volume in the same Availability Zone as the
+          <span class="highlight">Lab</span> instance, attached it as <code>/dev/sdb</code>, formatted with
+          <code>ext3</code> and mounted under <code>/mnt/data-store</code>. Persisted the mount via
+          <code>/etc/fstab</code>, wrote a test file, snapshotted the volume, deleted the file, and proved
+          recovery by creating a new volume from the snapshot and mounting it at <code>/mnt/data-store2</code>.
+        </p>
+
+        <div class="grid-2" style="margin-top:1rem;">
+          <article class="card">
+            <h3>Volume lifecycle</h3>
+            <p>Create → attach → format → mount → persist. Volumes are AZ-bound and exposed to Linux as block
+              devices. On Nitro instances <code>/dev/sdb</code> appears as <code>/dev/nvme1n1</code>.</p>
+          </article>
+          <article class="card">
+            <h3>Snapshot lifecycle</h3>
+            <p>Snapshot → delete data → restore. Snapshots live in S3, are incremental, and can be used to
+              clone a volume in any AZ of the same Region.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="architecture">
+      <div class="container">
+        <h2 class="section-title">Architecture &amp; components</h2>
+        <p class="section-subtitle">All resources sit in the same Region and the volume is co-located with the
+          instance because EBS volumes are bound to a single Availability Zone.</p>
+
+        <table class="lab-table">
+          <thead>
+            <tr>
+              <th>Component</th>
+              <th>Configuration</th>
+              <th>Purpose</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Lab EC2 instance</strong></td>
+              <td>Pre-provisioned, Amazon Linux, Nitro-based. AZ <code>us-west-2a</code>.</td>
+              <td>Host where volumes are attached and mounted.</td>
+            </tr>
+            <tr>
+              <td><strong>Root volume</strong></td>
+              <td>gp2, 8 GiB, attached as <code>/dev/nvme0n1p1</code>.</td>
+              <td>Pre-existing OS disk — not modified.</td>
+            </tr>
+            <tr>
+              <td><strong>My Volume</strong></td>
+              <td>gp2, <strong>1 GiB</strong>, same AZ as Lab. Attached as <code>/dev/sdb</code>.</td>
+              <td>Working volume created in this lab. Formatted with ext3.</td>
+            </tr>
+            <tr>
+              <td><strong>My Snapshot</strong></td>
+              <td>Point-in-time copy of My Volume. <strong>53 MiB</strong> stored.</td>
+              <td>Backup. Persists in S3 independently of the source volume.</td>
+            </tr>
+            <tr>
+              <td><strong>Restored Volume</strong></td>
+              <td>gp2, 1 GiB, created from My Snapshot. Attached as <code>/dev/sdc</code>.</td>
+              <td>Recovery target. Contains the data that existed at snapshot time.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="walkthrough">
+      <div class="container">
+        <h2 class="section-title">Walkthrough</h2>
+        <p class="section-subtitle">Five technical tasks: provision the volume, attach it, mount it, snapshot
+          it, and restore. The console clicks are summarized; the CLI work is documented in full.</p>
+
+        <div class="timeline">
+
+          <!-- ══════ TASK 1 ══════ -->
+          <article class="step">
+            <div class="step-num">01</div>
+            <div>
+              <h3>Create and attach the EBS volume</h3>
+              <ul>
+                <li>From the EC2 console → <strong>Elastic Block Store · Volumes</strong> → <strong>Create
+                    volume</strong>. Configured <strong>gp2 · 1 GiB</strong> in the same AZ as the Lab
+                  instance (AZ-binding is mandatory for attach).</li>
+                <li>Tagged the volume <code>Name=My Volume</code> for identification next to the existing 8 GiB
+                  root volume.</li>
+                <li>From <strong>Actions · Attach volume</strong>, picked the <strong>Lab</strong> instance and
+                  device name <code>/dev/sdb</code>. State moved to <strong>In-use</strong>.</li>
+              </ul>
+
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/01-volume-attached.png"
+                    alt="My Volume successfully attached to the Lab instance" loading="lazy" />
+                  <figcaption>EC2 console: <code>My Volume</code> (gp2, 1 GiB) attached to the Lab instance.
+                    The 8 GiB root volume is visible alongside.</figcaption>
+                </figure>
+              </div>
+
+              <div class="insight info" style="margin-top:1rem;">
+                <strong>AZ-binding:</strong> if the volume is created in a different AZ than the instance,
+                attach is impossible. The fix is recreating the volume in the correct AZ — there is no
+                cross-AZ attach.
+              </div>
+            </div>
+          </article>
+
+          <!-- ══════ TASK 2 ══════ -->
+          <article class="step">
+            <div class="step-num">02</div>
+            <div>
+              <h3>Connect via EC2 Instance Connect and inspect the disk</h3>
+              <ul>
+                <li>Used <strong>EC2 Instance Connect</strong> from the console (no SSH key handling needed —
+                  the browser-based terminal is enough for this lab).</li>
+                <li>Ran <code>df -h</code> before doing anything: only the root volume
+                  <code>/dev/nvme0n1p1</code> shows up. The new volume is attached at the EC2 layer but Linux
+                  has not been told what to do with it yet.</li>
+              </ul>
+              <pre><code># Before formatting / mounting, the new volume is invisible to df
+$ df -h
+Filesystem      Size  Used Avail Use% Mounted on
+devtmpfs        464M     0  464M   0% /dev
+tmpfs           473M     0  473M   0% /dev/shm
+/dev/nvme0n1p1  8.0G  1.7G  6.4G  21% /</code></pre>
+
+              <div class="insight" style="margin-top:1rem;">
+                <strong>Device naming on Nitro:</strong> the console asks for <code>/dev/sdb</code>, but
+                inside the OS the kernel exposes it as <code>/dev/nvme1n1</code>. The <code>sdX</code> names
+                still work as aliases, but <code>df</code> and <code>findmnt</code> will report
+                <code>nvmeXn1</code>.
+              </div>
+            </div>
+          </article>
+
+          <!-- ══════ TASK 3 ══════ -->
+          <article class="step">
+            <div class="step-num">03</div>
+            <div>
+              <h3>Format, mount, and persist the volume</h3>
+              <ul>
+                <li>Created an <code>ext3</code> filesystem on the raw block device, then a mount point under
+                  <code>/mnt/data-store</code> and mounted it.</li>
+                <li>Added an entry to <code>/etc/fstab</code> so the mount survives reboots — without this,
+                  the volume would have to be remounted manually on every boot.</li>
+                <li>Wrote a small text file to prove the filesystem works, then read it back.</li>
+              </ul>
+
+              <pre><code># 1. Format the raw block device
+sudo mkfs -t ext3 /dev/sdb
+
+# 2. Mount point + mount
+sudo mkdir /mnt/data-store
+sudo mount /dev/sdb /mnt/data-store
+
+# 3. Persist across reboots
+echo "/dev/sdb /mnt/data-store ext3 defaults,noatime 1 2" | sudo tee -a /etc/fstab
+
+# 4. Verify
+cat /etc/fstab
+df -h
+findmnt /mnt/data-store
+
+# 5. Write &amp; read a test file
+sudo sh -c "echo some text has been written &gt; /mnt/data-store/file.txt"
+cat /mnt/data-store/file.txt</code></pre>
+
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig bounded">
+                  <img src="assets/screenshots/02-mount-fstab-write.png"
+                    alt="Terminal showing fstab entry, df -h with /dev/nvme1n1 mounted, findmnt, and file write/read" />
+                  <figcaption>Terminal evidence: <code>/etc/fstab</code> entry, <code>df -h</code> showing
+                    <code>/dev/nvme1n1</code> mounted on <code>/mnt/data-store</code>, <code>findmnt</code>
+                    confirming ext3, and the write/read cycle returning <em>"some text has been
+                      written"</em>. Scroll the panel — the terminal output is dense on purpose.</figcaption>
+                </figure>
+              </div>
+
+              <div class="insight info" style="margin-top:1rem;">
+                <strong>noatime:</strong> the flag disables write-on-read for access timestamps. Reasonable
+                default for general-purpose data volumes — fewer pointless writes, slightly less wear on the
+                device.
+              </div>
+            </div>
+          </article>
+
+          <!-- ══════ TASK 4 ══════ -->
+          <article class="step">
+            <div class="step-num">04</div>
+            <div>
+              <h3>Snapshot the volume to S3</h3>
+              <ul>
+                <li>From <strong>Volumes</strong> → selected <code>My Volume</code> → <strong>Actions ·
+                    Create snapshot</strong>, tagged <code>Name=My Snapshot</code>.</li>
+                <li>Snapshot moves through <strong>Pending → Completed</strong>. Once Completed, the volume
+                  can be detached, deleted, or modified without affecting the snapshot — they are
+                  independent.</li>
+              </ul>
+
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/03-snapshot-completed.png"
+                    alt="Snapshots listing showing My Snapshot, 53 MiB used, 1 GiB volume size" loading="lazy" />
+                  <figcaption>Snapshot listing: <code>My Snapshot</code> at <strong>53 MiB</strong> stored for
+                    a 1 GiB source volume — only used blocks are persisted.</figcaption>
+                </figure>
+              </div>
+
+              <div class="insight" style="margin-top:1rem;">
+                <strong>Incremental storage:</strong> the snapshot is 53 MiB even though the volume is 1 GiB.
+                EBS only copies the blocks that were actually written (filesystem metadata + the test file).
+                Subsequent snapshots of the same volume only store the delta.
+              </div>
+            </div>
+          </article>
+
+          <!-- ══════ TASK 5 ══════ -->
+          <article class="step">
+            <div class="step-num">05</div>
+            <div>
+              <h3>Delete the file and restore it from the snapshot</h3>
+              <ul>
+                <li>Deleted <code>file.txt</code> on the original mount and confirmed it was gone with
+                  <code>ls</code>.</li>
+                <li>From <strong>Snapshots</strong> → <strong>Actions · Create volume from snapshot</strong>,
+                  same AZ, tagged <code>Name=Restored Volume</code>. Attached the new volume as
+                  <code>/dev/sdc</code>.</li>
+                <li>Created <code>/mnt/data-store2</code>, mounted the restored volume there, and the deleted
+                  file reappeared exactly as it was at snapshot time.</li>
+              </ul>
+
+              <pre><code># Wipe the file on the original volume
+sudo rm /mnt/data-store/file.txt
+ls /mnt/data-store/file.txt
+# → ls: cannot access /mnt/data-store/file.txt: No such file or directory
+
+# Mount the restored volume (attached as /dev/sdc → /dev/nvme2n1 on Nitro)
+sudo mkdir /mnt/data-store2
+sudo mount /dev/sdc /mnt/data-store2
+
+# The file is back — exactly as it existed at snapshot time
+ls /mnt/data-store2/file.txt
+# → /mnt/data-store2/file.txt</code></pre>
+
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/04-restored-volume-mounted.png"
+                    alt="Terminal showing rm of file.txt, failed ls, then mount of /dev/sdc and successful ls" loading="lazy" />
+                  <figcaption>Recovery evidence: deletion on the original mount, the restored volume mounted
+                    at <code>/mnt/data-store2</code>, and the file recovered intact.</figcaption>
+                </figure>
+              </div>
+
+              <div class="insight info" style="margin-top:1rem;">
+                <strong>Why this matters:</strong> the restore happens at the block level. The new volume
+                ships with the same filesystem and the same file metadata — no <code>mkfs</code> needed, just
+                <code>mount</code>.
+              </div>
+            </div>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+    <section id="commands">
+      <div class="container">
+        <h2 class="section-title">Command reference</h2>
+        <p class="section-subtitle">Quick lookup for the storage commands used in this lab.</p>
+
+        <table class="lab-table">
+          <thead>
+            <tr>
+              <th>Command</th>
+              <th>Purpose</th>
+              <th>Notes</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>df -h</code></td>
+              <td>List mounted filesystems with human-readable sizes.</td>
+              <td>Does <em>not</em> show attached-but-unmounted volumes.</td>
+            </tr>
+            <tr>
+              <td><code>mkfs -t ext3 /dev/sdb</code></td>
+              <td>Create an ext3 filesystem on a raw block device.</td>
+              <td>Destructive — wipes whatever was on the device.</td>
+            </tr>
+            <tr>
+              <td><code>mount /dev/sdb /mnt/data-store</code></td>
+              <td>Attach the filesystem to a directory in the tree.</td>
+              <td>Non-persistent. Lost on reboot unless declared in <code>/etc/fstab</code>.</td>
+            </tr>
+            <tr>
+              <td><code>findmnt &lt;path&gt;</code></td>
+              <td>Show source device, fs type, and mount options for a path.</td>
+              <td>Better than parsing <code>mount</code> output.</td>
+            </tr>
+            <tr>
+              <td><code>/etc/fstab</code> entry</td>
+              <td>Declare a mount so it persists across reboots.</td>
+              <td>Fields: <code>device  mountpoint  fstype  options  dump  pass</code>.</td>
+            </tr>
+            <tr>
+              <td><code>cat / echo &gt; /mnt/...</code></td>
+              <td>Write and read a file to validate the filesystem.</td>
+              <td>Use <code>sudo sh -c "..."</code> for the redirect — <code>sudo echo &gt;</code> fails
+                because the shell, not <code>echo</code>, owns the redirect.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="learnings">
+      <div class="container">
+        <h2 class="section-title">Concepts &amp; gotchas</h2>
+
+        <div class="grid-2">
+          <div class="card">
+            <h3>What was actually learned</h3>
+            <div class="checklist">
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>EBS volumes are <strong>AZ-bound</strong>. They can only be attached to instances in the
+                  same Availability Zone.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>Attaching at the AWS layer is not the same as mounting. Linux still needs
+                  <code>mkfs</code> + <code>mount</code> before the volume is usable.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div><strong>Snapshots</strong> are point-in-time backups stored in S3, incremental, and
+                  independent from the source volume's lifecycle.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>A restored volume is a <strong>full clone</strong> of the snapshot — same filesystem,
+                  same data, no formatting required.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div><code>/etc/fstab</code> is the difference between "works now" and "works after reboot".
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Technical conclusion</h3>
+            <p>
+              EBS gives you a block device. AWS handles durability and provisioning; the OS handles
+              filesystem, mount, and persistence. The two layers don't overlap — losing track of which side is
+              responsible for what is the most common source of confusion.
+            </p>
+            <p style="margin-top: 1rem;">
+              Snapshots are the cleanest backup primitive in this stack: incremental, region-durable, and
+              restorable into any AZ. Combined with <code>/etc/fstab</code> persistence, this is the
+              minimum-viable durable-storage pattern for any stateful workload on EC2.
+            </p>
+          </div>
+        </div>
+
+        <div class="gotcha-grid">
+          <div class="gotcha">
+            <h4>sdb vs nvme1n1</h4>
+            <p>The console says <code>/dev/sdb</code>. The OS on Nitro instances shows
+              <code>/dev/nvme1n1</code>. Both work — the <code>sdX</code> names are symlinks/aliases — but
+              monitoring tools and <code>df</code> will use the NVMe name.</p>
+          </div>
+          <div class="gotcha">
+            <h4>AZ mismatch on attach</h4>
+            <p>Creating the volume in the wrong AZ silently breaks the lab — the instance never appears in
+              the attach dropdown. Always confirm the AZ of the target instance <em>before</em> clicking
+              Create.</p>
+          </div>
+          <div class="gotcha">
+            <h4>Forgetting /etc/fstab</h4>
+            <p>A manual <code>mount</code> works until the next reboot. The fstab entry is what makes the
+              configuration survive. The <code>1 2</code> fields at the end control <code>dump</code> and
+              <code>fsck</code> ordering — not optional.</p>
+          </div>
+          <div class="gotcha">
+            <h4>Snapshot size ≠ volume size</h4>
+            <p>A 1 GiB volume produced a 53 MiB snapshot because EBS only stores used blocks. Useful for cost
+              forecasting — billing is on snapshot storage, not nominal volume size.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      Lab report documenting the Working with Amazon EBS lab · AWS re/Start Program
+    </div>
+  </footer>
+</body>
+
+</html>

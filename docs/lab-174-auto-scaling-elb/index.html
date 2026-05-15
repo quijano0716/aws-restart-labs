@@ -1,0 +1,948 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lab Report: Scaling and Load Balancing Your Architecture</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --bg-soft: #111827;
+      --card: rgba(255, 255, 255, 0.08);
+      --card-strong: rgba(255, 255, 255, 0.12);
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --accent: #ff9900;
+      --accent-2: #38bdf8;
+      --ok: #22c55e;
+      --warn: #f59e0b;
+      --border: rgba(255, 255, 255, 0.12);
+      --shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+      --radius: 22px;
+      --max: 1120px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(255, 153, 0, 0.16), transparent 28%),
+        radial-gradient(circle at top right, rgba(56, 189, 248, 0.14), transparent 24%),
+        linear-gradient(180deg, #020617 0%, #0f172a 48%, #111827 100%);
+      color: var(--text);
+      line-height: 1.65;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .container {
+      width: min(var(--max), calc(100% - 2rem));
+      margin: 0 auto;
+    }
+
+    .nav {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      backdrop-filter: blur(16px);
+      background: rgba(2, 6, 23, 0.72);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .nav-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.9rem 0;
+      gap: 1rem;
+    }
+
+    .brand {
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+    }
+
+    .brand-badge {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, var(--accent), #ffb84d);
+      color: #111827;
+      font-weight: 900;
+      box-shadow: var(--shadow);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .nav-links a:hover {
+      color: var(--text);
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      color: var(--muted);
+      font-size: 0.9rem;
+      transition: color 0.2s;
+    }
+
+    .back-link:hover {
+      color: var(--accent);
+    }
+
+    .hero {
+      padding: 4.8rem 0 2rem;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 1.5rem;
+      align-items: stretch;
+    }
+
+    .panel {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.05));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .hero-main {
+      padding: 2rem;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.45rem 0.8rem;
+      border-radius: 999px;
+      background: rgba(255, 153, 0, 0.12);
+      color: #ffd28a;
+      border: 1px solid rgba(255, 153, 0, 0.25);
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+    }
+
+    h1,
+    h2,
+    h3 {
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+      margin: 0;
+    }
+
+    h1 {
+      font-size: clamp(2rem, 4vw, 3.7rem);
+      margin-bottom: 0.9rem;
+    }
+
+    .hero-main p {
+      margin: 0;
+      color: #cbd5e1;
+      font-size: 1.05rem;
+      max-width: 65ch;
+    }
+
+    .hero-side {
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .hero-side .callout {
+      padding: 1rem 1.1rem;
+      border-radius: 18px;
+      border: 1px solid rgba(56, 189, 248, 0.18);
+      background: rgba(56, 189, 248, 0.08);
+    }
+
+    .hero-side .callout strong {
+      display: block;
+      margin-bottom: 0.35rem;
+    }
+
+    .tech-stack {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.55rem;
+    }
+
+    .chip {
+      padding: 0.45rem 0.75rem;
+      border-radius: 999px;
+      font-size: 0.88rem;
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #dbeafe;
+    }
+
+    .small {
+      font-size: 0.92rem;
+      color: var(--muted);
+    }
+
+    section {
+      padding: 1rem 0 0.4rem;
+    }
+
+    .section-title {
+      margin-bottom: 1rem;
+      font-size: clamp(1.5rem, 2vw, 2.2rem);
+    }
+
+    .section-subtitle {
+      color: var(--muted);
+      margin-top: 0.45rem;
+      max-width: 75ch;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .card {
+      padding: 1.3rem;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+    }
+
+    .card h3 {
+      font-size: 1.05rem;
+      margin-bottom: 0.6rem;
+    }
+
+    .card p {
+      margin: 0;
+      color: #cbd5e1;
+    }
+
+    .timeline {
+      display: grid;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .step {
+      display: grid;
+      grid-template-columns: 90px 1fr;
+      gap: 1rem;
+      align-items: start;
+      padding: 1.25rem;
+      border-radius: 22px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: var(--shadow);
+    }
+
+    .step-num {
+      width: 72px;
+      height: 72px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, rgba(255, 153, 0, 0.18), rgba(56, 189, 248, 0.18));
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      display: grid;
+      place-items: center;
+      font-size: 1.1rem;
+      font-weight: 900;
+      color: #fff;
+    }
+
+    .step h3 {
+      margin-bottom: 0.55rem;
+      font-size: 1.2rem;
+    }
+
+    .step ul {
+      margin: 0.3rem 0 0;
+      padding-left: 1.1rem;
+      color: #dbe4f0;
+    }
+
+    .step li+li {
+      margin-top: 0.4rem;
+    }
+
+    .highlight {
+      color: #ffd28a;
+      font-weight: 700;
+    }
+
+    .screenshot-gallery {
+      display: grid;
+      gap: 0.8rem;
+      margin-top: 1rem;
+    }
+
+    .screenshot-gallery.cols-2 {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .screenshot-fig {
+      margin: 0;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(2, 6, 23, 0.5);
+    }
+
+    .screenshot-fig img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .screenshot-fig figcaption {
+      padding: 0.6rem 0.8rem;
+      color: var(--muted);
+      font-size: 0.84rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .insight {
+      padding: 1.15rem 1.2rem;
+      border-left: 4px solid var(--accent);
+      border-radius: 16px;
+      background: rgba(255, 153, 0, 0.08);
+      color: #fde7c2;
+    }
+
+    .info {
+      border-left-color: var(--accent-2);
+      background: rgba(56, 189, 248, 0.08);
+      color: #d8f3ff;
+    }
+
+    .warn-callout {
+      border-left-color: var(--warn);
+      background: rgba(245, 158, 11, 0.08);
+      color: #fde68a;
+    }
+
+    .checklist {
+      display: grid;
+      gap: 0.7rem;
+      margin-top: 1rem;
+    }
+
+    .check {
+      display: flex;
+      gap: 0.75rem;
+      align-items: flex-start;
+      padding: 0.9rem 1rem;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+    }
+
+    .check-mark {
+      flex: 0 0 auto;
+      width: 28px;
+      height: 28px;
+      display: grid;
+      place-items: center;
+      border-radius: 999px;
+      background: rgba(34, 197, 94, 0.15);
+      color: #86efac;
+      font-weight: 800;
+    }
+
+    code {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 0.15rem 0.4rem;
+      border-radius: 6px;
+      font-size: 0.9em;
+      font-family: "Cascadia Code", "Fira Code", monospace;
+    }
+
+    .footer {
+      padding: 2.2rem 0 3.5rem;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    /* ── Custom: Config table for resources ── */
+    .config-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+      background: rgba(255, 255, 255, 0.04);
+      border-radius: 14px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    .config-table th,
+    .config-table td {
+      padding: 0.7rem 0.9rem;
+      text-align: left;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      font-size: 0.93rem;
+      vertical-align: top;
+    }
+
+    .config-table th {
+      background: rgba(255, 153, 0, 0.08);
+      color: #ffd28a;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      font-size: 0.78rem;
+    }
+
+    .config-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .config-table td:first-child {
+      color: var(--muted);
+      width: 32%;
+    }
+
+    /* ── Custom: Arch diagram (text-based flow) ── */
+    .arch-flow {
+      display: grid;
+      gap: 0.9rem;
+      margin-top: 1.2rem;
+    }
+
+    .arch-row {
+      display: grid;
+      grid-template-columns: 150px 1fr;
+      gap: 1rem;
+      align-items: center;
+      padding: 0.85rem 1rem;
+      border-radius: 14px;
+      background: rgba(56, 189, 248, 0.06);
+      border: 1px solid rgba(56, 189, 248, 0.15);
+    }
+
+    .arch-row .layer {
+      font-weight: 800;
+      color: #7dd3fc;
+      font-size: 0.92rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .arch-row .detail {
+      color: #dbeafe;
+      font-size: 0.95rem;
+    }
+
+    /* ── Custom: Note line for honest evidence flags ── */
+    .evidence-note {
+      margin-top: 0.7rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 12px;
+      background: rgba(245, 158, 11, 0.08);
+      border: 1px solid rgba(245, 158, 11, 0.18);
+      color: #fde68a;
+      font-size: 0.88rem;
+    }
+
+    @media (max-width: 920px) {
+
+      .hero-grid,
+      .grid-3,
+      .grid-2,
+      .screenshot-gallery.cols-2 {
+        grid-template-columns: 1fr;
+      }
+
+      .arch-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 680px) {
+      .nav-inner {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .step {
+        grid-template-columns: 1fr;
+      }
+
+      .step-num {
+        width: 60px;
+        height: 60px;
+        border-radius: 16px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <nav class="nav">
+    <div class="container nav-inner">
+      <div class="brand">
+        <div class="brand-badge">AWS</div>
+        <div>Lab Report · Compute &amp; HA</div>
+      </div>
+      <div class="nav-links">
+        <a href="../index.html" class="back-link">← All Labs</a>
+        <a href="#summary">Summary</a>
+        <a href="#architecture">Architecture</a>
+        <a href="#walkthrough">Walkthrough</a>
+        <a href="#learnings">Learnings</a>
+      </div>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <div class="container hero-grid">
+      <div class="panel hero-main">
+        <div class="eyebrow">AWS re/Start Lab · Compute &amp; High Availability</div>
+        <h1>Scaling and Load Balancing Your Architecture</h1>
+        <p>
+          Built a fault-tolerant, horizontally scalable web tier on AWS by combining a custom AMI,
+          an Application Load Balancer in public subnets across two AZs, and an Auto Scaling Group
+          in private subnets driven by a CloudWatch target-tracking policy on CPU utilization.
+        </p>
+      </div>
+
+      <aside class="panel hero-side">
+        <div class="callout">
+          <strong>Lab Objective</strong>
+          Combine an AMI, an ALB, a launch template, an Auto Scaling group, and CloudWatch alarms
+          to obtain automatic scaling and multi-AZ fault tolerance for a web application.
+        </div>
+
+        <div>
+          <div class="small" style="margin-bottom:0.7rem;">Tools &amp; Concepts</div>
+          <div class="tech-stack">
+            <span class="chip">EC2 AMI</span>
+            <span class="chip">Application Load Balancer</span>
+            <span class="chip">Launch Template</span>
+            <span class="chip">Auto Scaling Group</span>
+            <span class="chip">CloudWatch Alarms</span>
+            <span class="chip">Target Tracking</span>
+            <span class="chip">Multi-AZ</span>
+          </div>
+        </div>
+
+        <div class="callout" style="border-color: rgba(34,197,94,0.2); background: rgba(34,197,94,0.08);">
+          <strong>Key Insight</strong>
+          A target tracking policy auto-creates two CloudWatch alarms — one to scale out, one to
+          scale in — so AWS manages the thresholds and the operator only declares the target metric.
+        </div>
+      </aside>
+    </div>
+  </header>
+
+  <main>
+    <section id="summary">
+      <div class="container">
+        <h2 class="section-title">Lab Summary</h2>
+        <p class="section-subtitle">
+          Captured a snapshot of <span class="highlight">Web Server 1</span> as a custom AMI, fronted the
+          application with an <span class="highlight">internet-facing ALB</span> spanning two public subnets,
+          and replaced the single server with an <span class="highlight">Auto Scaling group</span> of
+          <code>t3.micro</code> instances running in private subnets. A
+          <span class="highlight">target tracking policy</span> at <code>50%</code> average CPU drives
+          scaling decisions, with health checks delegated to the ELB.
+        </p>
+
+        <div class="grid-2" style="margin-top:1rem;">
+          <article class="card">
+            <h3>Fault Tolerance</h3>
+            <p>ALB spreads traffic across two AZs (<code>us-west-2a</code>, <code>us-west-2b</code>).
+              The ASG keeps a minimum of two instances and the ELB health check replaces any instance
+              that stops responding on HTTP/80.</p>
+          </article>
+          <article class="card">
+            <h3>Elastic Capacity</h3>
+            <p>Min=2, Desired=2, Max=4. When average CPU crosses the 50% target, CloudWatch's
+              auto-generated <code>AlarmHigh</code> fires and the ASG launches additional instances
+              from the launch template until load drops.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="architecture">
+      <div class="container">
+        <h2 class="section-title">Target Architecture</h2>
+        <p class="section-subtitle">
+          Defense in depth: the only public-facing surface is the load balancer. Application
+          instances live in private subnets and only accept traffic from the ALB's security group.
+        </p>
+
+        <div class="arch-flow">
+          <div class="arch-row">
+            <div class="layer">Edge / Public</div>
+            <div class="detail">
+              <strong>LabELB</strong> (Application Load Balancer, internet-facing) in
+              <code>Public Subnet 1</code> + <code>Public Subnet 2</code> · Web Security Group (HTTP 80)
+            </div>
+          </div>
+          <div class="arch-row">
+            <div class="layer">Routing</div>
+            <div class="detail">
+              Target group <code>lab-target-group</code> · type Instance · HTTP:80 · health checks per
+              target on the application port
+            </div>
+          </div>
+          <div class="arch-row">
+            <div class="layer">Compute / Private</div>
+            <div class="detail">
+              <strong>Lab Auto Scaling Group</strong> launches <code>t3.micro</code> instances from
+              <code>Web Server AMI</code> into <code>Private Subnet 1</code> +
+              <code>Private Subnet 2</code> · health-check type <strong>ELB</strong>
+            </div>
+          </div>
+          <div class="arch-row">
+            <div class="layer">Control plane</div>
+            <div class="detail">
+              <strong>CloudWatch</strong> target-tracking policy at <code>50%</code> average CPU ·
+              auto-creates <code>AlarmHigh</code> (scale out) and <code>AlarmLow</code> (scale in)
+            </div>
+          </div>
+        </div>
+
+        <div class="insight info" style="margin-top:1.2rem;">
+          <strong>Why this shape?</strong> Putting the instances in private subnets eliminates direct
+          internet exposure. The ALB is the only ingress point, so security group rules and WAF
+          policies have a single chokepoint to enforce. The Auto Scaling group restores capacity
+          automatically when an instance dies or when load drops one below the desired count.
+        </div>
+      </div>
+    </section>
+
+    <section id="walkthrough">
+      <div class="container">
+        <h2 class="section-title">Step-by-Step Walkthrough</h2>
+        <p class="section-subtitle">
+          All work was done from the AWS Management Console. The lab provided the VPC, subnets,
+          security groups, and a pre-running <code>Web Server 1</code> instance.
+        </p>
+
+        <div class="timeline">
+
+          <!-- ══════ TASK 1 ══════ -->
+          <article class="step">
+            <div class="step-num">01</div>
+            <div>
+              <h3>Create an AMI from Web Server 1</h3>
+              <p>
+                The AMI freezes the boot disk of the running web server so the Auto Scaling group
+                can launch identical replicas later. From <strong>EC2 &gt; Instances</strong>,
+                selected <code>Web Server 1</code> and chose
+                <strong>Actions &gt; Image and templates &gt; Create image</strong>, naming it
+                <code>Web Server AMI</code>. AWS started the snapshot process and returned the new
+                AMI ID.
+              </p>
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/01-ami-created.png"
+                    alt="EC2 console banner: Currently creating AMI ami-031c382bc24534a6c from instance i-0ff771dbccbba5751" loading="lazy" />
+                  <figcaption>EC2 console banner confirms AMI <code>ami-031c382bc24534a6c</code> is being created from <code>Web Server 1</code> (<code>i-0ff771dbccbba5751</code>, <code>us-west-2b</code>).</figcaption>
+                </figure>
+              </div>
+              <div class="insight info" style="margin-top:0.9rem;">
+                <strong>Why an AMI?</strong> Horizontal scaling needs identical, repeatable
+                instances. The AMI is the immutable artifact the launch template references — any
+                instance the ASG creates will start from this exact image.
+              </div>
+            </div>
+          </article>
+
+          <!-- ══════ TASK 2 ══════ -->
+          <article class="step">
+            <div class="step-num">02</div>
+            <div>
+              <h3>Create the Application Load Balancer</h3>
+              <p>
+                From <strong>EC2 &gt; Load Balancers</strong>, created <code>LabELB</code> with the
+                following configuration:
+              </p>
+
+              <table class="config-table">
+                <tr><th>Setting</th><th>Value</th></tr>
+                <tr><td>Type</td><td>Application Load Balancer (HTTP / Layer 7)</td></tr>
+                <tr><td>Scheme</td><td>Internet-facing</td></tr>
+                <tr><td>IP type</td><td>IPv4</td></tr>
+                <tr><td>VPC</td><td><code>vpc-086e5acc2e93e0c11</code> (Lab VPC)</td></tr>
+                <tr><td>Availability Zones</td><td>Public Subnet 1 (<code>us-west-2a</code>) + Public Subnet 2 (<code>us-west-2b</code>)</td></tr>
+                <tr><td>Security group</td><td>Web Security Group (HTTP 80 from 0.0.0.0/0)</td></tr>
+                <tr><td>Listener</td><td>HTTP:80 → target group <code>lab-target-group</code></td></tr>
+              </table>
+
+              <p style="margin-top:0.9rem;">
+                The target group <code>lab-target-group</code> was created in the same flow with
+                target type <strong>Instance</strong>, protocol <strong>HTTP:80</strong>, and the
+                lab's default health-check settings. The ALB's public DNS name became the entry
+                point for the application:
+              </p>
+              <p><code>LabELB-642450134.us-west-2.elb.amazonaws.com</code></p>
+
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/02-load-balancer-created.png"
+                    alt="Successfully created load balancer LabELB; status Provisioning; ALB internet-facing; DNS name shown" loading="lazy" />
+                  <figcaption>ALB <code>LabELB</code> created · status <em>Provisioning</em> · mapped to <code>us-west-2a</code> and <code>us-west-2b</code> · DNS name visible at the bottom.</figcaption>
+                </figure>
+              </div>
+            </div>
+          </article>
+
+          <!-- ══════ TASK 3 ══════ -->
+          <article class="step">
+            <div class="step-num">03</div>
+            <div>
+              <h3>Create the Launch Template</h3>
+              <p>
+                The launch template tells the Auto Scaling group <em>how</em> to launch each
+                instance. Created <code>lab-app-launch-template</code> with the following:
+              </p>
+
+              <table class="config-table">
+                <tr><th>Setting</th><th>Value</th></tr>
+                <tr><td>AMI</td><td><code>Web Server AMI</code> (the one from Task 1)</td></tr>
+                <tr><td>Instance type</td><td><code>t3.micro</code></td></tr>
+                <tr><td>Key pair</td><td>None (no SSH access from outside)</td></tr>
+                <tr><td>Security group</td><td>Web Security Group</td></tr>
+                <tr><td>Guidance</td><td><em>Provide guidance for EC2 Auto Scaling</em> enabled</td></tr>
+              </table>
+
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/03-launch-template-created.png"
+                    alt="Success: Successfully created lab-app-launch-template (lt-03c765c486c64e6f9); Next Steps panel" loading="lazy" />
+                  <figcaption>Launch template <code>lab-app-launch-template</code> (<code>lt-03c765c486c64e6f9</code>) created. The Next Steps panel offers direct access to <em>Create Auto Scaling group</em>.</figcaption>
+                </figure>
+              </div>
+            </div>
+          </article>
+
+          <!-- ══════ TASK 4 ══════ -->
+          <article class="step">
+            <div class="step-num">04</div>
+            <div>
+              <h3>Create the Auto Scaling Group</h3>
+              <p>
+                The core of the lab. Used the <em>Create Auto Scaling group</em> link from the
+                launch template's Next Steps panel and applied this configuration:
+              </p>
+
+              <table class="config-table">
+                <tr><th>Setting</th><th>Value</th></tr>
+                <tr><td>Name</td><td><code>Lab Auto Scaling Group</code></td></tr>
+                <tr><td>Launch template</td><td><code>lab-app-launch-template</code> · Version <em>Default</em></td></tr>
+                <tr><td>VPC</td><td>Lab VPC</td></tr>
+                <tr><td>Subnets</td><td>Private Subnet 1 (<code>10.0.1.0/24</code>) + Private Subnet 2 (<code>10.0.3.0/24</code>)</td></tr>
+                <tr><td>Load balancing</td><td>Attach to existing target group <code>lab-target-group | HTTP</code></td></tr>
+                <tr><td>Health check type</td><td><strong>ELB</strong> (not EC2)</td></tr>
+                <tr><td>Group size</td><td>Min = 2 · Desired = 2 · Max = 4</td></tr>
+                <tr><td>Scaling policy</td><td>Target tracking · <em>Average CPU utilization</em> · target = <code>50%</code></td></tr>
+                <tr><td>Tag</td><td><code>Name = Lab Instance</code></td></tr>
+              </table>
+
+              <p style="margin-top:0.9rem;">
+                Once submitted, the ASG entered <em>Updating capacity</em> and started launching the
+                first two instances into the private subnets.
+              </p>
+
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/04-auto-scaling-group-created.png"
+                    alt="Auto Scaling groups (1): Lab Auto Scaling Group, Status Updating capacity, lab-app-launch-template Version Default, Instances 0" loading="lazy" />
+                  <figcaption>Auto Scaling group <code>Lab Auto Scaling Group</code> created · status <em>Updating capacity</em> · capacity still <code>0</code> because the first instances were still booting.</figcaption>
+                </figure>
+              </div>
+
+              <div class="insight info" style="margin-top:0.9rem;">
+                <strong>Why ELB health checks?</strong> An ELB health check validates the instance
+                actually responds on the application port (HTTP/80). An EC2 health check only looks
+                at hypervisor-level status checks, which can pass even when the web server process
+                is dead. Choosing ELB ties the ASG's replacement logic to real application
+                availability.
+              </div>
+            </div>
+          </article>
+
+          <!-- ══════ TASK 5 ══════ -->
+          <article class="step">
+            <div class="step-num">05</div>
+            <div>
+              <h3>Verify balancing and health checks</h3>
+              <p>
+                After the ASG finished launching the first batch, both new instances registered
+                with <code>lab-target-group</code> and passed their HTTP health checks. At that
+                point <code>Web Server 1</code> (the source of the AMI) was deleted — the ASG had
+                replaced its role with two identical instances across both AZs.
+              </p>
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/05-target-group-healthy.png"
+                    alt="lab-target-group: 2 Healthy, 0 Unhealthy; two instances in us-west-2a and us-west-2b both Healthy on port 80" loading="lazy" />
+                  <figcaption>Target group <code>lab-target-group</code> · <strong>2 Healthy / 0 Unhealthy</strong> · one instance in <code>us-west-2a</code>, one in <code>us-west-2b</code>, both registered as <code>lab instance</code>.</figcaption>
+                </figure>
+              </div>
+
+              <p style="margin-top:0.9rem;">
+                The ALB DNS name from Task 2 served the lab's Load Test application across both
+                instances. Traffic was distributed by the ALB on each request.
+              </p>
+            </div>
+          </article>
+
+          <!-- ══════ TASK 6 ══════ -->
+          <article class="step">
+            <div class="step-num">06</div>
+            <div>
+              <h3>Trigger auto scaling with CPU load</h3>
+              <p>
+                The Load Test page inside the application drives CPU upward on whichever instance
+                serves the request. The target-tracking policy from Task 4 created two CloudWatch
+                alarms automatically:
+              </p>
+              <ul>
+                <li><code>TargetTracking-Lab Auto Scaling Group-AlarmHigh-...</code> — fires when
+                  average CPU stays above the 50% target, signaling <strong>scale out</strong>.</li>
+                <li><code>TargetTracking-Lab Auto Scaling Group-AlarmLow-...</code> — fires when
+                  average CPU drops well below the target, signaling <strong>scale in</strong>.</li>
+              </ul>
+
+              <p>
+                On a freshly created cluster with idle instances, <code>AlarmLow</code> is the one
+                <em>In alarm</em> and <code>AlarmHigh</code> is <em>OK</em> — which is the state the
+                screenshot below captures, before the Load Test pushed CPU up.
+              </p>
+
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/06-cloudwatch-alarms-baseline.png"
+                    alt="CloudWatch Alarms (2): TargetTracking AlarmLow In alarm; TargetTracking AlarmHigh OK; both Actions enabled" loading="lazy" />
+                  <figcaption>CloudWatch Alarms · <code>AlarmLow</code> <strong>In alarm</strong> (idle cluster, no load) · <code>AlarmHigh</code> <strong>OK</strong>. Both alarms have <em>Actions enabled</em>, so they're connected to the ASG's scaling policies.</figcaption>
+                </figure>
+              </div>
+
+              <div class="insight warn-callout" style="margin-top:0.9rem;">
+                <strong>Evidence note — honest read.</strong> The original screenshot file was
+                named <code>alarmahigh.png</code>, but it actually shows the
+                <strong>baseline</strong> state: <code>AlarmLow</code> is the one in alarm and
+                <code>AlarmHigh</code> is OK. The file has been renamed to
+                <code>06-cloudwatch-alarms-baseline.png</code> in this report.
+              </div>
+
+              <p style="margin-top:0.9rem;">
+                <strong>Expected transition during the Load Test (not captured as a screenshot):</strong>
+                after a few minutes of sustained CPU above the 50% target,
+                <code>AlarmHigh</code> moves to <em>In alarm</em> and the ASG launches additional
+                instances up to the configured maximum of <code>4</code>. Once the load stops, CPU
+                drops back, <code>AlarmLow</code> returns to <em>In alarm</em>, and the ASG
+                gradually terminates instances down to the minimum of <code>2</code>.
+              </p>
+            </div>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+    <section id="learnings">
+      <div class="container">
+        <h2 class="section-title">Key Learnings</h2>
+        <div class="grid-2">
+          <div class="card">
+            <h3>What Was Actually Learned</h3>
+            <div class="checklist">
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>Capturing a running EC2 instance as a custom <strong>AMI</strong> to use as the
+                  immutable artifact for horizontal scaling.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>Designing a two-AZ topology with an <strong>internet-facing ALB</strong> in
+                  public subnets and the application fleet in <strong>private subnets</strong>.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>Wiring an <strong>Auto Scaling group</strong> to a launch template and a target
+                  group, and choosing the <strong>ELB health-check type</strong> so unhealthy
+                  instances are replaced based on real HTTP availability.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>Declaring a <strong>target tracking policy</strong> on average CPU and letting
+                  CloudWatch generate the <code>AlarmHigh</code> / <code>AlarmLow</code> pair
+                  automatically.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>Reading the two-alarm state correctly: in an idle cluster the
+                  <em>low</em> alarm is the one firing, not the <em>high</em> one.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Technical Conclusion</h3>
+            <p>
+              The combined pattern — AMI + ALB + ASG + target tracking — is the canonical AWS shape
+              for a stateless web tier. The launch template separates <em>what</em> an instance
+              looks like from <em>when</em> to create one; the ASG owns lifecycle and replacement;
+              the ALB owns ingress and traffic distribution; CloudWatch owns the feedback loop.
+            </p>
+            <p style="margin-top: 1rem;">
+              The most subtle choice is the <strong>ELB health-check type</strong>: it shifts the
+              definition of "healthy" from the hypervisor up to the application layer, which is
+              what fault tolerance actually needs in practice. The optional CLI challenge from the
+              lab guide was not executed in this run — the console flow was enough to verify the
+              architecture end to end.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      Lab report documenting <em>Scaling and Load Balancing Your Architecture</em> · AWS re/Start Program
+    </div>
+  </footer>
+</body>
+
+</html>

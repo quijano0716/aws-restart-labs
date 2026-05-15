@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lab Report: Working with AWS Lambda — Sales Analysis Report</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --bg-soft: #111827;
+      --card: rgba(255, 255, 255, 0.08);
+      --card-strong: rgba(255, 255, 255, 0.12);
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --accent: #ff9900;
+      --accent-2: #38bdf8;
+      --ok: #22c55e;
+      --warn: #f59e0b;
+      --err: #ef4444;
+      --border: rgba(255, 255, 255, 0.12);
+      --shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+      --radius: 22px;
+      --max: 1120px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(255, 153, 0, 0.16), transparent 28%),
+        radial-gradient(circle at top right, rgba(56, 189, 248, 0.14), transparent 24%),
+        linear-gradient(180deg, #020617 0%, #0f172a 48%, #111827 100%);
+      color: var(--text);
+      line-height: 1.65;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    .container {
+      width: min(var(--max), calc(100% - 2rem));
+      margin: 0 auto;
+    }
+
+    /* ── Nav ── */
+    .nav {
+      position: sticky; top: 0; z-index: 10;
+      backdrop-filter: blur(16px);
+      background: rgba(2, 6, 23, 0.72);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .nav-inner {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 0.9rem 0; gap: 1rem;
+    }
+    .brand {
+      font-weight: 800; letter-spacing: -0.02em;
+      display: flex; align-items: center; gap: 0.7rem;
+    }
+    .brand-badge {
+      width: 38px; height: 38px; border-radius: 12px;
+      display: grid; place-items: center;
+      background: linear-gradient(135deg, var(--accent), #ffb84d);
+      color: #111827; font-weight: 900; box-shadow: var(--shadow);
+    }
+    .nav-links {
+      display: flex; gap: 1rem; flex-wrap: wrap;
+      color: var(--muted); font-size: 0.95rem;
+    }
+    .nav-links a:hover { color: var(--text); }
+    .back-link {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      color: var(--muted); font-size: 0.9rem; transition: color 0.2s;
+    }
+    .back-link:hover { color: var(--accent); }
+
+    /* ── Hero ── */
+    .hero { padding: 4.8rem 0 2rem; }
+    .hero-grid {
+      display: grid; grid-template-columns: 1.2fr 0.8fr;
+      gap: 1.5rem; align-items: stretch;
+    }
+    .panel {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.05));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+    .hero-main { padding: 2rem; }
+    .eyebrow {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      padding: 0.45rem 0.8rem; border-radius: 999px;
+      background: rgba(255, 153, 0, 0.12);
+      color: #ffd28a;
+      border: 1px solid rgba(255, 153, 0, 0.25);
+      font-size: 0.9rem; margin-bottom: 1rem;
+    }
+    h1, h2, h3 { line-height: 1.15; letter-spacing: -0.03em; margin: 0; }
+    h1 { font-size: clamp(2rem, 4vw, 3.7rem); margin-bottom: 0.9rem; }
+    .hero-main p { margin: 0; color: #cbd5e1; font-size: 1.05rem; max-width: 65ch; }
+    .hero-side {
+      padding: 1.5rem; display: flex; flex-direction: column;
+      justify-content: space-between; gap: 1rem;
+    }
+    .hero-side .callout {
+      padding: 1rem 1.1rem; border-radius: 18px;
+      border: 1px solid rgba(56, 189, 248, 0.18);
+      background: rgba(56, 189, 248, 0.08);
+    }
+    .hero-side .callout strong { display: block; margin-bottom: 0.35rem; }
+    .tech-stack { display: flex; flex-wrap: wrap; gap: 0.55rem; }
+    .chip {
+      padding: 0.45rem 0.75rem; border-radius: 999px;
+      font-size: 0.88rem;
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #dbeafe;
+    }
+    .small { font-size: 0.92rem; color: var(--muted); }
+
+    /* ── Sections ── */
+    section { padding: 1rem 0 0.4rem; }
+    .section-title { margin-bottom: 1rem; font-size: clamp(1.5rem, 2vw, 2.2rem); }
+    .section-subtitle { color: var(--muted); margin-top: 0.45rem; max-width: 75ch; }
+
+    /* ── Grids ── */
+    .grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
+    .grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+
+    .card {
+      padding: 1.3rem;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+    }
+    .card h3 { font-size: 1.05rem; margin-bottom: 0.6rem; }
+    .card p { margin: 0; color: #cbd5e1; }
+
+    /* ── Timeline ── */
+    .timeline { display: grid; gap: 1rem; margin-top: 1rem; }
+    .step {
+      display: grid; grid-template-columns: 90px 1fr; gap: 1rem;
+      align-items: start; padding: 1.25rem; border-radius: 22px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: var(--shadow);
+    }
+    .step-num {
+      width: 72px; height: 72px; border-radius: 20px;
+      background: linear-gradient(135deg, rgba(255, 153, 0, 0.18), rgba(56, 189, 248, 0.18));
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      display: grid; place-items: center;
+      font-size: 1.1rem; font-weight: 900; color: #fff;
+    }
+    .step h3 { margin-bottom: 0.55rem; font-size: 1.2rem; }
+    .step ul { margin: 0.3rem 0 0; padding-left: 1.1rem; color: #dbe4f0; }
+    .step li + li { margin-top: 0.4rem; }
+    .highlight { color: #ffd28a; font-weight: 700; }
+
+    /* Slim step: for tasks without screenshots (summarized) */
+    .step.slim { background: rgba(255, 255, 255, 0.03); }
+    .step.slim .step-num {
+      background: linear-gradient(135deg, rgba(148,163,184,0.18), rgba(148,163,184,0.08));
+      font-size: 0.85rem;
+    }
+
+    /* ── Screenshots ── */
+    .screenshot-gallery { display: grid; gap: 0.8rem; margin-top: 1rem; }
+    .screenshot-gallery.cols-2 { grid-template-columns: repeat(2, 1fr); }
+    .screenshot-fig {
+      margin: 0; border-radius: 16px; overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(2, 6, 23, 0.5);
+    }
+    .screenshot-fig img { width: 100%; height: auto; display: block; }
+    .screenshot-fig figcaption {
+      padding: 0.6rem 0.8rem;
+      color: var(--muted); font-size: 0.84rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    /* Scrollable viewport for tall/wide images */
+    .screenshot-fig.scroll-y { max-height: 540px; overflow-y: auto; }
+    .screenshot-fig.scroll-y img { max-width: 100%; }
+
+    /* ── Callouts ── */
+    .insight {
+      padding: 1.15rem 1.2rem;
+      border-left: 4px solid var(--accent);
+      border-radius: 16px;
+      background: rgba(255, 153, 0, 0.08);
+      color: #fde7c2;
+    }
+    .info {
+      border-left-color: var(--accent-2);
+      background: rgba(56, 189, 248, 0.08);
+      color: #d8f3ff;
+    }
+    .ok {
+      border-left-color: var(--ok);
+      background: rgba(34, 197, 94, 0.08);
+      color: #d2f7d8;
+    }
+    .err {
+      border-left-color: var(--err);
+      background: rgba(239, 68, 68, 0.08);
+      color: #ffd5d5;
+    }
+
+    /* ── Checklist ── */
+    .checklist { display: grid; gap: 0.7rem; margin-top: 1rem; }
+    .check {
+      display: flex; gap: 0.75rem; align-items: flex-start;
+      padding: 0.9rem 1rem; border-radius: 16px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+    }
+    .check-mark {
+      flex: 0 0 auto; width: 28px; height: 28px;
+      display: grid; place-items: center;
+      border-radius: 999px;
+      background: rgba(34, 197, 94, 0.15);
+      color: #86efac; font-weight: 800;
+    }
+
+    /* ── Code ── */
+    code {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 0.15rem 0.4rem; border-radius: 6px;
+      font-size: 0.9em;
+      font-family: "Cascadia Code", "Fira Code", monospace;
+    }
+    pre {
+      background: rgba(2, 6, 23, 0.7);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 14px;
+      padding: 1rem 1.1rem;
+      overflow-x: auto;
+      margin: 0.8rem 0 0;
+      font-size: 0.92rem;
+    }
+    pre code {
+      background: transparent;
+      padding: 0;
+      font-size: inherit;
+      color: #e3eef9;
+    }
+
+    /* ── Architecture flow table ── */
+    .flow-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 0.8rem;
+      background: rgba(255,255,255,0.04);
+      border-radius: 14px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    .flow-table th, .flow-table td {
+      padding: 0.7rem 0.95rem;
+      text-align: left;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      font-size: 0.93rem;
+    }
+    .flow-table th {
+      background: rgba(255,153,0,0.08);
+      color: #ffd28a;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+    }
+    .flow-table tr:last-child td { border-bottom: none; }
+    .flow-table td:first-child {
+      width: 56px;
+      font-weight: 800;
+      color: var(--accent);
+      text-align: center;
+    }
+
+    /* ── Trouble card: Symptom → Diagnosis → Cause → Fix ── */
+    .trouble-card {
+      padding: 1.3rem;
+      background: rgba(239, 68, 68, 0.06);
+      border: 1px solid rgba(239, 68, 68, 0.25);
+      border-radius: 20px;
+      margin-top: 1rem;
+    }
+    .trouble-card h3 { color: #fda4af; margin-bottom: 0.8rem; }
+    .trouble-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.8rem;
+      margin-top: 0.8rem;
+    }
+    .trouble-grid > div {
+      padding: 0.85rem 1rem;
+      background: rgba(2,6,23,0.45);
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.07);
+    }
+    .trouble-grid h4 {
+      margin: 0 0 0.3rem;
+      font-size: 0.78rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .trouble-grid p { margin: 0; color: #e3eef9; font-size: 0.94rem; }
+
+    /* ── Footer ── */
+    .footer { padding: 2.2rem 0 3.5rem; color: var(--muted); text-align: center; }
+
+    /* ── Responsive ── */
+    @media (max-width: 920px) {
+      .hero-grid, .grid-3, .grid-2,
+      .screenshot-gallery.cols-2,
+      .trouble-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    @media (max-width: 680px) {
+      .nav-inner { flex-direction: column; align-items: flex-start; }
+      .step { grid-template-columns: 1fr; }
+      .step-num { width: 60px; height: 60px; border-radius: 16px; }
+    }
+  </style>
+</head>
+
+<body>
+  <nav class="nav">
+    <div class="container nav-inner">
+      <div class="brand">
+        <div class="brand-badge">AWS</div>
+        <div>Lab Report · Lambda</div>
+      </div>
+      <div class="nav-links">
+        <a href="../index.html" class="back-link">← All Labs</a>
+        <a href="#architecture">Architecture</a>
+        <a href="#walkthrough">Walkthrough</a>
+        <a href="#troubleshooting">Troubleshooting</a>
+        <a href="#learnings">Learnings</a>
+      </div>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <div class="container hero-grid">
+      <div class="panel hero-main">
+        <div class="eyebrow">AWS re/Start Lab · Compute & Serverless</div>
+        <h1>Working with AWS Lambda — Sales Analysis Report</h1>
+        <p>
+          Deployed a serverless solution with two chained Lambda functions: one extracts sales data from a MySQL
+          database running on EC2 inside a VPC, the other formats the report and publishes it to SNS for email
+          delivery. Includes a real troubleshooting cycle around VPC networking and a scheduled trigger via
+          EventBridge.
+        </p>
+      </div>
+
+      <aside class="panel hero-side">
+        <div class="callout">
+          <strong>Lab Objective</strong>
+          Build, configure and test two AWS Lambda functions running inside a VPC, debug a real MySQL
+          connectivity failure, and wire them to SNS and a daily cron trigger.
+        </div>
+
+        <div>
+          <div class="small" style="margin-bottom:0.7rem;">Services & Concepts</div>
+          <div class="tech-stack">
+            <span class="chip">AWS Lambda</span>
+            <span class="chip">Lambda Layers</span>
+            <span class="chip">VPC + ENI</span>
+            <span class="chip">Security Groups</span>
+            <span class="chip">IAM Roles</span>
+            <span class="chip">SNS</span>
+            <span class="chip">SSM Parameter Store</span>
+            <span class="chip">EventBridge cron</span>
+            <span class="chip">AWS CLI</span>
+            <span class="chip">PyMySQL</span>
+          </div>
+        </div>
+
+        <div class="callout" style="border-color: rgba(34,197,94,0.2); background: rgba(34,197,94,0.08);">
+          <strong>Key Insight</strong>
+          A Lambda function inside a VPC needs the target's Security Group to explicitly allow its traffic
+          — being "in the same SG" is not enough unless the SG has a self-referencing inbound rule.
+        </div>
+      </aside>
+    </div>
+  </header>
+
+  <main>
+    <!-- ══════ ARCHITECTURE ══════ -->
+    <section id="architecture">
+      <div class="container">
+        <h2 class="section-title">Architecture</h2>
+        <p class="section-subtitle">
+          Two Lambda functions chained behind an EventBridge schedule. The orchestrator
+          (<code>salesAnalysisReport</code>) invokes the extractor (<code>salesAnalysisReportDataExtractor</code>),
+          which queries the café MySQL database living inside a private VPC subnet. The orchestrator then
+          publishes a formatted email message to SNS.
+        </p>
+
+        <table class="flow-table">
+          <thead>
+            <tr><th>#</th><th>Action</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>1</td><td>An <strong>EventBridge / CloudWatch Events</strong> rule fires the <code>salesAnalysisReport</code> Lambda daily at 8 PM UTC, Monday – Saturday.</td></tr>
+            <tr><td>2</td><td><code>salesAnalysisReport</code> invokes <code>salesAnalysisReportDataExtractor</code> synchronously, passing DB connection params from <strong>SSM Parameter Store</strong>.</td></tr>
+            <tr><td>3</td><td><code>salesAnalysisReportDataExtractor</code> runs an analytical SQL query against the <strong>cafe_db</strong> MySQL database on an EC2 LAMP instance.</td></tr>
+            <tr><td>4</td><td>The result set is returned to <code>salesAnalysisReport</code> as JSON.</td></tr>
+            <tr><td>5</td><td><code>salesAnalysisReport</code> formats the report into a plain-text message and publishes it to the <code>salesAnalysisReportTopic</code> SNS topic.</td></tr>
+            <tr><td>6</td><td>SNS fans the message out to the email subscriber (the administrator).</td></tr>
+          </tbody>
+        </table>
+
+        <div class="grid-2" style="margin-top:1.2rem;">
+          <article class="card">
+            <h3>IAM Roles (pre-provisioned)</h3>
+            <p style="margin-bottom:0.5rem;"><strong>salesAnalysisReportRole</strong> — used by the orchestrator. Grants <code>sns:Publish</code>, <code>ssm:GetParameter</code> and <code>lambda:InvokeFunction</code>.</p>
+            <p><strong>salesAnalysisReportDERole</strong> — used by the extractor. Includes <code>AWSLambdaVPCAccessExecutionRole</code> so Lambda can create the ENIs needed to reach the VPC, plus CloudWatch Logs.</p>
+          </article>
+
+          <article class="card">
+            <h3>Why two Lambdas?</h3>
+            <p>The extractor is the only function that needs to live inside the VPC (it must reach the MySQL EC2 instance). Keeping the orchestrator outside the VPC lets it publish to SNS over the public AWS endpoint without needing a NAT gateway or VPC endpoint, and keeps cold-start cheap.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════ WALKTHROUGH ══════ -->
+    <section id="walkthrough">
+      <div class="container">
+        <h2 class="section-title">Walkthrough</h2>
+        <p class="section-subtitle">
+          Tasks with screenshot evidence are documented in detail; tasks without evidence are summarized in a
+          few lines so the report stays a logbook, not a transcription of the guide.
+        </p>
+
+        <div class="timeline">
+
+          <!-- ── Task 1: Lambda Layer (summarized) ── -->
+          <article class="step slim">
+            <div class="step-num">01</div>
+            <div>
+              <h3>Create the Lambda Layer for PyMySQL</h3>
+              <p style="margin:0;color:#cbd5e1;">
+                Uploaded <code>pymysqlLibrary.zip</code> to the <strong>Layers</strong> section of the Lambda
+                console as <code>pymysqlLibrary</code>, compatible with <strong>Python 3.9</strong>. The zip
+                respects the Lambda path convention
+                (<code>python/lib/python3.X/site-packages/&hellip;</code>) so the runtime can <code>import pymysql</code>
+                with no extra configuration. The layer is later attached to the extractor function — visible as
+                <em>Layers (1)</em> in the next screenshot.
+              </p>
+            </div>
+          </article>
+
+          <!-- ── Task 2: Data Extractor function ── -->
+          <article class="step">
+            <div class="step-num">02</div>
+            <div>
+              <h3>Create the <code>salesAnalysisReportDataExtractor</code> Lambda function</h3>
+              <ul>
+                <li>Created from scratch in the Lambda console: runtime <strong>Python 3.9</strong>, execution role <strong>salesAnalysisReportDERole</strong>.</li>
+                <li>Uploaded the provided <code>salesAnalysisReportDataExtractor-v2.zip</code> as the function code.</li>
+                <li>Attached the <code>pymysqlLibrary</code> layer — the function now imports <code>pymysql</code> at runtime.</li>
+                <li>The handler reads four parameters from the test event payload — <code>dbUrl</code>, <code>dbName</code>, <code>dbUser</code>, <code>dbPassword</code> — and opens a connection with <code>pymysql.connect(...)</code>. The SQL aggregates daily sales grouped by product.</li>
+              </ul>
+
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/01-data-extractor-lambda-created.png" alt="salesAnalysisReportDataExtractor function created in the Lambda console with the pymysqlLibrary layer attached" loading="lazy" />
+                  <figcaption>Lambda console: function deployed with one layer attached. Code uses <code>boto3</code>, <code>pymysql</code> and <code>sys</code>, with the <code>try / pymysql.Error</code> pattern that produces the diagnostic message used later.</figcaption>
+                </figure>
+              </div>
+            </div>
+          </article>
+
+          <!-- ── Task 3: VPC configuration ── -->
+          <article class="step">
+            <div class="step-num">03</div>
+            <div>
+              <h3>Attach the extractor to the Café VPC</h3>
+              <ul>
+                <li>Edited <strong>Configuration → VPC</strong> on the extractor function.</li>
+                <li>VPC: <code>vpc-0e848e4cccd4f29f1 (10.200.0.0/20)</code> — the Café VPC.</li>
+                <li>Subnets: <strong>Cafe Public Subnet 1</strong> and <strong>Cafe Private Subnet 1</strong> (us-west-2a).</li>
+                <li>Security group: <strong>CafeSecurityGroup</strong> — the same SG attached to the MySQL EC2 instance.</li>
+              </ul>
+
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/02-lambda-vpc-configuration.png" alt="Edit VPC page showing the Cafe VPC, two subnets and CafeSecurityGroup selected for the Lambda function" loading="lazy" />
+                  <figcaption>Edit VPC: Lambda will provision ENIs in these subnets to reach the MySQL instance. The blue banner is a reminder that a function in a VPC has <strong>no internet access</strong> unless the subnet routes through a NAT gateway.</figcaption>
+                </figure>
+              </div>
+
+              <div class="insight info" style="margin-top:1rem;">
+                <strong>Why this matters:</strong> Once a Lambda joins a VPC, it inherits the network constraints
+                of that VPC. The <code>AWSLambdaVPCAccessExecutionRole</code> in the role is what lets Lambda
+                attach those ENIs on demand.
+              </div>
+            </div>
+          </article>
+
+          <!-- ── Task 4: First test (FAILS) ── -->
+          <article class="step">
+            <div class="step-num">04</div>
+            <div>
+              <h3>First test run — function fails</h3>
+              <ul>
+                <li>Created a test event <code>SARDETestEvent</code> with the four DB parameters as JSON.</li>
+                <li>Triggered <strong>Test</strong>. The function ran for ~1&nbsp;second and exited with <code>Runtime.ExitError</code>.</li>
+                <li>The log clearly identifies the cause: <em>Failed to connect to the Cafe database</em>, error <strong>2003</strong>, <em>Can't connect to MySQL server</em>.</li>
+              </ul>
+
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/03-execution-failed-mysql-timeout.png" alt="Lambda test result with a red failure box and MySQL connection error 2003 in the log output" loading="lazy" />
+                  <figcaption>Red failure box. Error type <code>Runtime.ExitError</code>; the log output shows the underlying <code>pymysql.Error</code> bubbling up through the <code>sys.exit()</code> call.</figcaption>
+                </figure>
+              </div>
+
+              <p style="margin-top:0.9rem;color:#cbd5e1;">
+                The full error from the log:
+              </p>
+              <pre><code>ERROR: Failed to connect to the Cafe database.
+Error Details: 2003 Can't connect to MySQL server on '&lt;value of /cafe/dbUrl parameter&gt;' ([Errno 16] Device or resource busy)
+Runtime.ExitError</code></pre>
+              <p style="margin-top:0.7rem;color:#cbd5e1;">
+                This is the most honest piece of evidence in the lab: it proves the extractor was actually
+                deployed, tested, and reached the network layer before failing. The next section diagnoses and
+                fixes it.
+              </p>
+            </div>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════ TROUBLESHOOTING ══════ -->
+    <section id="troubleshooting">
+      <div class="container">
+        <h2 class="section-title">Troubleshooting · The MySQL Timeout</h2>
+        <p class="section-subtitle">
+          The failure above was the most useful moment of the lab. Walking through it forced a real diagnosis
+          of how Lambda networking interacts with EC2 security groups.
+        </p>
+
+        <article class="trouble-card">
+          <h3>Lambda can't connect to MySQL on the Café EC2 instance</h3>
+          <div class="trouble-grid">
+            <div>
+              <h4>Symptom</h4>
+              <p><code>Runtime.ExitError</code> after ~1 s. Log: <em>2003 Can't connect to MySQL server</em>.</p>
+            </div>
+            <div>
+              <h4>Diagnosis</h4>
+              <p>The function reached the network and tried TCP/3306, but the connection timed out. DNS works, the IP is reachable, so the problem is at L4 — a firewall is dropping the packets.</p>
+            </div>
+            <div>
+              <h4>Root cause</h4>
+              <p><strong>CafeSecurityGroup</strong> had inbound rules for HTTP/80 and SSH/22, but <strong>nothing for MySQL/Aurora 3306</strong>. The Lambda ENI lives in the same SG, but an SG does not allow internal traffic unless an explicit rule says so.</p>
+            </div>
+            <div>
+              <h4>Fix</h4>
+              <p>Added an inbound rule: <strong>MYSQL/Aurora · TCP · 3306</strong> with <strong>source = CafeSecurityGroup</strong> (self-reference). Now any ENI in that SG — including the Lambda's — can open a TCP connection to 3306 on any other ENI in the same SG.</p>
+            </div>
+          </div>
+        </article>
+
+        <div class="screenshot-gallery cols-2" style="margin-top:1rem;">
+          <figure class="screenshot-fig">
+            <img src="assets/screenshots/04-mysql-inbound-rule-added.png" alt="CafeSecurityGroup inbound rules with a new MYSQL/Aurora 3306 rule, after a successful modification banner" loading="lazy" />
+            <figcaption>VPC → Security Groups → CafeSecurityGroup. Inbound rules count now 3: HTTP/80, SSH/22, and the new <strong>MYSQL/Aurora TCP 3306</strong>.</figcaption>
+          </figure>
+
+          <figure class="screenshot-fig">
+            <img src="assets/screenshots/05-test-succeeded.png" alt="Lambda test result with a green succeeded box returning statusCode 200 in 53.29 ms" loading="lazy" />
+            <figcaption>Re-running the same test event after the fix: <strong>succeeded</strong> in <code>53.29 ms</code>. Response <code>{"statusCode":200,"body":[]}</code> — empty list because there were no orders in the Café database yet.</figcaption>
+          </figure>
+        </div>
+
+        <div class="insight ok" style="margin-top:1rem;">
+          <strong>Verification:</strong> after placing some orders on the Café website and re-running the test,
+          the body became a non-empty list with product / quantity tuples — confirming the SQL query and the
+          PyMySQL layer were working end to end.
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════ ORCHESTRATOR + SNS ══════ -->
+    <section id="orchestrator">
+      <div class="container">
+        <h2 class="section-title">Orchestrator Lambda + SNS</h2>
+        <p class="section-subtitle">
+          The second Lambda formats the email and publishes to SNS. The interesting bit is that it was created
+          from the <strong>AWS CLI</strong>, not the console — exactly the kind of one-liner that belongs in a SysOps logbook.
+        </p>
+
+        <div class="timeline">
+
+          <!-- ── Task 5: SNS topic (summarized) ── -->
+          <article class="step slim">
+            <div class="step-num">05</div>
+            <div>
+              <h3>Create the SNS topic and subscribe an email</h3>
+              <p style="margin:0;color:#cbd5e1;">
+                Created a standard SNS topic <code>salesAnalysisReportTopic</code> in <code>us-west-2</code>,
+                then added an <strong>Email</strong> subscription with the personal Gmail address.
+                Confirmed the subscription via the <em>"AWS Notification — Subscription Confirmation"</em>
+                email. The topic ARN is later wired into the orchestrator function as an environment variable.
+              </p>
+            </div>
+          </article>
+
+          <!-- ── Task 6: Create function via CLI ── -->
+          <article class="step">
+            <div class="step-num">06</div>
+            <div>
+              <h3>Create <code>salesAnalysisReport</code> via AWS CLI</h3>
+              <p style="margin:0 0 0.5rem;color:#cbd5e1;">
+                Connected to the EC2 instance via <strong>Session Manager / EC2 Instance Connect</strong> and
+                ran <code>aws lambda create-function</code> directly. The zip was uploaded to the instance
+                beforehand by the lab provisioning.
+              </p>
+
+<pre><code>aws lambda create-function \
+  --function-name salesAnalysisReport \
+  --runtime python3.9 \
+  --zip-file fileb://salesAnalysisReport-v2.zip \
+  --handler salesAnalysisReport.lambda_handler \
+  --region us-west-2 \
+  --role &lt;salesAnalysisReportRoleARN&gt;</code></pre>
+
+              <div class="screenshot-gallery" style="margin-top:1rem;">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/06-aws-cli-create-function.png" alt="Terminal output of aws lambda create-function returning the new FunctionArn for salesAnalysisReport" loading="lazy" />
+                  <figcaption>CLI response: <code>State: Pending</code>, then <code>FunctionArn: arn:aws:lambda:us-west-2:&hellip;:function:salesAnalysisReport</code>.</figcaption>
+                </figure>
+              </div>
+
+              <div class="insight" style="margin-top:1rem;">
+                <strong>Runtime discrepancy:</strong> the official lab guide specifies <code>--runtime python3.9</code>,
+                but the screenshot shows the function created with <code>python3.14</code>. The CLI output is
+                the real one; the command is shown above with the guide's requested runtime for fidelity, and
+                the divergence is documented here because it shows the lab actually being executed with whatever
+                runtime was current at the time.
+              </div>
+
+              <p style="margin-top:1rem;color:#cbd5e1;">
+                After creation, the orchestrator was configured with an environment variable
+                <code>topicARN</code> pointing to the SNS topic ARN — the Python code reads it at line ~26 to
+                publish the report.
+              </p>
+            </div>
+          </article>
+
+          <!-- ── Task 7: Test + email arrives ── -->
+          <article class="step">
+            <div class="step-num">07</div>
+            <div>
+              <h3>End-to-end test — the email arrives</h3>
+              <ul>
+                <li>Invoked <code>salesAnalysisReport</code> manually from the console with an empty test event.</li>
+                <li>The orchestrator pulled DB params from SSM, invoked the extractor, received the result set, formatted the message, and called <code>SNS:Publish</code>.</li>
+                <li>SNS delivered the message to the subscribed Gmail address.</li>
+              </ul>
+
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/07-sales-report-email.png" alt="Gmail message titled Sales Analysis Report dated 2026-05-15, showing Product Group Pastries with Croissant quantity 3 and an SNS unsubscribe link at the bottom" loading="lazy" />
+                  <figcaption>The actual email received: <strong>Sales Analysis Report — 2026-05-15</strong>, <em>Product Group: Pastries</em>, <em>Croissant · 3</em>. SNS unsubscribe footer confirms the message came through the topic.</figcaption>
+                </figure>
+              </div>
+            </div>
+          </article>
+
+          <!-- ── Task 8: EventBridge cron (summarized) ── -->
+          <article class="step slim">
+            <div class="step-num">08</div>
+            <div>
+              <h3>Schedule the daily run with EventBridge</h3>
+              <p style="margin:0 0 0.5rem;color:#cbd5e1;">
+                Created an <strong>EventBridge rule</strong> with a cron schedule expression and the
+                <code>salesAnalysisReport</code> Lambda as target. AWS cron has <strong>6 fields</strong> in UTC:
+              </p>
+              <pre><code>cron(Minutes Hours Day-of-month Month Day-of-week Year)
+# Example for the lab — 8 PM UTC, Monday through Saturday:
+cron(0 20 ? * MON-SAT *)</code></pre>
+              <p style="margin-top:0.7rem;color:#cbd5e1;">
+                Either <code>Day-of-month</code> or <code>Day-of-week</code> must be <code>?</code> — they
+                can't both be specified, because that would over-constrain the date. No screenshot — the rule
+                creation page itself is not interesting, what matters is the expression above.
+              </p>
+            </div>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════ LEARNINGS ══════ -->
+    <section id="learnings">
+      <div class="container">
+        <h2 class="section-title">Key Learnings</h2>
+        <div class="grid-2">
+          <div class="card">
+            <h3>What This Lab Actually Taught</h3>
+            <div class="checklist">
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>A Lambda function joining a VPC is just another ENI — it obeys the same security group rules as an EC2 instance. <strong>"Same SG" is not "allowed"</strong>; you still need an explicit self-referencing inbound rule.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div><strong>Layers</strong> are the right place for shared native or third-party dependencies (here, <code>PyMySQL</code>) — they keep the function package small and reusable across functions.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div><strong>AWS CLI</strong> is often the better way to create or update a Lambda function: it's reproducible, scriptable, and fits a CI pipeline. The console is good for inspection, not for creation.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div><strong>EventBridge cron</strong> uses 6 fields in UTC, and <code>?</code> is mandatory in one of the two day fields. Forgetting this is the #1 reason scheduled rules silently fail to save.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>Decoupling DB credentials into <strong>SSM Parameter Store</strong> means the Lambda code carries zero secrets — the IAM role decides who can read them.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Technical Conclusion</h3>
+            <p>
+              The lab is a small but complete serverless pipeline: <em>cron → orchestrator Lambda → extractor
+              Lambda in VPC → MySQL → SNS → email</em>. The real lesson is not the wiring itself — it's the
+              networking layer.
+            </p>
+            <p style="margin-top: 0.8rem;">
+              The MySQL timeout error was not a bug in the code, the IAM role or the layer; it was the
+              security group missing a rule. That kind of failure is invisible from the function logs until
+              you read them carefully — <code>2003 Can't connect</code> always means a network boundary, not
+              a credential problem.
+            </p>
+            <p style="margin-top: 0.8rem;">
+              Fixing it once leaves a permanent intuition: when a Lambda inside a VPC fails to reach a
+              resource, the first thing to check is the target's SG inbound rules and whether the Lambda's
+              SG is allowed there.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      Lab report documenting <em>Working with AWS Lambda — Sales Analysis Report</em> · AWS re/Start Program
+    </div>
+  </footer>
+</body>
+
+</html>

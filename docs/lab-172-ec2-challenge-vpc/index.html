@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lab Report: Amazon EC2 Instances (Challenge)</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --bg-soft: #111827;
+      --card: rgba(255, 255, 255, 0.08);
+      --card-strong: rgba(255, 255, 255, 0.12);
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --accent: #ff9900;
+      --accent-2: #38bdf8;
+      --ok: #22c55e;
+      --warn: #f59e0b;
+      --border: rgba(255, 255, 255, 0.12);
+      --shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+      --radius: 22px;
+      --max: 1120px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(255, 153, 0, 0.16), transparent 28%),
+        radial-gradient(circle at top right, rgba(56, 189, 248, 0.14), transparent 24%),
+        linear-gradient(180deg, #020617 0%, #0f172a 48%, #111827 100%);
+      color: var(--text);
+      line-height: 1.65;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .container {
+      width: min(var(--max), calc(100% - 2rem));
+      margin: 0 auto;
+    }
+
+    /* ── Nav ── */
+    .nav {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      backdrop-filter: blur(16px);
+      background: rgba(2, 6, 23, 0.72);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .nav-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.9rem 0;
+      gap: 1rem;
+    }
+
+    .brand {
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+    }
+
+    .brand-badge {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, var(--accent), #ffb84d);
+      color: #111827;
+      font-weight: 900;
+      box-shadow: var(--shadow);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .nav-links a:hover {
+      color: var(--text);
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      color: var(--muted);
+      font-size: 0.9rem;
+      transition: color 0.2s;
+    }
+
+    .back-link:hover {
+      color: var(--accent);
+    }
+
+    /* ── Hero ── */
+    .hero {
+      padding: 4.8rem 0 2rem;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 1.5rem;
+      align-items: stretch;
+    }
+
+    .panel {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.05));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .hero-main {
+      padding: 2rem;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.45rem 0.8rem;
+      border-radius: 999px;
+      background: rgba(255, 153, 0, 0.12);
+      color: #ffd28a;
+      border: 1px solid rgba(255, 153, 0, 0.25);
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+    }
+
+    h1,
+    h2,
+    h3 {
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+      margin: 0;
+    }
+
+    h1 {
+      font-size: clamp(2rem, 4vw, 3.7rem);
+      margin-bottom: 0.9rem;
+    }
+
+    .hero-main p {
+      margin: 0;
+      color: #cbd5e1;
+      font-size: 1.05rem;
+      max-width: 65ch;
+    }
+
+    .hero-side {
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .hero-side .callout {
+      padding: 1rem 1.1rem;
+      border-radius: 18px;
+      border: 1px solid rgba(56, 189, 248, 0.18);
+      background: rgba(56, 189, 248, 0.08);
+    }
+
+    .hero-side .callout strong {
+      display: block;
+      margin-bottom: 0.35rem;
+    }
+
+    .tech-stack {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.55rem;
+    }
+
+    .chip {
+      padding: 0.45rem 0.75rem;
+      border-radius: 999px;
+      font-size: 0.88rem;
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #dbeafe;
+    }
+
+    .small {
+      font-size: 0.92rem;
+      color: var(--muted);
+    }
+
+    /* ── Sections ── */
+    section {
+      padding: 1rem 0 0.4rem;
+    }
+
+    .section-title {
+      margin-bottom: 1rem;
+      font-size: clamp(1.5rem, 2vw, 2.2rem);
+    }
+
+    .section-subtitle {
+      color: var(--muted);
+      margin-top: 0.45rem;
+      max-width: 75ch;
+    }
+
+    /* ── Grids ── */
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .card {
+      padding: 1.3rem;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+    }
+
+    .card h3 {
+      font-size: 1.05rem;
+      margin-bottom: 0.6rem;
+    }
+
+    .card p {
+      margin: 0;
+      color: #cbd5e1;
+    }
+
+    /* ── Timeline ── */
+    .timeline {
+      display: grid;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .step {
+      display: grid;
+      grid-template-columns: 90px 1fr;
+      gap: 1rem;
+      align-items: start;
+      padding: 1.25rem;
+      border-radius: 22px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: var(--shadow);
+    }
+
+    .step-num {
+      width: 72px;
+      height: 72px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, rgba(255, 153, 0, 0.18), rgba(56, 189, 248, 0.18));
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      display: grid;
+      place-items: center;
+      font-size: 1.1rem;
+      font-weight: 900;
+      color: #fff;
+    }
+
+    .step h3 {
+      margin-bottom: 0.55rem;
+      font-size: 1.2rem;
+    }
+
+    .step ul {
+      margin: 0.3rem 0 0;
+      padding-left: 1.1rem;
+      color: #dbe4f0;
+    }
+
+    .step li+li {
+      margin-top: 0.4rem;
+    }
+
+    .highlight {
+      color: #ffd28a;
+      font-weight: 700;
+    }
+
+    /* ── Screenshots ── */
+    .screenshot-gallery {
+      display: grid;
+      gap: 0.8rem;
+      margin-top: 1rem;
+    }
+
+    .screenshot-gallery.cols-2 {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .screenshot-fig {
+      margin: 0;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(2, 6, 23, 0.5);
+    }
+
+    .screenshot-fig img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .screenshot-fig figcaption {
+      padding: 0.6rem 0.8rem;
+      color: var(--muted);
+      font-size: 0.84rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    /* ── Callouts ── */
+    .insight {
+      padding: 1.15rem 1.2rem;
+      border-left: 4px solid var(--accent);
+      border-radius: 16px;
+      background: rgba(255, 153, 0, 0.08);
+      color: #fde7c2;
+    }
+
+    .info {
+      border-left-color: var(--accent-2);
+      background: rgba(56, 189, 248, 0.08);
+      color: #d8f3ff;
+    }
+
+    /* ── Checklist ── */
+    .checklist {
+      display: grid;
+      gap: 0.7rem;
+      margin-top: 1rem;
+    }
+
+    .check {
+      display: flex;
+      gap: 0.75rem;
+      align-items: flex-start;
+      padding: 0.9rem 1rem;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+    }
+
+    .check-mark {
+      flex: 0 0 auto;
+      width: 28px;
+      height: 28px;
+      display: grid;
+      place-items: center;
+      border-radius: 999px;
+      background: rgba(34, 197, 94, 0.15);
+      color: #86efac;
+      font-weight: 800;
+    }
+
+    /* ── Code ── */
+    code {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 0.15rem 0.4rem;
+      border-radius: 6px;
+      font-size: 0.9em;
+      font-family: "Cascadia Code", "Fira Code", monospace;
+    }
+
+    pre {
+      margin: 1rem 0 0;
+      padding: 1rem 1.1rem;
+      background: rgba(2, 6, 23, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 14px;
+      overflow-x: auto;
+      font-size: 0.88rem;
+      line-height: 1.55;
+    }
+
+    pre code {
+      background: none;
+      padding: 0;
+      color: #e0e7ff;
+    }
+
+    /* ── Tables (lab 172 additions) ── */
+    .table-wrap {
+      margin-top: 1rem;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    table.config {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.94rem;
+    }
+
+    table.config th,
+    table.config td {
+      padding: 0.7rem 0.9rem;
+      text-align: left;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+      vertical-align: top;
+    }
+
+    table.config th {
+      background: rgba(255, 255, 255, 0.06);
+      color: #ffd28a;
+      font-weight: 700;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    table.config tr:last-child td {
+      border-bottom: none;
+    }
+
+    table.config td code {
+      font-size: 0.85em;
+    }
+
+    /* ── Footer ── */
+    .footer {
+      padding: 2.2rem 0 3.5rem;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 920px) {
+
+      .hero-grid,
+      .grid-3,
+      .grid-2,
+      .screenshot-gallery.cols-2 {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 680px) {
+      .nav-inner {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .step {
+        grid-template-columns: 1fr;
+      }
+
+      .step-num {
+        width: 60px;
+        height: 60px;
+        border-radius: 16px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <nav class="nav">
+    <div class="container nav-inner">
+      <div class="brand">
+        <div class="brand-badge">AWS</div>
+        <div>Lab Report · EC2 Challenge</div>
+      </div>
+      <div class="nav-links">
+        <a href="../index.html" class="back-link">← All Labs</a>
+        <a href="#objective">Objective</a>
+        <a href="#vpc">VPC</a>
+        <a href="#sg">Security Group</a>
+        <a href="#instance">Instance</a>
+        <a href="#userdata">User Data</a>
+        <a href="#evidence">Evidence</a>
+      </div>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <div class="container hero-grid">
+      <div class="panel hero-main">
+        <div class="eyebrow">AWS re/Start Lab · EC2 Challenge</div>
+        <h1>Amazon EC2 Instances (Challenge)</h1>
+        <p>
+          Integration challenge: build a brand-new VPC from scratch with a public subnet, Internet Gateway,
+          and route table, then launch an Amazon Linux EC2 instance that installs Apache via user data and
+          serves a custom HTML page over the public internet.
+        </p>
+      </div>
+
+      <aside class="panel hero-side">
+        <div class="callout">
+          <strong>Lab Objective</strong>
+          Stitch networking, compute, and a web server into one working stack — no defaults, every piece
+          configured by hand.
+        </div>
+
+        <div>
+          <div class="small" style="margin-bottom:0.7rem;">Tools &amp; Concepts</div>
+          <div class="tech-stack">
+            <span class="chip">VPC</span>
+            <span class="chip">Subnet</span>
+            <span class="chip">Internet Gateway</span>
+            <span class="chip">Route Table</span>
+            <span class="chip">Security Group</span>
+            <span class="chip">EC2 (t3.micro)</span>
+            <span class="chip">Amazon Linux</span>
+            <span class="chip">User Data</span>
+            <span class="chip">Apache httpd</span>
+            <span class="chip">EC2 Instance Connect</span>
+          </div>
+        </div>
+
+        <div class="callout" style="border-color: rgba(34,197,94,0.2); background: rgba(34,197,94,0.08);">
+          <strong>Key Insight</strong>
+          A subnet is only really "public" when its route table sends <code>0.0.0.0/0</code> to an attached
+          Internet Gateway. Creating the IGW is not enough — the route makes it reachable.
+        </div>
+      </aside>
+    </div>
+  </header>
+
+  <main>
+    <section id="objective">
+      <div class="container">
+        <h2 class="section-title">Objective &amp; Architecture</h2>
+        <p class="section-subtitle">
+          The challenge integrates seven moving parts. Each one has a single job, but the stack only works
+          when all of them are wired correctly.
+        </p>
+
+        <div class="grid-3" style="margin-top:1rem;">
+          <article class="card">
+            <h3>Network layer</h3>
+            <p>A new VPC (<code>restart-vpc</code>) with a single public subnet, an Internet Gateway, and a
+              route table that points the default route to the IGW.</p>
+          </article>
+          <article class="card">
+            <h3>Compute layer</h3>
+            <p>An Amazon Linux <code>t3.micro</code> instance (<code>ec2meka</code>) placed inside the
+              public subnet, with a public IPv4 address assigned at launch.</p>
+          </article>
+          <article class="card">
+            <h3>Application layer</h3>
+            <p>Apache <code>httpd</code> installed and started automatically through user data, plus a
+              custom <code>projects.html</code> page placed under <code>/var/www/html</code>.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="vpc">
+      <div class="container">
+        <h2 class="section-title">VPC, Subnet, IGW &amp; Route Table</h2>
+        <p class="section-subtitle">
+          Built the virtual network manually instead of reusing the default VPC. Each piece below is what
+          the lab actually required.
+        </p>
+
+        <div class="table-wrap">
+          <table class="config">
+            <thead>
+              <tr>
+                <th>Component</th>
+                <th>Name / Value</th>
+                <th>Why it exists</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>VPC</strong></td>
+                <td><code>restart-vpc</code> · CIDR <code>10.0.0.0/16</code></td>
+                <td>Isolated network space for the lab. <code>/16</code> leaves room for many subnets.</td>
+              </tr>
+              <tr>
+                <td><strong>Subnet</strong></td>
+                <td><code>public-subnet</code> · CIDR <code>10.0.1.0/24</code> · auto-assign public IPv4
+                  <strong>ON</strong></td>
+                <td>Hosts the EC2 instance. The auto-assign flag is what gives the instance a public IP at
+                  launch.</td>
+              </tr>
+              <tr>
+                <td><strong>Internet Gateway</strong></td>
+                <td>Attached to <code>restart-vpc</code></td>
+                <td>The VPC's door to the public internet. Without it, no traffic enters or leaves.</td>
+              </tr>
+              <tr>
+                <td><strong>Route Table</strong></td>
+                <td>Default route <code>0.0.0.0/0 → igw</code>, associated with
+                  <code>public-subnet</code></td>
+                <td>Tells the subnet how to reach anything outside <code>10.0.0.0/16</code>. <em>This</em>
+                  is what turns the subnet "public".</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="insight info" style="margin-top:1rem;">
+          <strong>Mental model:</strong> VPC = the building, subnet = a floor, IGW = the front door, route
+          table = the floor's signs pointing to the door. Skip any of them and the floor stays unreachable.
+        </div>
+      </div>
+    </section>
+
+    <section id="sg">
+      <div class="container">
+        <h2 class="section-title">Security Group</h2>
+        <p class="section-subtitle">
+          A single SG named <code>security</code> attached to the instance. Outbound is left at default
+          (all traffic allowed); only inbound matters for this lab.
+        </p>
+
+        <div class="table-wrap">
+          <table class="config">
+            <thead>
+              <tr>
+                <th>Direction</th>
+                <th>Protocol</th>
+                <th>Port</th>
+                <th>Source</th>
+                <th>Purpose</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Inbound</td>
+                <td>TCP</td>
+                <td><code>22</code></td>
+                <td><code>0.0.0.0/0</code></td>
+                <td>SSH access via EC2 Instance Connect to drop the custom HTML file.</td>
+              </tr>
+              <tr>
+                <td>Inbound</td>
+                <td>TCP</td>
+                <td><code>80</code></td>
+                <td><code>0.0.0.0/0</code></td>
+                <td>HTTP access from any browser to hit <code>projects.html</code>.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section id="instance">
+      <div class="container">
+        <h2 class="section-title">Launching <code>ec2meka</code></h2>
+        <p class="section-subtitle">
+          Amazon Linux <code>t3.micro</code> placed inside <code>restart-vpc</code> / <code>public-subnet</code>,
+          using the <code>security</code> SG and a user data script that bootstraps the web server.
+        </p>
+
+        <div class="table-wrap">
+          <table class="config">
+            <thead>
+              <tr>
+                <th>Setting</th>
+                <th>Value</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Name</td>
+                <td><code>ec2meka</code></td>
+              </tr>
+              <tr>
+                <td>AMI</td>
+                <td>Amazon Linux (latest)</td>
+              </tr>
+              <tr>
+                <td>Instance type</td>
+                <td><code>t3.micro</code></td>
+              </tr>
+              <tr>
+                <td>VPC / Subnet</td>
+                <td><code>restart-vpc</code> / <code>public-subnet</code></td>
+              </tr>
+              <tr>
+                <td>Auto-assign public IP</td>
+                <td>Enabled (inherited from subnet)</td>
+              </tr>
+              <tr>
+                <td>Security group</td>
+                <td><code>security</code> (ports 22, 80)</td>
+              </tr>
+              <tr>
+                <td>User data</td>
+                <td>Bash script — see next section</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="screenshot-gallery">
+          <figure class="screenshot-fig">
+            <img src="assets/screenshots/01-ec2meka-instance-created.png"
+              alt="EC2 console showing ec2meka instance created" loading="lazy" />
+            <figcaption>EC2 console: <code>ec2meka</code> (t3.micro) launched in
+              <code>us-west-2a</code>, instance ID <code>i-01b6bc2adff46517c</code>, status transitioning
+              to Running.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section id="userdata">
+      <div class="container">
+        <h2 class="section-title">User Data Script</h2>
+        <p class="section-subtitle">
+          Runs once at first boot. Updates the system, installs Apache, enables it on reboot, starts it
+          immediately, opens up <code>/var/www/html</code> for writes, and logs the final status to the
+          system console so it shows up in the EC2 console log.
+        </p>
+
+        <pre><code>#!/bin/bash
+dnf update -y
+dnf install -y httpd
+systemctl enable httpd
+systemctl start httpd
+chmod 777 /var/www/html
+echo "httpd service was successfully installed and started" | tee /dev/console
+systemctl status httpd --no-pager | tee /dev/console</code></pre>
+
+        <div class="grid-2" style="margin-top:1rem;">
+          <article class="card">
+            <h3>Why <code>enable</code> + <code>start</code>?</h3>
+            <p><code>systemctl enable</code> makes the service survive reboots;
+              <code>systemctl start</code> launches it now. Both are needed for a server that should come
+              back up after any restart.</p>
+          </article>
+          <article class="card">
+            <h3>Why <code>chmod 777</code> on <code>/var/www/html</code>?</h3>
+            <p>So the non-root SSH user can drop <code>projects.html</code> there without escalating to
+              root every time. Lab-only convenience — in production this would be a tighter group ACL.</p>
+          </article>
+          <article class="card">
+            <h3>Why <code>tee /dev/console</code>?</h3>
+            <p>Pipes the message to the serial console so it appears in the EC2 <em>System log</em> output.
+              Useful for confirming the script ran without SSHing in.</p>
+          </article>
+          <article class="card">
+            <h3><code>dnf</code> vs <code>yum</code></h3>
+            <p>Amazon Linux 2023 uses <code>dnf</code> (next-gen <code>yum</code>). Older AL2 labs use
+              <code>yum</code>; the syntax is otherwise identical.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="evidence">
+      <div class="container">
+        <h2 class="section-title">Final Evidence — <code>projects.html</code></h2>
+        <p class="section-subtitle">
+          Connected to the instance with EC2 Instance Connect, created a small HTML file, copied it into
+          <code>/var/www/html</code>, and hit it from the browser at the instance's public IPv4 address.
+        </p>
+
+        <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;body&gt;
+  &lt;h1&gt;Quijano's re/Start Project Work&lt;/h1&gt;
+  &lt;p&gt;EC2 Instance Challenge Lab&lt;/p&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+
+        <div class="screenshot-gallery">
+          <figure class="screenshot-fig">
+            <img src="assets/screenshots/02-projects-page-served-by-httpd.png"
+              alt="Browser showing projects.html served from the EC2 instance"
+              loading="lazy" />
+            <figcaption>Composite proof: left tab shows <code>projects.html</code> served at the
+              instance's public IPv4; right tab shows the default Apache "It works!" page on the same host
+              — confirming <code>httpd</code> is up, the SG allows port 80, and the IGW route is
+              functional.</figcaption>
+          </figure>
+        </div>
+
+        <div class="insight" style="margin-top:1rem;">
+          <strong>What this single screenshot proves:</strong> the VPC route to the IGW works, the SG
+          allows inbound 80, the user data finished successfully, Apache is running, and the custom file
+          was copied to the correct docroot. One image, every layer verified.
+        </div>
+      </div>
+    </section>
+
+    <section id="learnings">
+      <div class="container">
+        <h2 class="section-title">Key Learnings</h2>
+        <div class="grid-2">
+          <div class="card">
+            <h3>What Was Actually Learned</h3>
+            <div class="checklist">
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>A public subnet needs <strong>both</strong> auto-assign public IP <em>and</em> a route
+                  table sending <code>0.0.0.0/0</code> to an IGW.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>User data runs <strong>once</strong> at first boot and is the cleanest way to
+                  bootstrap a web server without manual SSH.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div><strong>EC2 Instance Connect</strong> only needs port 22 open and the right IAM
+                  permissions — no key pair download required.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>Piping commands through <code>tee /dev/console</code> makes user-data results visible
+                  in the EC2 system log.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Technical Conclusion</h3>
+            <p>
+              This challenge tied together every piece introduced in earlier labs — VPC, subnets, IGW,
+              route tables, security groups, EC2, and Apache — into one end-to-end deploy. The value is
+              less in any single component and more in seeing how a request from a browser actually
+              traverses all of them: through the IGW, into the subnet via the route table, past the SG,
+              into the instance, and out of Apache.
+            </p>
+            <p style="margin-top: 1rem;">
+              The fact that one screenshot can prove every layer works is also a small reminder that good
+              evidence is layered, not exhaustive.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      Lab report documenting the Amazon EC2 Instances (Challenge) lab · AWS re/Start Program
+    </div>
+  </footer>
+</body>
+
+</html>

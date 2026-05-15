@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lab Report: Challenge Lab — Amazon S3 from the CLI</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --bg-soft: #111827;
+      --card: rgba(255, 255, 255, 0.08);
+      --card-strong: rgba(255, 255, 255, 0.12);
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --accent: #ff9900;
+      --accent-2: #38bdf8;
+      --ok: #22c55e;
+      --warn: #f59e0b;
+      --danger: #ef4444;
+      --border: rgba(255, 255, 255, 0.12);
+      --shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+      --radius: 22px;
+      --max: 1120px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(255, 153, 0, 0.16), transparent 28%),
+        radial-gradient(circle at top right, rgba(56, 189, 248, 0.14), transparent 24%),
+        linear-gradient(180deg, #020617 0%, #0f172a 48%, #111827 100%);
+      color: var(--text);
+      line-height: 1.65;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    .container {
+      width: min(var(--max), calc(100% - 2rem));
+      margin: 0 auto;
+    }
+
+    /* ── Nav ── */
+    .nav {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      backdrop-filter: blur(16px);
+      background: rgba(2, 6, 23, 0.72);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .nav-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.9rem 0;
+      gap: 1rem;
+    }
+
+    .brand {
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+    }
+
+    .brand-badge {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, var(--accent), #ffb84d);
+      color: #111827;
+      font-weight: 900;
+      box-shadow: var(--shadow);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .nav-links a:hover { color: var(--text); }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      color: var(--muted);
+      font-size: 0.9rem;
+      transition: color 0.2s;
+    }
+
+    .back-link:hover { color: var(--accent); }
+
+    /* ── Hero ── */
+    .hero { padding: 4.8rem 0 2rem; }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 1.5rem;
+      align-items: stretch;
+    }
+
+    .panel {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.05));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .hero-main { padding: 2rem; }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.45rem 0.8rem;
+      border-radius: 999px;
+      background: rgba(255, 153, 0, 0.12);
+      color: #ffd28a;
+      border: 1px solid rgba(255, 153, 0, 0.25);
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+    }
+
+    h1, h2, h3 {
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+      margin: 0;
+    }
+
+    h1 {
+      font-size: clamp(2rem, 4vw, 3.7rem);
+      margin-bottom: 0.9rem;
+    }
+
+    .hero-main p {
+      margin: 0;
+      color: #cbd5e1;
+      font-size: 1.05rem;
+      max-width: 65ch;
+    }
+
+    .hero-side {
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .hero-side .callout {
+      padding: 1rem 1.1rem;
+      border-radius: 18px;
+      border: 1px solid rgba(56, 189, 248, 0.18);
+      background: rgba(56, 189, 248, 0.08);
+    }
+
+    .hero-side .callout strong {
+      display: block;
+      margin-bottom: 0.35rem;
+    }
+
+    .tech-stack {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.55rem;
+    }
+
+    .chip {
+      padding: 0.45rem 0.75rem;
+      border-radius: 999px;
+      font-size: 0.88rem;
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #dbeafe;
+    }
+
+    .small { font-size: 0.92rem; color: var(--muted); }
+
+    /* ── Sections ── */
+    section { padding: 1rem 0 0.4rem; }
+
+    .section-title {
+      margin-bottom: 1rem;
+      font-size: clamp(1.5rem, 2vw, 2.2rem);
+    }
+
+    .section-subtitle {
+      color: var(--muted);
+      margin-top: 0.45rem;
+      max-width: 75ch;
+    }
+
+    /* ── Grids ── */
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .card {
+      padding: 1.3rem;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+    }
+
+    .card h3 {
+      font-size: 1.05rem;
+      margin-bottom: 0.6rem;
+    }
+
+    .card p { margin: 0; color: #cbd5e1; }
+
+    /* ── Timeline ── */
+    .timeline {
+      display: grid;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .step {
+      display: grid;
+      grid-template-columns: 90px 1fr;
+      gap: 1rem;
+      align-items: start;
+      padding: 1.25rem;
+      border-radius: 22px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: var(--shadow);
+    }
+
+    .step-num {
+      width: 72px;
+      height: 72px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, rgba(255, 153, 0, 0.18), rgba(56, 189, 248, 0.18));
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      display: grid;
+      place-items: center;
+      font-size: 1.1rem;
+      font-weight: 900;
+      color: #fff;
+    }
+
+    .step h3 {
+      margin-bottom: 0.55rem;
+      font-size: 1.2rem;
+    }
+
+    .step ul {
+      margin: 0.3rem 0 0;
+      padding-left: 1.1rem;
+      color: #dbe4f0;
+    }
+
+    .step li + li { margin-top: 0.4rem; }
+
+    .highlight { color: #ffd28a; font-weight: 700; }
+
+    /* ── Screenshots ── */
+    .screenshot-gallery {
+      display: grid;
+      gap: 0.8rem;
+      margin-top: 1rem;
+    }
+
+    .screenshot-gallery.cols-2 { grid-template-columns: repeat(2, 1fr); }
+
+    .screenshot-fig {
+      margin: 0;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(2, 6, 23, 0.5);
+    }
+
+    .screenshot-fig img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .screenshot-fig figcaption {
+      padding: 0.6rem 0.8rem;
+      color: var(--muted);
+      font-size: 0.84rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    /* ── Callouts ── */
+    .insight {
+      padding: 1.15rem 1.2rem;
+      border-left: 4px solid var(--accent);
+      border-radius: 16px;
+      background: rgba(255, 153, 0, 0.08);
+      color: #fde7c2;
+    }
+
+    .info {
+      border-left-color: var(--accent-2);
+      background: rgba(56, 189, 248, 0.08);
+      color: #d8f3ff;
+    }
+
+    .warn {
+      border-left-color: var(--warn);
+      background: rgba(245, 158, 11, 0.08);
+      color: #fde2b0;
+    }
+
+    .danger {
+      border-left-color: var(--danger);
+      background: rgba(239, 68, 68, 0.08);
+      color: #fecaca;
+    }
+
+    /* ── Checklist ── */
+    .checklist {
+      display: grid;
+      gap: 0.7rem;
+      margin-top: 1rem;
+    }
+
+    .check {
+      display: flex;
+      gap: 0.75rem;
+      align-items: flex-start;
+      padding: 0.9rem 1rem;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+    }
+
+    .check-mark {
+      flex: 0 0 auto;
+      width: 28px;
+      height: 28px;
+      display: grid;
+      place-items: center;
+      border-radius: 999px;
+      background: rgba(34, 197, 94, 0.15);
+      color: #86efac;
+      font-weight: 800;
+    }
+
+    /* ── Code ── */
+    code {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 0.15rem 0.4rem;
+      border-radius: 6px;
+      font-size: 0.9em;
+      font-family: "Cascadia Code", "Fira Code", monospace;
+    }
+
+    /* ── Code blocks (CLI / JSON) ── */
+    .code-block-wrapper {
+      margin: 1.2rem 0;
+      background: #020617;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .code-header {
+      background: rgba(255, 255, 255, 0.06);
+      padding: 0.5rem 1rem;
+      font-size: 0.85rem;
+      color: var(--muted);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      font-family: monospace;
+    }
+
+    .code-block {
+      padding: 1.2rem 1.4rem;
+      margin: 0;
+      overflow-x: auto;
+      color: #e2e8f0;
+      font-family: "Cascadia Code", "Fira Code", monospace;
+      font-size: 0.92rem;
+      line-height: 1.55;
+    }
+
+    .token-keyword { color: #818cf8; }
+    .token-string  { color: #a3e635; }
+    .token-var     { color: #f472b6; }
+    .token-comment { color: #64748b; font-style: italic; }
+    .token-command { color: #38bdf8; }
+    .token-flag    { color: #fcd34d; }
+    .token-error   { color: #fca5a5; }
+    .token-key     { color: #93c5fd; }
+
+    /* ── Policy field table ── */
+    .policy-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+      background: rgba(255, 255, 255, 0.04);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .policy-table th,
+    .policy-table td {
+      padding: 0.7rem 0.95rem;
+      text-align: left;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      vertical-align: top;
+    }
+
+    .policy-table th {
+      background: rgba(255, 255, 255, 0.06);
+      color: #e2e8f0;
+      font-weight: 700;
+      font-size: 0.92rem;
+    }
+
+    .policy-table td { color: #cbd5e1; font-size: 0.94rem; }
+    .policy-table tr:last-child td { border-bottom: none; }
+    .policy-table code { font-size: 0.85em; }
+
+    /* ── Footer ── */
+    .footer {
+      padding: 2.2rem 0 3.5rem;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 920px) {
+      .hero-grid,
+      .grid-3,
+      .grid-2,
+      .screenshot-gallery.cols-2 {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 680px) {
+      .nav-inner {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .step { grid-template-columns: 1fr; }
+
+      .step-num {
+        width: 60px;
+        height: 60px;
+        border-radius: 16px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <nav class="nav">
+    <div class="container nav-inner">
+      <div class="brand">
+        <div class="brand-badge">S3</div>
+        <div>Lab Report · Storage</div>
+      </div>
+      <div class="nav-links">
+        <a href="../index.html" class="back-link">← All Labs</a>
+        <a href="#summary">Summary</a>
+        <a href="#walkthrough">Walkthrough</a>
+        <a href="#policy">Bucket Policy</a>
+        <a href="#learnings">Learnings</a>
+      </div>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <div class="container hero-grid">
+      <div class="panel hero-main">
+        <div class="eyebrow">AWS re/Start Lab · Challenge Lab</div>
+        <h1>Challenge Lab: Amazon S3 from the CLI</h1>
+        <p>
+          A self-directed lab: no prescribed steps, just a goal. Create an S3 bucket from the AWS CLI,
+          upload an HTML object, and make that single object publicly readable through the browser.
+          The lab forces the operator to navigate Block Public Access defaults and resolve them with
+          a least-privilege bucket policy.
+        </p>
+      </div>
+
+      <aside class="panel hero-side">
+        <div class="callout">
+          <strong>Lab Objective</strong>
+          Drive the full S3 lifecycle (create → upload → publish) entirely from
+          <code>aws s3</code> / <code>aws s3api</code> on an EC2 CLI host.
+        </div>
+
+        <div>
+          <div class="small" style="margin-bottom:0.7rem;">Tools &amp; Concepts</div>
+          <div class="tech-stack">
+            <span class="chip">Amazon S3</span>
+            <span class="chip">AWS CLI</span>
+            <span class="chip">EC2 CLI Host</span>
+            <span class="chip">Block Public Access</span>
+            <span class="chip">Bucket Policy</span>
+            <span class="chip">IAM (least privilege)</span>
+          </div>
+        </div>
+
+        <div class="callout" style="border-color: rgba(34,197,94,0.2); background: rgba(34,197,94,0.08);">
+          <strong>Key Insight</strong>
+          Public ACLs are blocked by default since 2023. To expose a single object, the modern path is
+          a <strong>bucket policy scoped to that object's ARN</strong> — not a wildcard, not an ACL.
+        </div>
+      </aside>
+    </div>
+  </header>
+
+  <main>
+    <section id="summary">
+      <div class="container">
+        <h2 class="section-title">Lab Summary</h2>
+        <p class="section-subtitle">
+          The lab runs entirely on the <strong>CLI Host</strong> EC2 instance. The official guide gives
+          a list of goals (create bucket, upload object, make object public, list bucket) but no commands —
+          this report documents the exact CLI path used to satisfy each goal, including the failed first
+          attempt with a public ACL.
+        </p>
+
+        <div class="grid-2" style="margin-top:1rem;">
+          <article class="card">
+            <h3>CLI-Only Workflow</h3>
+            <p>Every action — bucket creation, object upload, ACL attempt, public access block removal,
+              bucket policy application — was executed with <code>aws s3</code> and <code>aws s3api</code>
+              from the EC2 Instance Connect terminal.</p>
+          </article>
+          <article class="card">
+            <h3>Two Public-Access Paths Tried</h3>
+            <p>First with <code>put-object-acl --acl public-read</code> (blocked by Block Public Access),
+              then with a <strong>bucket policy</strong> scoped to a single object ARN, which is the path
+              AWS officially supports today.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="walkthrough">
+      <div class="container">
+        <h2 class="section-title">Step-by-Step Walkthrough</h2>
+        <p class="section-subtitle">
+          Bucket name used: <code>superbucket3k184</code> · Region: <code>us-west-2</code>.
+        </p>
+
+        <div class="timeline">
+
+          <!-- ══════ TASK 1 ══════ -->
+          <article class="step">
+            <div class="step-num">01</div>
+            <div>
+              <h3>Configure the AWS CLI on the CLI Host</h3>
+              <p>Connected to the <strong>CLI Host</strong> EC2 instance via EC2 Instance Connect and
+                ran <code>aws configure</code> using the temporary lab credentials from the Vocareum
+                credentials panel. Region <code>us-west-2</code>, output format <code>json</code>.</p>
+
+              <div class="code-block-wrapper">
+                <div class="code-header">CLI Host shell — configure AWS CLI profile</div>
+<pre class="code-block">
+<span class="token-command">aws</span> configure
+<span class="token-comment"># AWS Access Key ID    [None]: AKIA…YDYYW3Z</span>
+<span class="token-comment"># AWS Secret Access Key [None]: hwXHu…jQqNn</span>
+<span class="token-comment"># Default region name   [None]: us-west-2</span>
+<span class="token-comment"># Default output format [None]: json</span>
+</pre>
+              </div>
+            </div>
+          </article>
+
+          <!-- ══════ TASK 2 ══════ -->
+          <article class="step">
+            <div class="step-num">02</div>
+            <div>
+              <h3>Create the S3 bucket</h3>
+              <p>Used <code>aws s3api create-bucket</code> with an explicit <code>LocationConstraint</code>
+                because the bucket lives outside <code>us-east-1</code>. The API returns the bucket URL
+                in the <code>Location</code> field, which is the confirmation that creation succeeded.</p>
+
+              <div class="code-block-wrapper">
+                <div class="code-header">CLI Host shell — create the bucket in us-west-2</div>
+<pre class="code-block">
+<span class="token-command">aws</span> s3api create-bucket \
+  <span class="token-flag">--bucket</span> superbucket3k184 \
+  <span class="token-flag">--region</span> us-west-2 \
+  <span class="token-flag">--create-bucket-configuration</span> LocationConstraint=us-west-2
+</pre>
+              </div>
+
+              <div class="code-block-wrapper">
+                <div class="code-header">stdout — JSON response</div>
+<pre class="code-block">
+{
+    <span class="token-key">"Location"</span>: <span class="token-string">"http://superbucket3k184.s3.amazonaws.com/"</span>
+}
+</pre>
+              </div>
+
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/01-cli-configure-bucket-created.png"
+                       alt="Terminal showing aws configure followed by aws s3api create-bucket returning the Location JSON field"
+                       loading="lazy" />
+                  <figcaption>
+                    foto1 · CLI Host (<code>ec2-user@ip-10-200-0-108</code>): <code>aws configure</code>
+                    followed by <code>aws s3api create-bucket</code> returning
+                    <code>{"Location": "http://superbucket3k184.s3.amazonaws.com/"}</code>.
+                  </figcaption>
+                </figure>
+              </div>
+
+              <div class="insight info" style="margin-top:1rem;">
+                <strong>Why LocationConstraint matters:</strong>
+                <code>us-east-1</code> is the legacy default region and the create-bucket API treats it
+                as implicit — passing <code>LocationConstraint=us-east-1</code> actually <em>fails</em>.
+                Every other region requires it explicitly, including <code>us-west-2</code> here.
+              </div>
+            </div>
+          </article>
+
+          <!-- ══════ TASK 3 ══════ -->
+          <article class="step">
+            <div class="step-num">03</div>
+            <div>
+              <h3>Create and upload <code>index.html</code></h3>
+              <p>Wrote the HTML file inline with a heredoc, verified its content locally, then uploaded
+                it to the bucket with <code>aws s3 cp</code> and listed the bucket to confirm the object
+                was stored.</p>
+
+              <div class="code-block-wrapper">
+                <div class="code-header">CLI Host shell — write the file with a heredoc</div>
+<pre class="code-block">
+<span class="token-command">cat</span> &gt; index.html <span class="token-keyword">&lt;&lt;</span> <span class="token-string">'EOF'</span>
+&lt;html&gt;
+  &lt;body&gt;
+    &lt;h1&gt;Amazon S3 Challenge Lab&lt;/h1&gt;
+    &lt;p&gt;This object was uploaded to an S3 bucket using AWS CLI.&lt;/p&gt;
+  &lt;/body&gt;
+&lt;/html&gt;
+EOF
+</pre>
+              </div>
+
+              <div class="code-block-wrapper">
+                <div class="code-header">CLI Host shell — upload and verify</div>
+<pre class="code-block">
+<span class="token-command">aws</span> s3 cp index.html s3://superbucket3k184/index.html
+<span class="token-comment"># upload: ./index.html to s3://superbucket3k184/index.html</span>
+
+<span class="token-command">aws</span> s3 ls s3://superbucket3k184
+<span class="token-comment"># index.html</span>
+</pre>
+              </div>
+
+              <p style="color:#cbd5e1; margin-top:0.6rem;">
+                At this point the object exists in S3 but is <strong>not</strong> publicly readable.
+                Opening the object URL in a browser returns <code>AccessDenied</code>.
+              </p>
+            </div>
+          </article>
+
+          <!-- ══════ TASK 4 ══════ -->
+          <article class="step">
+            <div class="step-num">04</div>
+            <div>
+              <h3>First attempt: public ACL on the object — <span style="color:#fca5a5;">blocked</span></h3>
+              <p>The intuitive first try is a public-read ACL on the object. It fails — and the failure
+                is the most educational moment of the lab. S3 Block Public Access ships <strong>on by
+                default since April 2023</strong> for new buckets, and it intercepts public ACLs at the
+                API level.</p>
+
+              <div class="code-block-wrapper">
+                <div class="code-header">CLI Host shell — attempt a public-read ACL</div>
+<pre class="code-block">
+<span class="token-command">aws</span> s3api put-object-acl \
+  <span class="token-flag">--bucket</span> superbucket3k184 \
+  <span class="token-flag">--key</span> index.html \
+  <span class="token-flag">--acl</span> public-read
+</pre>
+              </div>
+
+              <div class="code-block-wrapper">
+                <div class="code-header">stderr — AccessDenied</div>
+<pre class="code-block">
+<span class="token-error">An error occurred (AccessDenied) when calling the PutObjectAcl operation:
+User: arn:aws:iam::170644204079:user/awsstudent is not authorized to perform:
+s3:PutObjectAcl on resource: "arn:aws:s3:::superbucket3k184/index.html"
+because public ACLs are prevented by the BlockPublicAcls setting in
+S3 Block Public Access.</span>
+</pre>
+              </div>
+
+              <div class="insight danger" style="margin-top:1rem;">
+                <strong>Why this fails on purpose:</strong>
+                The error explicitly names <code>BlockPublicAcls</code>. This is one of the four flags
+                of Block Public Access:
+                <code>BlockPublicAcls</code>, <code>IgnorePublicAcls</code>,
+                <code>BlockPublicPolicy</code>, <code>RestrictPublicBuckets</code>. The first two govern
+                ACL-based public access; AWS now considers ACLs a legacy mechanism. The lesson the lab
+                is teaching: <strong>do not rely on object ACLs for public access in 2024+</strong>.
+              </div>
+            </div>
+          </article>
+
+          <!-- ══════ TASK 5 ══════ -->
+          <article class="step">
+            <div class="step-num">05</div>
+            <div>
+              <h3>Remove Block Public Access (only what's strictly required)</h3>
+              <p>Before any bucket policy granting public read can be accepted, the
+                <code>BlockPublicPolicy</code> flag has to come off. The lab uses
+                <code>delete-public-access-block</code>, which clears the whole BPA config on the bucket.</p>
+
+              <div class="code-block-wrapper">
+                <div class="code-header">CLI Host shell — drop the Block Public Access config</div>
+<pre class="code-block">
+<span class="token-command">aws</span> s3api delete-public-access-block \
+  <span class="token-flag">--bucket</span> superbucket3k184
+</pre>
+              </div>
+
+              <div class="insight warn" style="margin-top:1rem;">
+                <strong>Order matters:</strong>
+                If <code>put-bucket-policy</code> is attempted <em>before</em> dropping BPA, the policy
+                is rejected with a similar AccessDenied because <code>BlockPublicPolicy</code> intercepts
+                the API call. BPA → policy is the correct order.
+              </div>
+            </div>
+          </article>
+
+          <!-- ══════ TASK 6 ══════ -->
+          <article class="step">
+            <div class="step-num">06</div>
+            <div>
+              <h3>Apply a least-privilege bucket policy</h3>
+              <p>Wrote a JSON policy that grants <code>s3:GetObject</code> to anonymous principals,
+                <strong>scoped to the single object</strong> <code>index.html</code>, not the entire
+                bucket. This is the part of the lab that's a conscious security decision: the goal is
+                "make the object public", not "make the bucket public".</p>
+
+              <div class="code-block-wrapper">
+                <div class="code-header">CLI Host shell — create policy JSON with a heredoc</div>
+<pre class="code-block">
+<span class="token-command">cat</span> &gt; object-policy.json <span class="token-keyword">&lt;&lt;</span> <span class="token-string">'EOF'</span>
+{
+  <span class="token-key">"Version"</span>: <span class="token-string">"2012-10-17"</span>,
+  <span class="token-key">"Statement"</span>: [
+    {
+      <span class="token-key">"Sid"</span>: <span class="token-string">"PublicReadOnlyIndexObject"</span>,
+      <span class="token-key">"Effect"</span>: <span class="token-string">"Allow"</span>,
+      <span class="token-key">"Principal"</span>: <span class="token-string">"*"</span>,
+      <span class="token-key">"Action"</span>: <span class="token-string">"s3:GetObject"</span>,
+      <span class="token-key">"Resource"</span>: <span class="token-string">"arn:aws:s3:::superbucket3k184/index.html"</span>
+    }
+  ]
+}
+EOF
+</pre>
+              </div>
+
+              <div class="code-block-wrapper">
+                <div class="code-header">CLI Host shell — apply the policy</div>
+<pre class="code-block">
+<span class="token-command">aws</span> s3api put-bucket-policy \
+  <span class="token-flag">--bucket</span> superbucket3k184 \
+  <span class="token-flag">--policy</span> <span class="token-string">file://object-policy.json</span>
+</pre>
+              </div>
+            </div>
+          </article>
+
+          <!-- ══════ TASK 7 ══════ -->
+          <article class="step">
+            <div class="step-num">07</div>
+            <div>
+              <h3>Verify public access in the browser</h3>
+              <p>Opened the object URL in a regular browser tab — no AWS credentials, no signed URL.
+                The HTML loaded and rendered the heading and paragraph that were defined in the
+                heredoc, which is the lab's exit criterion.</p>
+
+              <div class="code-block-wrapper">
+                <div class="code-header">Object URL</div>
+<pre class="code-block">
+https://superbucket3k184.s3.us-west-2.amazonaws.com/index.html
+</pre>
+              </div>
+
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/02-object-public-access-browser.png"
+                       alt="Browser showing the index.html page served from S3 with the H1 heading and paragraph"
+                       loading="lazy" />
+                  <figcaption>
+                    foto2 · Browser at <code>https://superbucket3k184.s3.us-west-2.amazonaws.com/index.html</code>
+                    rendering the H1 <strong>"Amazon S3 Challenge Lab"</strong> and the paragraph,
+                    served anonymously thanks to the object-scoped bucket policy.
+                  </figcaption>
+                </figure>
+              </div>
+            </div>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+    <section id="policy">
+      <div class="container">
+        <h2 class="section-title">Bucket Policy Breakdown</h2>
+        <p class="section-subtitle">
+          The policy is short but every field is deliberate. Worth annotating because this is the
+          single artifact that grants public access.
+        </p>
+
+        <table class="policy-table">
+          <thead>
+            <tr>
+              <th style="width: 16%;">Field</th>
+              <th style="width: 30%;">Value</th>
+              <th>Why it's that value</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>Version</code></td>
+              <td><code>2012-10-17</code></td>
+              <td>Latest IAM policy language version. Required — older versions don't support the
+                newer condition operators.</td>
+            </tr>
+            <tr>
+              <td><code>Sid</code></td>
+              <td><code>PublicReadOnlyIndexObject</code></td>
+              <td>Optional statement identifier. Useful for auditing and for future
+                <code>aws s3api get-bucket-policy</code> reads.</td>
+            </tr>
+            <tr>
+              <td><code>Effect</code></td>
+              <td><code>Allow</code></td>
+              <td>Grants instead of denies.</td>
+            </tr>
+            <tr>
+              <td><code>Principal</code></td>
+              <td><code>"*"</code></td>
+              <td>Anonymous / public. Anyone on the internet. This is the part that, combined with
+                <code>BlockPublicPolicy</code> being off, actually makes the object public.</td>
+            </tr>
+            <tr>
+              <td><code>Action</code></td>
+              <td><code>s3:GetObject</code></td>
+              <td>Read-only. No <code>PutObject</code>, no <code>DeleteObject</code>, no listing.
+                Public can fetch the file, nothing else.</td>
+            </tr>
+            <tr>
+              <td><code>Resource</code></td>
+              <td><code>arn:aws:s3:::superbucket3k184/index.html</code></td>
+              <td><strong>Least-privilege choice.</strong> Not <code>…/*</code>. If a second object
+                gets uploaded later, it stays private by default. The public surface area is exactly
+                one file.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="insight info" style="margin-top:1.2rem;">
+          <strong>Wildcard vs. exact ARN:</strong>
+          A <code>Resource: "arn:aws:s3:::superbucket3k184/*"</code> would be more convenient (any file
+          dropped in the bucket would be public) but it's also strictly worse from a security
+          standpoint. The lab's challenge brief said "make the <em>object</em> public" — taking that
+          literally is the right call.
+        </div>
+      </div>
+    </section>
+
+    <section id="commands">
+      <div class="container">
+        <h2 class="section-title">Command Reference</h2>
+        <p class="section-subtitle">Quick reference of the AWS CLI calls used in this lab.</p>
+
+        <div class="timeline">
+
+          <article class="step">
+            <div class="step-num" style="font-size:0.85rem;">cmd</div>
+            <div>
+              <h3><code>aws s3api create-bucket</code></h3>
+              <p>Creates an S3 bucket. Outside <code>us-east-1</code>, you must pass
+                <code>--create-bucket-configuration LocationConstraint=&lt;region&gt;</code>.</p>
+            </div>
+          </article>
+
+          <article class="step">
+            <div class="step-num" style="font-size:0.85rem;">cmd</div>
+            <div>
+              <h3><code>aws s3 cp</code> · <code>aws s3 ls</code></h3>
+              <p>High-level S3 commands. <code>cp</code> uploads/downloads objects, <code>ls</code>
+                lists bucket contents. Wrappers over <code>s3api</code> with friendlier UX.</p>
+            </div>
+          </article>
+
+          <article class="step">
+            <div class="step-num" style="font-size:0.85rem;">cmd</div>
+            <div>
+              <h3><code>aws s3api put-object-acl</code></h3>
+              <p>Sets an ACL on a single object. <strong>Will fail</strong> on a bucket with default
+                Block Public Access if the ACL is public — by design.</p>
+            </div>
+          </article>
+
+          <article class="step">
+            <div class="step-num" style="font-size:0.85rem;">cmd</div>
+            <div>
+              <h3><code>aws s3api delete-public-access-block</code></h3>
+              <p>Removes the bucket's Block Public Access configuration entirely. Required before
+                applying a public bucket policy. Surgical alternative:
+                <code>put-public-access-block</code> with only the needed flags off.</p>
+            </div>
+          </article>
+
+          <article class="step">
+            <div class="step-num" style="font-size:0.85rem;">cmd</div>
+            <div>
+              <h3><code>aws s3api put-bucket-policy</code></h3>
+              <p>Attaches a JSON policy to a bucket. The policy file is referenced as
+                <code>file://path</code> — without that prefix the CLI tries to parse the path as
+                inline JSON.</p>
+            </div>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+    <section id="learnings">
+      <div class="container">
+        <h2 class="section-title">Key Learnings</h2>
+        <div class="grid-2">
+          <div class="card">
+            <h3>What Was Actually Learned</h3>
+            <div class="checklist">
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>Creating an S3 bucket from the CLI requires
+                  <strong>LocationConstraint</strong> for any region other than
+                  <code>us-east-1</code>.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>S3 <strong>Block Public Access</strong> is on by default and will reject public
+                  ACL calls at the API layer — this is a deliberate guardrail, not a bug.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>Public read access today is granted via <strong>bucket policy</strong>, not via
+                  object ACLs. ACLs are effectively legacy.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>Scoping <code>Resource</code> to an <strong>exact object ARN</strong> keeps the
+                  rest of the bucket private. Wildcards are convenient but rarely justified.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>The order is non-negotiable:
+                  <strong>drop Block Public Access → apply bucket policy</strong>. The other way
+                  around is rejected by the API.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Technical Conclusion</h3>
+            <p>
+              The lab is small in surface area — one bucket, one object, six commands — but it
+              accurately maps to the production reality of exposing static assets on S3 in 2024+:
+              ACLs are out, scoped bucket policies are in, and Block Public Access is the
+              guardrail that forces you to opt into public exposure consciously.
+            </p>
+            <p style="margin-top: 1rem;">
+              The most valuable artifact is the <code>AccessDenied</code> error encountered with the
+              public ACL attempt. It names <code>BlockPublicAcls</code> directly in the message, which
+              is exactly the kind of explicit, debuggable error that S3's API surfaces — and it's the
+              single signal that points you to the correct path (bucket policy) instead of trial and
+              error.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      Lab report documenting the Challenge Lab: Amazon S3 from the CLI · AWS re/Start Program
+    </div>
+  </footer>
+</body>
+
+</html>

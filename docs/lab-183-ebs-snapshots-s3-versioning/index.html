@@ -1,0 +1,1174 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lab Report: Managing Storage — EBS Snapshots &amp; S3 Versioning</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --bg-soft: #111827;
+      --card: rgba(255, 255, 255, 0.08);
+      --card-strong: rgba(255, 255, 255, 0.12);
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --accent: #ff9900;
+      --accent-2: #38bdf8;
+      --ok: #22c55e;
+      --warn: #f59e0b;
+      --danger: #ef4444;
+      --border: rgba(255, 255, 255, 0.12);
+      --shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+      --radius: 22px;
+      --max: 1120px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(255, 153, 0, 0.16), transparent 28%),
+        radial-gradient(circle at top right, rgba(56, 189, 248, 0.14), transparent 24%),
+        linear-gradient(180deg, #020617 0%, #0f172a 48%, #111827 100%);
+      color: var(--text);
+      line-height: 1.65;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .container {
+      width: min(var(--max), calc(100% - 2rem));
+      margin: 0 auto;
+    }
+
+    /* ── Nav ── */
+    .nav {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      backdrop-filter: blur(16px);
+      background: rgba(2, 6, 23, 0.72);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .nav-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.9rem 0;
+      gap: 1rem;
+    }
+
+    .brand {
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+    }
+
+    .brand-badge {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, var(--accent), #ffb84d);
+      color: #111827;
+      font-weight: 900;
+      box-shadow: var(--shadow);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .nav-links a:hover {
+      color: var(--text);
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      color: var(--muted);
+      font-size: 0.9rem;
+      transition: color 0.2s;
+    }
+
+    .back-link:hover {
+      color: var(--accent);
+    }
+
+    /* ── Hero ── */
+    .hero {
+      padding: 4.8rem 0 2rem;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 1.5rem;
+      align-items: stretch;
+    }
+
+    .panel {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.05));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .hero-main {
+      padding: 2rem;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.45rem 0.8rem;
+      border-radius: 999px;
+      background: rgba(255, 153, 0, 0.12);
+      color: #ffd28a;
+      border: 1px solid rgba(255, 153, 0, 0.25);
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+    }
+
+    h1,
+    h2,
+    h3 {
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+      margin: 0;
+    }
+
+    h1 {
+      font-size: clamp(2rem, 4vw, 3.7rem);
+      margin-bottom: 0.9rem;
+    }
+
+    .hero-main p {
+      margin: 0;
+      color: #cbd5e1;
+      font-size: 1.05rem;
+      max-width: 65ch;
+    }
+
+    .hero-side {
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .hero-side .callout {
+      padding: 1rem 1.1rem;
+      border-radius: 18px;
+      border: 1px solid rgba(56, 189, 248, 0.18);
+      background: rgba(56, 189, 248, 0.08);
+    }
+
+    .hero-side .callout strong {
+      display: block;
+      margin-bottom: 0.35rem;
+    }
+
+    .tech-stack {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.55rem;
+    }
+
+    .chip {
+      padding: 0.45rem 0.75rem;
+      border-radius: 999px;
+      font-size: 0.88rem;
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #dbeafe;
+    }
+
+    .small {
+      font-size: 0.92rem;
+      color: var(--muted);
+    }
+
+    /* ── Sections ── */
+    section {
+      padding: 1rem 0 0.4rem;
+    }
+
+    .section-title {
+      margin-bottom: 1rem;
+      font-size: clamp(1.5rem, 2vw, 2.2rem);
+    }
+
+    .section-subtitle {
+      color: var(--muted);
+      margin-top: 0.45rem;
+      max-width: 75ch;
+    }
+
+    /* ── Grids ── */
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .card {
+      padding: 1.3rem;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+    }
+
+    .card h3 {
+      font-size: 1.05rem;
+      margin-bottom: 0.6rem;
+    }
+
+    .card p {
+      margin: 0;
+      color: #cbd5e1;
+    }
+
+    /* ── Timeline ── */
+    .timeline {
+      display: grid;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .step {
+      display: grid;
+      grid-template-columns: 90px 1fr;
+      gap: 1rem;
+      align-items: start;
+      padding: 1.25rem;
+      border-radius: 22px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: var(--shadow);
+    }
+
+    .step-num {
+      width: 72px;
+      height: 72px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, rgba(255, 153, 0, 0.18), rgba(56, 189, 248, 0.18));
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      display: grid;
+      place-items: center;
+      font-size: 1.1rem;
+      font-weight: 900;
+      color: #fff;
+    }
+
+    .step h3 {
+      margin-bottom: 0.55rem;
+      font-size: 1.2rem;
+    }
+
+    .step ul {
+      margin: 0.3rem 0 0;
+      padding-left: 1.1rem;
+      color: #dbe4f0;
+    }
+
+    .step li + li {
+      margin-top: 0.4rem;
+    }
+
+    .highlight {
+      color: #ffd28a;
+      font-weight: 700;
+    }
+
+    /* ── Screenshots ── */
+    .screenshot-gallery {
+      display: grid;
+      gap: 0.8rem;
+      margin-top: 1rem;
+    }
+
+    .screenshot-gallery.cols-2 {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .screenshot-fig {
+      margin: 0;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(2, 6, 23, 0.5);
+    }
+
+    .screenshot-fig img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .screenshot-fig figcaption {
+      padding: 0.6rem 0.8rem;
+      color: var(--muted);
+      font-size: 0.84rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    /* ── Callouts ── */
+    .insight {
+      padding: 1.15rem 1.2rem;
+      border-left: 4px solid var(--accent);
+      border-radius: 16px;
+      background: rgba(255, 153, 0, 0.08);
+      color: #fde7c2;
+    }
+
+    .info {
+      border-left-color: var(--accent-2);
+      background: rgba(56, 189, 248, 0.08);
+      color: #d8f3ff;
+    }
+
+    .warn-callout {
+      border-left-color: var(--warn);
+      background: rgba(245, 158, 11, 0.08);
+      color: #fde2a8;
+    }
+
+    /* ── Checklist ── */
+    .checklist {
+      display: grid;
+      gap: 0.7rem;
+      margin-top: 1rem;
+    }
+
+    .check {
+      display: flex;
+      gap: 0.75rem;
+      align-items: flex-start;
+      padding: 0.9rem 1rem;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+    }
+
+    .check-mark {
+      flex: 0 0 auto;
+      width: 28px;
+      height: 28px;
+      display: grid;
+      place-items: center;
+      border-radius: 999px;
+      background: rgba(34, 197, 94, 0.15);
+      color: #86efac;
+      font-weight: 800;
+    }
+
+    /* ── Code ── */
+    code {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 0.15rem 0.4rem;
+      border-radius: 6px;
+      font-size: 0.9em;
+      font-family: "Cascadia Code", "Fira Code", monospace;
+    }
+
+    pre {
+      margin: 0.8rem 0 0;
+    }
+
+    pre code {
+      display: block;
+      padding: 1rem 1.2rem;
+      background: #020617;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      overflow-x: auto;
+      color: #e5e7eb;
+      font-size: 0.88rem;
+      line-height: 1.55;
+      white-space: pre;
+    }
+
+    pre code .c {
+      color: #94a3b8;
+    }
+
+    pre code .k {
+      color: #ff9900;
+    }
+
+    pre code .s {
+      color: #86efac;
+    }
+
+    /* ── Tables ── */
+    table.lab-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+      border-radius: 14px;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border);
+    }
+
+    table.lab-table th,
+    table.lab-table td {
+      padding: 0.7rem 0.95rem;
+      text-align: left;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+      font-size: 0.93rem;
+      vertical-align: top;
+    }
+
+    table.lab-table th {
+      background: rgba(255, 153, 0, 0.08);
+      color: #ffd28a;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      font-size: 0.78rem;
+    }
+
+    table.lab-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    table.lab-table code {
+      font-size: 0.85em;
+    }
+
+    /* ── Wide image viewport (bounded scroll) ── */
+    .viewport-scrollable {
+      max-height: 560px;
+      overflow: auto;
+      border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(2, 6, 23, 0.6);
+    }
+
+    .viewport-scrollable img {
+      display: block;
+      max-width: none;
+      width: auto;
+      height: auto;
+    }
+
+    .viewport-fig {
+      margin: 0;
+    }
+
+    .viewport-fig figcaption {
+      padding: 0.55rem 0.85rem 0.1rem;
+      color: var(--muted);
+      font-size: 0.83rem;
+    }
+
+    /* ── Lifecycle diagram (S3 versioning) ── */
+    .lifecycle {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.6rem;
+      margin-top: 1rem;
+    }
+
+    .lifecycle .step-box {
+      padding: 0.9rem 1rem;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      font-size: 0.88rem;
+    }
+
+    .lifecycle .step-box strong {
+      display: block;
+      color: var(--accent-2);
+      margin-bottom: 0.25rem;
+      font-size: 0.82rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    /* ── Tag pills inside text ── */
+    .tag {
+      display: inline-block;
+      padding: 0.1rem 0.5rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      vertical-align: middle;
+    }
+
+    .tag-version {
+      background: rgba(34, 197, 94, 0.15);
+      color: #86efac;
+      border: 1px solid rgba(34, 197, 94, 0.25);
+    }
+
+    .tag-delete {
+      background: rgba(239, 68, 68, 0.15);
+      color: #fca5a5;
+      border: 1px solid rgba(239, 68, 68, 0.25);
+    }
+
+    /* ── Footer ── */
+    .footer {
+      padding: 2.2rem 0 3.5rem;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 920px) {
+
+      .hero-grid,
+      .grid-3,
+      .grid-2,
+      .screenshot-gallery.cols-2 {
+        grid-template-columns: 1fr;
+      }
+
+      .lifecycle {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 680px) {
+      .nav-inner {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .step {
+        grid-template-columns: 1fr;
+      }
+
+      .step-num {
+        width: 60px;
+        height: 60px;
+        border-radius: 16px;
+      }
+
+      .lifecycle {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <nav class="nav">
+    <div class="container nav-inner">
+      <div class="brand">
+        <div class="brand-badge">AWS</div>
+        <div>Lab Report · Storage</div>
+      </div>
+      <div class="nav-links">
+        <a href="../index.html" class="back-link">← All Labs</a>
+        <a href="#summary">Summary</a>
+        <a href="#task1">Task 1</a>
+        <a href="#task2">Task 2</a>
+        <a href="#task3">Task 3</a>
+        <a href="#task4">Task 4</a>
+        <a href="#concepts">Concepts</a>
+      </div>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <div class="container hero-grid">
+      <div class="panel hero-main">
+        <span class="eyebrow">Lab 183 · EBS + S3 · CLI &amp; Python</span>
+        <h1>Managing Storage: EBS Snapshots &amp; S3 Versioning</h1>
+        <p>
+          Two storage flows in one lab: automated EBS snapshot retention via <code>cron</code> + a
+          Python script using <code>boto3</code>, and a full S3 sync cycle that exercises versioning
+          to recover a deleted file from a delete marker.
+        </p>
+      </div>
+
+      <aside class="panel hero-side">
+        <div class="callout">
+          <strong>Environment</strong>
+          VPC with public subnet · Two pre-provisioned EC2 instances: <em>Command Host</em>
+          (administration) and <em>Processor</em> (target of snapshots + S3 sync).
+        </div>
+        <div class="tech-stack">
+          <span class="chip">Amazon EBS</span>
+          <span class="chip">EC2 Snapshots</span>
+          <span class="chip">Amazon S3</span>
+          <span class="chip">S3 Versioning</span>
+          <span class="chip">AWS CLI</span>
+          <span class="chip">boto3</span>
+          <span class="chip">cron</span>
+          <span class="chip">IAM Instance Profile</span>
+        </div>
+        <p class="small">Estimated duration: ~45 min · Complexity: medium-high</p>
+      </aside>
+    </div>
+  </header>
+
+  <main>
+    <section id="summary" class="container">
+      <h2 class="section-title">Summary</h2>
+      <p class="section-subtitle">
+        The lab combines four tasks. Tasks 1–2 set up the S3 bucket / IAM role and run the manual
+        and scheduled EBS snapshot flow. Tasks 3–4 (the challenge) cover the S3 sync cycle with
+        versioning, including recovering an object after a delete marker is created.
+      </p>
+
+      <div class="grid-3">
+        <div class="card">
+          <h3>EBS Snapshot Automation</h3>
+          <p>
+            Take an initial point-in-time snapshot of the Processor's EBS volume, then schedule
+            recurring snapshots with <code>cron</code> and retain only the last two using a Python
+            script.
+          </p>
+        </div>
+        <div class="card">
+          <h3>S3 Sync with Versioning</h3>
+          <p>
+            Enable versioning on a bucket, sync a local directory, propagate deletes with
+            <code>--delete</code>, and recover the deleted object from its previous version.
+          </p>
+        </div>
+        <div class="card">
+          <h3>What This Proves</h3>
+          <p>
+            That <code>aws s3 sync --delete</code> does not destroy data when versioning is on — it
+            creates a <strong>delete marker</strong>. The previous version remains accessible by
+            <code>VersionId</code>.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section id="task1" class="container">
+      <h2 class="section-title">Task 1 — Bucket + IAM role for the Processor</h2>
+      <p class="section-subtitle">
+        Setup task: create the S3 bucket that the challenge will use and grant the Processor
+        instance the permissions it needs to talk to EBS and S3.
+      </p>
+
+      <div class="timeline">
+        <div class="step">
+          <div class="step-num">1.1</div>
+          <div>
+            <h3>Create the S3 bucket</h3>
+            <p>
+              A general-purpose S3 bucket was created in the lab's default region. The chosen name
+              was <code>superbucket3k</code>, used throughout the rest of the lab as the sync
+              target. Versioning was left <strong>disabled</strong> at this point — it gets enabled
+              later in Task 4, just before the sync that requires recovery.
+            </p>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-num">1.2</div>
+          <div>
+            <h3>Attach the S3BucketAccess role to the Processor</h3>
+            <p>
+              The lab pre-creates an IAM role named <strong>S3BucketAccess</strong>. From the EC2
+              console, <em>Actions → Security → Modify IAM role</em> on the <code>Processor</code>
+              instance attached this role as an instance profile. Without this step, the AWS CLI
+              running on the Processor would not have credentials to call S3 or describe its own
+              EBS volume.
+            </p>
+            <div class="insight info" style="margin-top: 0.8rem;">
+              <strong>Why an instance profile, not static keys:</strong> the Processor needs to call
+              <code>aws s3</code> and <code>aws ec2</code> commands. An instance profile lets the
+              CLI pick up temporary credentials from the EC2 metadata service — no keys on disk, no
+              rotation problem.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="task2" class="container">
+      <h2 class="section-title">Task 2 — Initial EBS snapshot from the CLI</h2>
+      <p class="section-subtitle">
+        Connect to the Command Host via EC2 Instance Connect, identify the Processor's EBS volume,
+        stop the instance to guarantee a clean snapshot, take the snapshot, and start the instance
+        again.
+      </p>
+
+      <h3 style="margin-top: 1.2rem; font-size: 1.1rem; color: var(--accent-2);">Discover the volume + instance IDs</h3>
+      <p>
+        Two <code>describe-instances</code> queries with JMESPath filters returned the
+        <code>VolumeId</code> and the <code>InstanceId</code> of the Processor. These values are
+        the inputs for every subsequent EBS call.
+      </p>
+      <pre><code>aws ec2 describe-instances \
+  --filter 'Name=tag:Name,Values=Processor' \
+  --query 'Reservations[0].Instances[0].BlockDeviceMappings[0].Ebs.{VolumeId:VolumeId}'
+
+aws ec2 describe-instances \
+  --filters 'Name=tag:Name,Values=Processor' \
+  --query 'Reservations[0].Instances[0].InstanceId'</code></pre>
+      <p class="small" style="margin-top: 0.6rem;">
+        Actual IDs returned in this run: volume <code>vol-052774238e8c5a84b</code>, instance
+        <code>i-0b40f2b484a8f4733</code>.
+      </p>
+
+      <h3 style="margin-top: 1.4rem; font-size: 1.1rem; color: var(--accent-2);">Stop · snapshot · start</h3>
+      <p>
+        Stopping the instance before <code>create-snapshot</code> guarantees the filesystem is
+        flushed. The <code>wait</code> sub-commands are blocking and return only when the resource
+        reaches the target state, which makes the flow scriptable.
+      </p>
+      <pre><code>aws ec2 stop-instances           --instance-ids i-0b40f2b484a8f4733
+aws ec2 wait instance-stopped    --instance-id  i-0b40f2b484a8f4733
+aws ec2 create-snapshot          --volume-id    vol-052774238e8c5a84b
+aws ec2 wait snapshot-completed  --snapshot-id  snap-0c318bdefed94e5c4
+aws ec2 start-instances          --instance-ids i-0b40f2b484a8f4733</code></pre>
+
+      <figure class="screenshot-fig" style="margin-top: 1.2rem;">
+        <img src="assets/screenshots/01-initial-snapshot-create.png"
+          alt="aws ec2 wait instance-stopped followed by create-snapshot output showing snap-0c318bdefed94e5c4 in pending state" />
+        <figcaption>
+          Output of <code>create-snapshot</code> immediately after the instance reaches the
+          <em>stopped</em> state. The new snapshot <code>snap-0c318bdefed94e5c4</code> is reported
+          in <strong>pending</strong>; <code>wait snapshot-completed</code> would block on the next
+          line until it reaches 100%.
+        </figcaption>
+      </figure>
+    </section>
+
+    <section id="task3" class="container">
+      <h2 class="section-title">Task 3 — Scheduled snapshots + retention script</h2>
+      <p class="section-subtitle">
+        The lab installs a one-minute <code>cron</code> entry to generate snapshots automatically,
+        then uses a Python script (<code>snapshotter_v2.py</code>) to keep only the two most recent
+        ones per volume.
+      </p>
+
+      <h3 style="margin-top: 1.2rem; font-size: 1.1rem; color: var(--accent-2);">Schedule recurring snapshots</h3>
+      <p>
+        The cron entry redirects both stdout and stderr to <code>/tmp/cronlog</code> so the job
+        runs silently while still leaving a trail for debugging. After installing the job, a single
+        <code>describe-snapshots</code> call against the volume confirms that new snapshots show up
+        every minute (one <strong>completed</strong>, one <strong>pending</strong> in the capture).
+      </p>
+      <pre><code>echo "* * * * *  aws ec2 create-snapshot --volume-id vol-052774238e8c5a84b 2>&amp;1 >> /tmp/cronlog" > cronjob
+crontab cronjob
+
+aws ec2 describe-snapshots --filters "Name=volume-id,Values=vol-052774238e8c5a84b"</code></pre>
+
+      <figure class="viewport-fig" style="margin-top: 1.2rem;">
+        <figcaption>
+          <strong>Cron installed + first two snapshots visible.</strong> One snapshot is already
+          <em>completed</em>, the next is still <em>pending</em> — exactly what one-minute cadence
+          looks like.
+        </figcaption>
+        <div class="viewport-scrollable">
+          <img src="assets/screenshots/02-cron-describe-snapshots.png"
+            alt="crontab cronjob followed by describe-snapshots returning two Snapshots: one completed and one pending" />
+        </div>
+      </figure>
+
+      <h3 style="margin-top: 1.4rem; font-size: 1.1rem; color: var(--accent-2);">Retention with snapshotter_v2.py</h3>
+      <p>
+        Once enough snapshots accumulate, the cron job is removed with <code>crontab -r</code> and
+        <code>snapshotter_v2.py</code> is run. The script uses <code>boto3</code> to enumerate all
+        volumes in the account, sort the existing snapshots by <code>start_time</code>, and delete
+        anything beyond the most recent <code>MAX_SNAPSHOTS</code>. Only the script's relevant
+        structure is shown below — the full code is on the Processor, not transcribed here.
+      </p>
+      <pre><code><span class="c">#!/usr/bin/env python</span>
+import boto3
+
+MAX_SNAPSHOTS = 2   <span class="c"># keep only the last 2 per volume</span>
+
+ec2 = boto3.resource('ec2')
+
+for v in ec2.volumes.all():
+    v.create_snapshot()
+    snapshots = list(v.snapshots.all())
+    if len(snapshots) > MAX_SNAPSHOTS:
+        snap_sorted = sorted(
+            [(s.id, s.start_time, s) for s in snapshots],
+            key=lambda k: k[1]
+        )
+        for s in snap_sorted[:-MAX_SNAPSHOTS]:
+            print("Deleting snapshot", s[0])
+            s[2].delete()</code></pre>
+      <p class="small" style="margin-top: 0.6rem;">
+        The script <em>also</em> creates a snapshot on each run before pruning. That is the source
+        of the new <code>snap-080e659fbfaea38f1</code> visible in the post-execution list.
+      </p>
+
+      <figure class="viewport-fig" style="margin-top: 1.2rem;">
+        <figcaption>
+          <strong>Before / after retention.</strong> The pre-run list has three snapshots
+          (<code>snap-0eeb6...</code>, <code>snap-0c318...</code>, <code>snap-0dc06...</code>).
+          After <code>python3.8 snapshotter_v2.py</code>, two are deleted and the post-run list
+          shows the survivors: the oldest kept one plus the new snapshot the script itself took.
+        </figcaption>
+        <div class="viewport-scrollable">
+          <img src="assets/screenshots/03-snapshotter-retention.png"
+            alt="more snapshotter_v2.py showing boto3 code, then describe-snapshots before (3 IDs), then python3.8 snapshotter_v2.py with 'Deleting snapshot' messages, then describe-snapshots after (2 IDs)" />
+        </div>
+      </figure>
+
+      <div class="insight">
+        <strong>Snapshot mechanics that matter:</strong> EBS snapshots are incremental — only
+        changed blocks since the last snapshot are stored — but each one is restorable as a
+        complete volume. Deleting an old snapshot is safe; AWS re-balances the underlying blocks so
+        more recent snapshots remain whole.
+      </div>
+    </section>
+
+    <section id="task4" class="container">
+      <h2 class="section-title">Task 4 — Challenge: S3 sync with versioning</h2>
+      <p class="section-subtitle">
+        Switch hosts: this task runs on the <strong>Processor</strong> instance (which now has the
+        S3BucketAccess role). The goal is to sync a local <code>files/</code> directory with
+        <code>s3://superbucket3k/</code>, delete a file locally, propagate the delete to S3, and
+        then recover the deleted object using S3 versioning.
+      </p>
+
+      <h3 style="margin-top: 1.2rem; font-size: 1.1rem; color: var(--accent-2);">Sample files + enable versioning</h3>
+      <p>
+        The sample <code>files.zip</code> was already pre-staged on the Processor. After
+        <code>unzip files.zip</code> the working directory contained:
+      </p>
+      <pre><code>$ unzip files.zip
+Archive:  files.zip
+ inflating: files/file1.txt
+ inflating: files/file2.txt
+ inflating: files/file3.txt
+
+$ ls
+cronjob  files  files.zip  get-pip.py  snapshotter_v2.py
+
+$ ls files
+file1.txt  file2.txt  file3.txt</code></pre>
+      <p style="margin-top: 0.8rem;">
+        Versioning was enabled on the bucket <em>before</em> any sync — this is the critical
+        ordering, because objects uploaded while versioning is off cannot be recovered later.
+      </p>
+      <pre><code>aws s3api put-bucket-versioning \
+  --bucket superbucket3k \
+  --versioning-configuration Status=Enabled</code></pre>
+      <p class="small" style="margin-top: 0.6rem;">
+        The command returns nothing on success, which is correct AWS CLI behavior for
+        idempotent configuration calls.
+      </p>
+
+      <h3 style="margin-top: 1.4rem; font-size: 1.1rem; color: var(--accent-2);">Initial sync</h3>
+      <p>
+        A plain <code>aws s3 sync</code> uploaded the three files. <code>aws s3 ls</code>
+        confirmed the bucket state.
+      </p>
+      <pre><code>$ aws s3 sync files s3://superbucket3k/files/
+upload: files/file1.txt to s3://superbucket3k/files/file1.txt
+upload: files/file2.txt to s3://superbucket3k/files/file2.txt
+upload: files/file3.txt to s3://superbucket3k/files/file3.txt
+
+$ aws s3 ls s3://superbucket3k/files/
+2026-05-15 06:12:49      30318 file1.txt
+2026-05-15 06:12:49      43784 file2.txt
+2026-05-15 06:12:49      96675 file3.txt</code></pre>
+
+      <h3 style="margin-top: 1.4rem; font-size: 1.1rem; color: var(--accent-2);">Delete locally · propagate with <code>--delete</code></h3>
+      <p>
+        <code>file1.txt</code> was removed from the local <code>files/</code> directory and a
+        second sync was run with the <code>--delete</code> flag. <strong>Without</strong>
+        <code>--delete</code>, <code>aws s3 sync</code> is upload-only and would have left the file
+        in S3.
+      </p>
+      <pre><code>$ rm files/file1.txt
+$ ls files
+file2.txt  file3.txt
+
+$ aws s3 sync files s3://superbucket3k/files/ --delete
+delete: s3://superbucket3k/files/file1.txt
+
+$ aws s3 ls s3://superbucket3k/files/
+2026-05-15 06:12:49      43784 file2.txt
+2026-05-15 06:12:49      96675 file3.txt</code></pre>
+
+      <div class="insight warn-callout" style="margin-top: 1rem;">
+        <strong>Important:</strong> <code>aws s3 ls</code> only shows the <em>latest</em> version
+        of each key. Because versioning is enabled, the bucket has not actually lost
+        <code>file1.txt</code> — the delete added a <strong>delete marker</strong> as the newest
+        version. The original object is still there, hidden behind it.
+      </div>
+
+      <h3 style="margin-top: 1.4rem; font-size: 1.1rem; color: var(--accent-2);">Inspect versions · list the delete marker</h3>
+      <p>
+        <code>list-object-versions</code> returns two parallel arrays. <code>Versions[]</code>
+        contains the actual content versions; <code>DeleteMarkers[]</code> contains the tombstone
+        entries. After the propagated delete, <code>file1.txt</code> has one of each:
+      </p>
+      <pre><code>aws s3api list-object-versions \
+  --bucket superbucket3k \
+  --prefix files/file1.txt</code></pre>
+
+      <figure class="viewport-fig" style="margin-top: 1rem;">
+        <figcaption>
+          <strong>The recovery proof.</strong> The bucket has both the original content version
+          (<code>VersionId: xyHef1ZSWB5VCgi4HR6917ssBs2uWoYh</code>) and the delete marker
+          (<code>VersionId: F0kqOy0eIMZPQ3DCkWE8ThPR28YN7T1I</code>). The delete marker has
+          <code>IsLatest: true</code>; the real version has <code>IsLatest: false</code>.
+        </figcaption>
+        <div class="viewport-scrollable">
+          <img src="assets/screenshots/04-list-object-versions.png"
+            alt="list-object-versions output showing the Versions block with VersionId xyHef1ZSWB5VCgi4HR6917ssBs2uWoYh and the DeleteMarkers block with VersionId F0kqOy0eIMZPQ3DCkWE8ThPR28YN7T1I" />
+        </div>
+      </figure>
+
+      <p style="margin-top: 1rem;">
+        Captured <code>VersionId</code>s from this run, used in the next step:
+      </p>
+      <table class="lab-table">
+        <thead>
+          <tr>
+            <th>Type</th>
+            <th>VersionId</th>
+            <th>Effect</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="tag tag-version">version</span></td>
+            <td><code>xyHef1ZSWB5VCgi4HR6917ssBs2uWoYh</code></td>
+            <td>Original content of <code>file1.txt</code>. Recoverable.</td>
+          </tr>
+          <tr>
+            <td><span class="tag tag-delete">marker</span></td>
+            <td><code>F0kqOy0eIMZPQ3DCkWE8ThPR28YN7T1I</code></td>
+            <td>Tombstone created by <code>sync --delete</code>. Hides the version but does not destroy it.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3 style="margin-top: 1.4rem; font-size: 1.1rem; color: var(--accent-2);">Recover the previous version · re-sync</h3>
+      <p>
+        There is no single "restore" call in S3; the workflow is to <em>download</em> the previous
+        version by <code>VersionId</code> straight to the original local path, then sync again so
+        the bucket sees a new latest version.
+      </p>
+      <pre><code>$ aws s3api get-object \
+  --bucket superbucket3k \
+  --key files/file1.txt \
+  --version-id xyHef1ZSWB5VCgi4HR6917ssBs2uWoYh \
+  files/file1.txt
+
+$ ls files
+file1.txt  file2.txt  file3.txt
+
+$ aws s3 sync files s3://superbucket3k/files/
+upload: files/file1.txt to s3://superbucket3k/files/file1.txt
+
+$ aws s3 ls s3://superbucket3k/files/
+2026-05-15 06:18:12      30318 file1.txt
+2026-05-15 06:12:49      43784 file2.txt
+2026-05-15 06:12:49      96675 file3.txt</code></pre>
+      <p class="small" style="margin-top: 0.6rem;">
+        Notice the new <code>LastModified</code> on <code>file1.txt</code>:
+        <code>06:18:12</code> instead of the original <code>06:12:49</code>. The bucket now has
+        three "live" objects again, plus the historical version chain underneath.
+      </p>
+
+      <figure class="viewport-fig" style="margin-top: 1.2rem;">
+        <figcaption>
+          <strong>Recovery + re-sync.</strong> <code>get-object</code> returns metadata
+          (<code>VersionId</code>, <code>ContentLength: 30318</code>, <code>ETag</code>,
+          <code>ServerSideEncryption: AES256</code>). After it, <code>ls files</code> shows the
+          three files locally and <code>aws s3 sync</code> re-uploads <code>file1.txt</code>.
+        </figcaption>
+        <div class="viewport-scrollable">
+          <img src="assets/screenshots/05-file-restore.png"
+            alt="get-object output with VersionId and metadata, followed by ls files (three files), aws s3 sync uploading file1.txt, and ls s3 showing the three files in the bucket" />
+        </div>
+      </figure>
+    </section>
+
+    <section id="concepts" class="container">
+      <h2 class="section-title">Key concepts</h2>
+      <p class="section-subtitle">
+        Three ideas that the lab cements through hands-on commands rather than theory.
+      </p>
+
+      <div class="grid-2">
+        <div class="card">
+          <h3>Incremental snapshots</h3>
+          <p>
+            Each EBS snapshot is a point-in-time, restorable view of the whole volume, but
+            internally only changed blocks are stored after the first one. Deleting old snapshots
+            is safe — AWS re-references blocks so the surviving ones remain complete. That is what
+            makes a retention policy like <code>MAX_SNAPSHOTS=2</code> reasonable.
+          </p>
+        </div>
+        <div class="card">
+          <h3><code>aws s3 sync</code> · with vs. without <code>--delete</code></h3>
+          <p>
+            Plain <code>sync</code> is one-way <em>add/update</em>: it only uploads new or changed
+            files. With <code>--delete</code>, it also removes objects from the destination that no
+            longer exist at the source — making the bucket a true mirror of the local directory.
+            On a versioned bucket, that "remove" is actually a delete marker.
+          </p>
+        </div>
+        <div class="card">
+          <h3>Delete markers vs. real deletes</h3>
+          <p>
+            With versioning enabled, every <code>DELETE</code> against an object just stamps a new
+            "version" of type <em>delete marker</em> as the latest. The previous version stays
+            intact and is recoverable by its <code>VersionId</code>. The only way to actually erase
+            data is to delete the underlying version, not the key.
+          </p>
+        </div>
+        <div class="card">
+          <h3>Instance profile &gt; static keys</h3>
+          <p>
+            Attaching <code>S3BucketAccess</code> to the Processor as an instance profile lets the
+            CLI fetch short-lived credentials from the EC2 metadata service. No
+            <code>aws configure</code>, no keys on disk, no rotation logic. Every AWS CLI call in
+            Tasks 3–4 used those temporary creds.
+          </p>
+        </div>
+      </div>
+
+      <h3 style="margin-top: 1.8rem; font-size: 1.1rem; color: var(--accent-2);">S3 versioning lifecycle (this lab in 4 states)</h3>
+      <div class="lifecycle">
+        <div class="step-box">
+          <strong>State 1</strong>
+          After first <code>sync</code>:
+          <code>file1.txt</code> exists with a single <em>version</em>. <code>IsLatest: true</code>.
+        </div>
+        <div class="step-box">
+          <strong>State 2</strong>
+          After <code>rm</code> + <code>sync --delete</code>: same content version still exists
+          (<code>IsLatest: false</code>) <em>plus</em> a new <strong>delete marker</strong>
+          (<code>IsLatest: true</code>).
+        </div>
+        <div class="step-box">
+          <strong>State 3</strong>
+          After <code>get-object --version-id</code>: file restored locally. Bucket unchanged yet.
+        </div>
+        <div class="step-box">
+          <strong>State 4</strong>
+          After final <code>sync</code>: new content version pushed (<code>IsLatest: true</code>),
+          delete marker pushed down, original version still in the chain.
+        </div>
+      </div>
+    </section>
+
+    <section class="container" id="commands-summary">
+      <h2 class="section-title">Command reference</h2>
+      <p class="section-subtitle">Quick scan of every CLI verb used in this lab, grouped by phase.</p>
+
+      <table class="lab-table">
+        <thead>
+          <tr>
+            <th>Phase</th>
+            <th>Command</th>
+            <th>Purpose</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>EBS discovery</td>
+            <td><code>aws ec2 describe-instances --filter ... --query ...</code></td>
+            <td>Resolve <code>VolumeId</code> / <code>InstanceId</code> by tag.</td>
+          </tr>
+          <tr>
+            <td>EBS lifecycle</td>
+            <td><code>aws ec2 stop-instances</code> · <code>wait instance-stopped</code></td>
+            <td>Quiesce the volume before snapshotting.</td>
+          </tr>
+          <tr>
+            <td>EBS snapshot</td>
+            <td><code>aws ec2 create-snapshot --volume-id ...</code></td>
+            <td>Take a point-in-time snapshot. Async — returns <em>pending</em>.</td>
+          </tr>
+          <tr>
+            <td>EBS wait</td>
+            <td><code>aws ec2 wait snapshot-completed --snapshot-id ...</code></td>
+            <td>Block until the snapshot is 100% available.</td>
+          </tr>
+          <tr>
+            <td>EBS inspection</td>
+            <td><code>aws ec2 describe-snapshots --filters "Name=volume-id,Values=..."</code></td>
+            <td>List snapshots associated with a volume.</td>
+          </tr>
+          <tr>
+            <td>Scheduling</td>
+            <td><code>crontab cronjob</code> · <code>crontab -r</code></td>
+            <td>Install / remove the recurring snapshot job.</td>
+          </tr>
+          <tr>
+            <td>S3 setup</td>
+            <td><code>aws s3api put-bucket-versioning --versioning-configuration Status=Enabled</code></td>
+            <td>Activate versioning so deletes become recoverable.</td>
+          </tr>
+          <tr>
+            <td>S3 sync</td>
+            <td><code>aws s3 sync &lt;local&gt; s3://&lt;bucket&gt;/&lt;prefix&gt;/ [--delete]</code></td>
+            <td>One-way mirror; <code>--delete</code> propagates local removals.</td>
+          </tr>
+          <tr>
+            <td>S3 listing</td>
+            <td><code>aws s3 ls s3://&lt;bucket&gt;/&lt;prefix&gt;/</code></td>
+            <td>Only shows the latest version of each key.</td>
+          </tr>
+          <tr>
+            <td>S3 versioning</td>
+            <td><code>aws s3api list-object-versions --prefix ...</code></td>
+            <td>Lists both <code>Versions[]</code> and <code>DeleteMarkers[]</code>.</td>
+          </tr>
+          <tr>
+            <td>S3 recovery</td>
+            <td><code>aws s3api get-object --version-id ... &lt;out&gt;</code></td>
+            <td>Download a specific historical version of a key.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <p>Lab 183 · Managing Storage — EBS Snapshots &amp; S3 Versioning · AWS re/Start logbook</p>
+      <p class="small">Student: Julian David Quijano · Lab duration: ~45 min · Region: lab default</p>
+    </div>
+  </footer>
+</body>
+
+</html>

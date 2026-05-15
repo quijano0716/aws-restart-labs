@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lab Report: Amazon Route 53 Failover Routing</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --bg-soft: #111827;
+      --card: rgba(255, 255, 255, 0.08);
+      --card-strong: rgba(255, 255, 255, 0.12);
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --accent: #ff9900;
+      --accent-2: #38bdf8;
+      --ok: #22c55e;
+      --warn: #f59e0b;
+      --border: rgba(255, 255, 255, 0.12);
+      --shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+      --radius: 22px;
+      --max: 1120px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(255, 153, 0, 0.16), transparent 28%),
+        radial-gradient(circle at top right, rgba(56, 189, 248, 0.14), transparent 24%),
+        linear-gradient(180deg, #020617 0%, #0f172a 48%, #111827 100%);
+      color: var(--text);
+      line-height: 1.65;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    .container {
+      width: min(var(--max), calc(100% - 2rem));
+      margin: 0 auto;
+    }
+
+    /* ── Nav ── */
+    .nav {
+      position: sticky; top: 0; z-index: 10;
+      backdrop-filter: blur(16px);
+      background: rgba(2, 6, 23, 0.72);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .nav-inner {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 0.9rem 0; gap: 1rem;
+    }
+    .brand { font-weight: 800; letter-spacing: -0.02em; display: flex; align-items: center; gap: 0.7rem; }
+    .brand-badge {
+      width: 38px; height: 38px; border-radius: 12px;
+      display: grid; place-items: center;
+      background: linear-gradient(135deg, var(--accent), #ffb84d);
+      color: #111827; font-weight: 900;
+      box-shadow: var(--shadow);
+    }
+    .nav-links { display: flex; gap: 1rem; flex-wrap: wrap; color: var(--muted); font-size: 0.95rem; }
+    .nav-links a:hover { color: var(--text); }
+    .back-link { display: inline-flex; align-items: center; gap: 0.4rem; color: var(--muted); font-size: 0.9rem; transition: color 0.2s; }
+    .back-link:hover { color: var(--accent); }
+
+    /* ── Hero ── */
+    .hero { padding: 4.8rem 0 2rem; }
+    .hero-grid { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 1.5rem; align-items: stretch; }
+    .panel {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.05));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+    .hero-main { padding: 2rem; }
+    .eyebrow {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      padding: 0.45rem 0.8rem; border-radius: 999px;
+      background: rgba(255, 153, 0, 0.12);
+      color: #ffd28a;
+      border: 1px solid rgba(255, 153, 0, 0.25);
+      font-size: 0.9rem; margin-bottom: 1rem;
+    }
+    h1, h2, h3 { line-height: 1.15; letter-spacing: -0.03em; margin: 0; }
+    h1 { font-size: clamp(2rem, 4vw, 3.7rem); margin-bottom: 0.9rem; }
+    .hero-main p { margin: 0; color: #cbd5e1; font-size: 1.05rem; max-width: 65ch; }
+    .hero-side { padding: 1.5rem; display: flex; flex-direction: column; justify-content: space-between; gap: 1rem; }
+    .hero-side .callout {
+      padding: 1rem 1.1rem; border-radius: 18px;
+      border: 1px solid rgba(56, 189, 248, 0.18);
+      background: rgba(56, 189, 248, 0.08);
+    }
+    .hero-side .callout strong { display: block; margin-bottom: 0.35rem; }
+    .tech-stack { display: flex; flex-wrap: wrap; gap: 0.55rem; }
+    .chip {
+      padding: 0.45rem 0.75rem; border-radius: 999px; font-size: 0.88rem;
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #dbeafe;
+    }
+    .small { font-size: 0.92rem; color: var(--muted); }
+
+    /* ── Sections ── */
+    section { padding: 1rem 0 0.4rem; }
+    .section-title { margin-bottom: 1rem; font-size: clamp(1.5rem, 2vw, 2.2rem); }
+    .section-subtitle { color: var(--muted); margin-top: 0.45rem; max-width: 75ch; }
+
+    /* ── Grids ── */
+    .grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
+    .grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+    .card {
+      padding: 1.3rem; background: var(--card);
+      border: 1px solid var(--border); border-radius: 20px;
+      box-shadow: var(--shadow);
+    }
+    .card h3 { font-size: 1.05rem; margin-bottom: 0.6rem; }
+    .card p { margin: 0; color: #cbd5e1; }
+
+    /* ── Timeline ── */
+    .timeline { display: grid; gap: 1rem; margin-top: 1rem; }
+    .step {
+      display: grid; grid-template-columns: 90px 1fr; gap: 1rem;
+      align-items: start; padding: 1.25rem; border-radius: 22px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: var(--shadow);
+    }
+    .step-num {
+      width: 72px; height: 72px; border-radius: 20px;
+      background: linear-gradient(135deg, rgba(255, 153, 0, 0.18), rgba(56, 189, 248, 0.18));
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      display: grid; place-items: center;
+      font-size: 1.1rem; font-weight: 900; color: #fff;
+    }
+    .step h3 { margin-bottom: 0.55rem; font-size: 1.2rem; }
+    .step ul { margin: 0.3rem 0 0; padding-left: 1.1rem; color: #dbe4f0; }
+    .step li + li { margin-top: 0.4rem; }
+    .highlight { color: #ffd28a; font-weight: 700; }
+
+    /* ── Screenshots ── */
+    .screenshot-gallery { display: grid; gap: 0.8rem; margin-top: 1rem; }
+    .screenshot-gallery.cols-2 { grid-template-columns: repeat(2, 1fr); }
+    .screenshot-fig {
+      margin: 0; border-radius: 16px; overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(2, 6, 23, 0.5);
+    }
+    .screenshot-fig img { width: 100%; height: auto; display: block; }
+    .screenshot-fig figcaption {
+      padding: 0.6rem 0.8rem; color: var(--muted);
+      font-size: 0.84rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    /* For tall/narrow screenshots — bounded scroll viewport */
+    .shot-viewport {
+      max-height: 540px; overflow: auto;
+      background: rgba(2, 6, 23, 0.55);
+    }
+    .shot-viewport img { width: auto; max-width: none; }
+
+    /* ── Callouts ── */
+    .insight {
+      padding: 1.15rem 1.2rem; border-left: 4px solid var(--accent);
+      border-radius: 16px;
+      background: rgba(255, 153, 0, 0.08);
+      color: #fde7c2;
+    }
+    .info {
+      border-left-color: var(--accent-2);
+      background: rgba(56, 189, 248, 0.08);
+      color: #d8f3ff;
+    }
+
+    /* ── Checklist ── */
+    .checklist { display: grid; gap: 0.7rem; margin-top: 1rem; }
+    .check {
+      display: flex; gap: 0.75rem; align-items: flex-start;
+      padding: 0.9rem 1rem; border-radius: 16px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+    }
+    .check-mark {
+      flex: 0 0 auto; width: 28px; height: 28px;
+      display: grid; place-items: center; border-radius: 999px;
+      background: rgba(34, 197, 94, 0.15);
+      color: #86efac; font-weight: 800;
+    }
+
+    /* ── Code ── */
+    code {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 0.15rem 0.4rem; border-radius: 6px;
+      font-size: 0.9em;
+      font-family: "Cascadia Code", "Fira Code", monospace;
+    }
+
+    /* ── Custom (lab-176): comparison table + arch table ── */
+    .data-table {
+      width: 100%; border-collapse: collapse;
+      margin-top: 1rem; font-size: 0.95rem;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border); border-radius: 16px;
+      overflow: hidden;
+    }
+    .data-table th, .data-table td {
+      padding: 0.75rem 1rem; text-align: left;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+      vertical-align: top;
+    }
+    .data-table thead th {
+      background: rgba(255, 153, 0, 0.10);
+      color: #ffd28a; font-weight: 700;
+      letter-spacing: 0.01em;
+    }
+    .data-table tbody tr:last-child td { border-bottom: none; }
+    .data-table tbody th {
+      background: rgba(255, 255, 255, 0.04);
+      color: #cbd5e1; font-weight: 600; width: 22%;
+    }
+    .data-table .col-primary { color: #fde7c2; }
+    .data-table .col-secondary { color: #d8f3ff; }
+    .pill {
+      display: inline-block; padding: 0.15rem 0.55rem;
+      border-radius: 999px; font-size: 0.78rem; font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+    .pill.primary { background: rgba(255, 153, 0, 0.18); color: #ffd28a; border: 1px solid rgba(255, 153, 0, 0.3); }
+    .pill.secondary { background: rgba(56, 189, 248, 0.16); color: #bae6fd; border: 1px solid rgba(56, 189, 248, 0.3); }
+
+    /* ── Footer ── */
+    .footer { padding: 2.2rem 0 3.5rem; color: var(--muted); text-align: center; }
+
+    /* ── Responsive ── */
+    @media (max-width: 920px) {
+      .hero-grid, .grid-3, .grid-2, .screenshot-gallery.cols-2 { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 680px) {
+      .nav-inner { flex-direction: column; align-items: flex-start; }
+      .step { grid-template-columns: 1fr; }
+      .step-num { width: 60px; height: 60px; border-radius: 16px; }
+      .data-table { font-size: 0.88rem; }
+      .data-table tbody th { width: auto; }
+    }
+  </style>
+</head>
+
+<body>
+  <nav class="nav">
+    <div class="container nav-inner">
+      <div class="brand">
+        <div class="brand-badge">AWS</div>
+        <div>Lab Report · Networking & DNS</div>
+      </div>
+      <div class="nav-links">
+        <a href="../index.html" class="back-link">← All Labs</a>
+        <a href="#summary">Summary</a>
+        <a href="#architecture">Architecture</a>
+        <a href="#walkthrough">Walkthrough</a>
+        <a href="#records">Failover Records</a>
+        <a href="#learnings">Learnings</a>
+      </div>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <div class="container hero-grid">
+      <div class="panel hero-main">
+        <div class="eyebrow">AWS re/Start Lab · Route 53</div>
+        <h1>Amazon Route 53 — Failover Routing</h1>
+        <p>
+          Configure DNS failover between two EC2 instances in different Availability Zones using a
+          Route 53 health check, primary/secondary A records, and a CloudWatch alarm wired to SNS
+          email notifications.
+        </p>
+      </div>
+
+      <aside class="panel hero-side">
+        <div class="callout">
+          <strong>Lab Objective</strong>
+          When the primary café web server becomes unhealthy, Route 53 must automatically route
+          traffic to the secondary instance and trigger an email alert.
+        </div>
+
+        <div>
+          <div class="small" style="margin-bottom:0.7rem;">Services & Concepts</div>
+          <div class="tech-stack">
+            <span class="chip">Route 53</span>
+            <span class="chip">Health Checks</span>
+            <span class="chip">Failover Routing</span>
+            <span class="chip">CloudWatch Alarms</span>
+            <span class="chip">SNS</span>
+            <span class="chip">EC2 · Multi-AZ</span>
+          </div>
+        </div>
+
+        <div class="callout" style="border-color: rgba(34,197,94,0.2); background: rgba(34,197,94,0.08);">
+          <strong>Key Insight</strong>
+          The health check is attached <em>only</em> to the primary record. The secondary
+          stays dormant until Route 53 reports the primary as <code>Unhealthy</code>.
+        </div>
+      </aside>
+    </div>
+  </header>
+
+  <main>
+    <!-- ══════ SUMMARY ══════ -->
+    <section id="summary">
+      <div class="container">
+        <h2 class="section-title">Lab Summary</h2>
+        <p class="section-subtitle">
+          Two identical café web servers were pre-deployed in <span class="highlight">us-west-2a</span>
+          and <span class="highlight">us-west-2b</span>. The lab work consisted of layering Route 53
+          on top: one health check pointing at the primary instance, two failover A records, one
+          CloudWatch alarm, and one SNS topic for email notifications.
+        </p>
+
+        <div class="grid-2" style="margin-top:1rem;">
+          <article class="card">
+            <h3>What was configured</h3>
+            <p>A Route 53 hosted zone with <strong>Failover</strong> routing policy on two A
+              records, an HTTP health check on the primary instance, and a CloudWatch alarm that
+              publishes to an SNS email topic when the primary goes down.</p>
+          </article>
+          <article class="card">
+            <h3>What was tested</h3>
+            <p>Resolved the public domain and confirmed it returned the primary IP. Then stopped
+              <code>CafeInstance1</code> and verified that the health check flipped to Unhealthy,
+              the alarm fired, and the email was delivered.
+            </p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════ ARCHITECTURE ══════ -->
+    <section id="architecture">
+      <div class="container">
+        <h2 class="section-title">Architecture</h2>
+        <p class="section-subtitle">
+          The lab guide referenced an external architecture diagram that did not survive the
+          document conversion. The components and request flow are documented below instead.
+        </p>
+
+        <table class="data-table" aria-label="Architecture components">
+          <thead>
+            <tr>
+              <th>Component</th>
+              <th>Role</th>
+              <th>Location</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>CafeInstance1</strong></td>
+              <td>Primary web server (LAMP + café site). Target of the health check.</td>
+              <td><code>us-west-2a</code></td>
+            </tr>
+            <tr>
+              <td><strong>CafeInstance2</strong></td>
+              <td>Secondary web server. Identical content; serves traffic only when the primary is unhealthy.</td>
+              <td><code>us-west-2b</code></td>
+            </tr>
+            <tr>
+              <td><strong>Route 53 hosted zone</strong></td>
+              <td>Holds the failover A records for <code>www.&lt;domain&gt;</code>.</td>
+              <td>Global service</td>
+            </tr>
+            <tr>
+              <td><strong>Route 53 health check</strong></td>
+              <td>HTTP probe against the primary's public IP on path <code>/cafe</code>.</td>
+              <td>Runs from <code>us-east-1</code> (see note below)</td>
+            </tr>
+            <tr>
+              <td><strong>CloudWatch alarm</strong></td>
+              <td>Monitors <code>HealthCheckStatus</code>; publishes to SNS on ALARM.</td>
+              <td><code>us-east-1</code></td>
+            </tr>
+            <tr>
+              <td><strong>SNS topic</strong> (<code>Primary-Website-Health</code>)</td>
+              <td>Fan-out to the subscribed email address.</td>
+              <td><code>us-east-1</code></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="insight info" style="margin-top:1rem;">
+          <strong>Region note:</strong> the café instances live in <code>us-west-2</code>, but the
+          Route 53 health check and its CloudWatch alarm are surfaced in <code>us-east-1</code>.
+          That is expected — Route 53 is a global service and its health-check metrics are
+          published in <code>us-east-1</code>. The ARNs visible in the SNS and alarm screenshots
+          reflect that.
+        </div>
+
+        <p class="section-subtitle" style="margin-top:1rem;">
+          <strong>Request flow:</strong> client →
+          <code>www.&lt;domain&gt;.vocareum.training/cafe/</code> → Route 53 evaluates the health
+          check → returns the IP of <strong>CafeInstance1</strong> (Primary) while healthy, or
+          falls back to <strong>CafeInstance2</strong> (Secondary). On state change, CloudWatch
+          publishes to SNS, which emails the subscribed address.
+        </p>
+      </div>
+    </section>
+
+    <!-- ══════ WALKTHROUGH ══════ -->
+    <section id="walkthrough">
+      <div class="container">
+        <h2 class="section-title">Walkthrough</h2>
+        <p class="section-subtitle">
+          Four tasks: verify the pre-deployed instances, build the health check + alarm + SNS,
+          create the failover A records, and trigger a real failover.
+        </p>
+
+        <div class="timeline">
+
+          <!-- TASK 1 -->
+          <article class="step">
+            <div class="step-num">01</div>
+            <div>
+              <h3>Verify the café instances are serving from distinct AZs</h3>
+              <ul>
+                <li>Located the two pre-provisioned EC2 instances and captured their public IPs.</li>
+                <li>Browsed each public IP at <code>/cafe</code> and confirmed both render the same
+                  site. The <strong>Server Information</strong> block on each page reports the
+                  instance's IP, region, AZ, and instance ID — used to confirm the AZ split.</li>
+                <li><strong>CafeInstance1</strong> was confirmed running in <code>us-west-2a</code>
+                  with IP <code>44.241.45.188</code> (this is the future primary).</li>
+              </ul>
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/01-cafe-site-us-west-2a.png" alt="Café site served from us-west-2a" loading="lazy" />
+                  <figcaption>Café site (primary) serving from us-west-2a — IP 44.241.45.188, instance i-0d4aa3f3ad4c5d8d3.</figcaption>
+                </figure>
+              </div>
+            </div>
+          </article>
+
+          <!-- TASK 2 -->
+          <article class="step">
+            <div class="step-num">02</div>
+            <div>
+              <h3>Create the Route 53 health check, SNS topic, and CloudWatch alarm</h3>
+              <ul>
+                <li>In <strong>Route 53 → Health checks</strong>, created
+                  <code>Primary-Website-Health</code> with:
+                  <ul style="margin-top:0.3rem;">
+                    <li>Endpoint type: <strong>IP address</strong> (the primary's public IPv4)</li>
+                    <li>Protocol: <strong>HTTP</strong>, path: <code>/cafe</code></li>
+                    <li>Request interval: <strong>Fast (10 s)</strong></li>
+                    <li>Failure threshold: <strong>2</strong></li>
+                  </ul>
+                </li>
+                <li>On the same form, toggled <strong>Create alarm: Yes</strong> and asked it to
+                  create a <strong>new SNS topic</strong> (<code>Primary-Website-Health</code>)
+                  with the email recipient.</li>
+                <li>AWS sent the standard SNS confirmation email. Clicking
+                  <strong>Confirm subscription</strong> activated the endpoint — without it, SNS
+                  would never deliver alerts.
+                </li>
+              </ul>
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/02-sns-subscription-confirmed.png" alt="SNS subscription confirmation email" loading="lazy" />
+                  <figcaption>SNS confirmation email for topic <code>arn:aws:sns:us-east-1:&hellip;:Primary-Website-Health</code>.</figcaption>
+                </figure>
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/03-cloudwatch-alarm-created.png" alt="CloudWatch alarm created in Insufficient data state" loading="lazy" />
+                  <figcaption>CloudWatch alarm <code>AWS/Route53 HealthCheckStatus</code> created — initial state <em>Insufficient data</em> while it gathers metrics.</figcaption>
+                </figure>
+              </div>
+
+              <div class="insight info" style="margin-top:1rem;">
+                <strong>Why &ldquo;Insufficient data&rdquo; is normal at first:</strong> the
+                CloudWatch alarm needs a few datapoints before it can evaluate. Until then it
+                neither alerts nor reports OK — it just waits.
+              </div>
+            </div>
+          </article>
+
+          <!-- TASK 3 -->
+          <article class="step">
+            <div class="step-num">03</div>
+            <div>
+              <h3>Create the two failover A records</h3>
+              <ul>
+                <li>In the hosted zone, created two A records with the same name (<code>www</code>)
+                  but distinct <strong>Record IDs</strong> — Route 53 requires unique IDs to tell
+                  failover siblings apart.</li>
+                <li>Both records use <strong>Routing policy: Failover</strong>. Only the primary
+                  references the health check; the secondary intentionally has no health check
+                  attached.</li>
+                <li><strong>TTL set to 15 s</strong> on both records so that resolvers re-query
+                  Route 53 quickly during the failover test. In production this would be a
+                  trade-off (more queries, higher cost) — fine for a lab.</li>
+              </ul>
+
+              <table class="data-table" aria-label="Primary vs Secondary failover record comparison">
+                <thead>
+                  <tr>
+                    <th>Field</th>
+                    <th><span class="pill primary">Primary record</span></th>
+                    <th><span class="pill secondary">Secondary record</span></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <th>Record name</th>
+                    <td class="col-primary"><code>www</code></td>
+                    <td class="col-secondary"><code>www</code></td>
+                  </tr>
+                  <tr>
+                    <th>Type</th>
+                    <td class="col-primary">A</td>
+                    <td class="col-secondary">A</td>
+                  </tr>
+                  <tr>
+                    <th>Value</th>
+                    <td class="col-primary">Public IPv4 of <strong>CafeInstance1</strong> (us-west-2a)</td>
+                    <td class="col-secondary">Public IPv4 of <strong>CafeInstance2</strong> (us-west-2b)</td>
+                  </tr>
+                  <tr>
+                    <th>TTL</th>
+                    <td class="col-primary"><code>15 s</code></td>
+                    <td class="col-secondary"><code>15 s</code></td>
+                  </tr>
+                  <tr>
+                    <th>Routing policy</th>
+                    <td class="col-primary">Failover</td>
+                    <td class="col-secondary">Failover</td>
+                  </tr>
+                  <tr>
+                    <th>Failover type</th>
+                    <td class="col-primary"><strong>Primary</strong></td>
+                    <td class="col-secondary"><strong>Secondary</strong></td>
+                  </tr>
+                  <tr>
+                    <th>Health check</th>
+                    <td class="col-primary"><code>Primary-Website-Health</code></td>
+                    <td class="col-secondary"><em>(none — by design)</em></td>
+                  </tr>
+                  <tr>
+                    <th>Record ID</th>
+                    <td class="col-primary"><code>FailoverPrimary</code></td>
+                    <td class="col-secondary"><code>FailoverSecondary</code></td>
+                  </tr>
+                </tbody>
+              </table>
+
+              <div class="screenshot-gallery" style="margin-top:1rem;">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/04-route53-records-created.png" alt="Route 53 records list showing NS, SOA, and the two A failover records" loading="lazy" />
+                  <figcaption>Hosted zone after creation: NS + SOA (default) plus the two <code>A · Failover</code> records (Primary / Secondary).</figcaption>
+                </figure>
+              </div>
+            </div>
+          </article>
+
+          <!-- TASK 4 -->
+          <article class="step">
+            <div class="step-num">04</div>
+            <div>
+              <h3>Test normal resolution, then force a failover</h3>
+
+              <p style="margin: 0 0 0.6rem; color: #dbe4f0;"><strong>Part A — Normal state:</strong>
+                visited <code>http://www.&lt;hosted-zone&gt;.vocareum.training/cafe/</code> in the
+                browser. The page resolved through Route 53 to the primary's IP, and the Server
+                Information block confirmed <code>us-west-2a</code> — i.e., the request is being
+                served by <strong>CafeInstance1</strong>.
+              </p>
+
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/05-dns-resolution-primary.png" alt="DNS resolution: public domain returns the primary IP in us-west-2a" loading="lazy" />
+                  <figcaption>Public domain (<code>5178079_1778804061.vocareum.training/cafe/</code>) resolving to the primary in <code>us-west-2a</code>.</figcaption>
+                </figure>
+              </div>
+
+              <p style="margin: 1rem 0 0.6rem; color: #dbe4f0;"><strong>Part B — Forced failover:</strong>
+                stopped <code>CafeInstance1</code> from the EC2 console. After two failed probes
+                (~20 s with Fast interval), the health check flipped to <strong>Unhealthy</strong>.
+                Refreshing the public URL after the TTL expired returned the page served from
+                <code>us-west-2b</code> — Route 53 had switched to the secondary record.
+                <em>No own screenshot of the secondary serving the page or of the Unhealthy state
+                  was captured during the lab.</em>
+              </p>
+
+              <p style="margin: 1rem 0 0.6rem; color: #dbe4f0;"><strong>Part C — Notification:</strong>
+                the CloudWatch alarm transitioned <code>OK → ALARM</code> and SNS published to the
+                email subscription. The delivered message includes the alarm ARN, the threshold
+                logic, and the timestamp of the transition.
+              </p>
+
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <div class="shot-viewport">
+                    <img src="assets/screenshots/06-alarm-email-delivered.png" alt="CloudWatch alarm email delivered showing OK to ALARM transition" loading="lazy" />
+                  </div>
+                  <figcaption>CloudWatch alarm email: state change <code>OK → ALARM</code>, threshold crossed (3 of last 3 datapoints &lt; 1.0), SNS topic <code>Primary-Website-Health</code>.</figcaption>
+                </figure>
+              </div>
+
+              <div class="insight" style="margin-top:1rem;">
+                <strong>What this proves:</strong> the routing change (DNS) and the notification
+                (email) are independent paths — both triggered by the same metric, but neither
+                depends on the other. Route 53 would still fail over even if the alarm or SNS
+                were misconfigured, and vice-versa.
+              </div>
+            </div>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════ LEARNINGS ══════ -->
+    <section id="learnings">
+      <div class="container">
+        <h2 class="section-title">Key Learnings</h2>
+        <div class="grid-2">
+          <div class="card">
+            <h3>What was actually learned</h3>
+            <div class="checklist">
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>Failover routing in Route 53 needs a health check attached <strong>only</strong>
+                  to the Primary record. The Secondary stays dormant until the Primary reports
+                  Unhealthy.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>Two failover records sharing a name must use distinct <code>Record IDs</code>
+                  (e.g. <code>FailoverPrimary</code> / <code>FailoverSecondary</code>) — that is
+                  how Route 53 distinguishes them internally.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>SNS + CloudWatch decouple the notification from the routing. The alarm is
+                  observability; the failover happens regardless.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>Low TTL (<code>15 s</code>) speeds up propagation during the test, but
+                  charges more Route 53 queries. Tune it per workload.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>Route 53 health checks and their CloudWatch metrics live in
+                  <code>us-east-1</code> even when the targets are in another region.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Operational takeaways</h3>
+            <p>
+              DNS-based failover is the cheapest multi-AZ fault tolerance pattern available — no
+              load balancer, no listener, no rules. The trade-off is the TTL window: clients keep
+              hitting the dead IP until their resolver re-queries.
+            </p>
+            <p style="margin-top: 1rem;">
+              For latency-sensitive workloads, an Application Load Balancer with cross-AZ targets
+              is a better fit; for periodic / lower-traffic services, Route 53 failover is hard to
+              beat on simplicity. The SNS email is good enough as a poor-man's incident channel —
+              forwarding the same SNS topic to a Lambda or Slack webhook is the natural next step.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      Lab report documenting the Amazon Route 53 Failover Routing lab · AWS re/Start Program
+    </div>
+  </footer>
+</body>
+
+</html>

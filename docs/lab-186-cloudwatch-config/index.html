@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lab Report: Monitoring Infrastructure with CloudWatch Agent and AWS Config</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --bg-soft: #111827;
+      --card: rgba(255, 255, 255, 0.08);
+      --card-strong: rgba(255, 255, 255, 0.12);
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --accent: #ff9900;
+      --accent-2: #38bdf8;
+      --ok: #22c55e;
+      --warn: #f59e0b;
+      --border: rgba(255, 255, 255, 0.12);
+      --shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+      --radius: 22px;
+      --max: 1120px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(255, 153, 0, 0.16), transparent 28%),
+        radial-gradient(circle at top right, rgba(56, 189, 248, 0.14), transparent 24%),
+        linear-gradient(180deg, #020617 0%, #0f172a 48%, #111827 100%);
+      color: var(--text);
+      line-height: 1.65;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .container {
+      width: min(var(--max), calc(100% - 2rem));
+      margin: 0 auto;
+    }
+
+    /* ── Nav ── */
+    .nav {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      backdrop-filter: blur(16px);
+      background: rgba(2, 6, 23, 0.72);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .nav-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.9rem 0;
+      gap: 1rem;
+    }
+
+    .brand {
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+    }
+
+    .brand-badge {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, var(--accent), #ffb84d);
+      color: #111827;
+      font-weight: 900;
+      box-shadow: var(--shadow);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .nav-links a:hover {
+      color: var(--text);
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      color: var(--muted);
+      font-size: 0.9rem;
+      transition: color 0.2s;
+    }
+
+    .back-link:hover {
+      color: var(--accent);
+    }
+
+    /* ── Hero ── */
+    .hero {
+      padding: 4.8rem 0 2rem;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 1.5rem;
+      align-items: stretch;
+    }
+
+    .panel {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.05));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .hero-main {
+      padding: 2rem;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.45rem 0.8rem;
+      border-radius: 999px;
+      background: rgba(255, 153, 0, 0.12);
+      color: #ffd28a;
+      border: 1px solid rgba(255, 153, 0, 0.25);
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+    }
+
+    h1,
+    h2,
+    h3 {
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+      margin: 0;
+    }
+
+    h1 {
+      font-size: clamp(2rem, 4vw, 3.7rem);
+      margin-bottom: 0.9rem;
+    }
+
+    .hero-main p {
+      margin: 0;
+      color: #cbd5e1;
+      font-size: 1.05rem;
+      max-width: 65ch;
+    }
+
+    .hero-side {
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .hero-side .callout {
+      padding: 1rem 1.1rem;
+      border-radius: 18px;
+      border: 1px solid rgba(56, 189, 248, 0.18);
+      background: rgba(56, 189, 248, 0.08);
+    }
+
+    .hero-side .callout strong {
+      display: block;
+      margin-bottom: 0.35rem;
+    }
+
+    .tech-stack {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.55rem;
+    }
+
+    .chip {
+      padding: 0.45rem 0.75rem;
+      border-radius: 999px;
+      font-size: 0.88rem;
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #dbeafe;
+    }
+
+    .small {
+      font-size: 0.92rem;
+      color: var(--muted);
+    }
+
+    /* ── Sections ── */
+    section {
+      padding: 1rem 0 0.4rem;
+    }
+
+    .section-title {
+      margin-bottom: 1rem;
+      font-size: clamp(1.5rem, 2vw, 2.2rem);
+    }
+
+    .section-subtitle {
+      color: var(--muted);
+      margin-top: 0.45rem;
+      max-width: 75ch;
+    }
+
+    /* ── Grids ── */
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .card {
+      padding: 1.3rem;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+    }
+
+    .card h3 {
+      font-size: 1.05rem;
+      margin-bottom: 0.6rem;
+    }
+
+    .card p {
+      margin: 0;
+      color: #cbd5e1;
+    }
+
+    /* ── Timeline ── */
+    .timeline {
+      display: grid;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .step {
+      display: grid;
+      grid-template-columns: 90px 1fr;
+      gap: 1rem;
+      align-items: start;
+      padding: 1.25rem;
+      border-radius: 22px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: var(--shadow);
+    }
+
+    .step-num {
+      width: 72px;
+      height: 72px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, rgba(255, 153, 0, 0.18), rgba(56, 189, 248, 0.18));
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      display: grid;
+      place-items: center;
+      font-size: 1.1rem;
+      font-weight: 900;
+      color: #fff;
+    }
+
+    .step h3 {
+      margin-bottom: 0.55rem;
+      font-size: 1.2rem;
+    }
+
+    .step ul {
+      margin: 0.3rem 0 0;
+      padding-left: 1.1rem;
+      color: #dbe4f0;
+    }
+
+    .step li+li {
+      margin-top: 0.4rem;
+    }
+
+    .highlight {
+      color: #ffd28a;
+      font-weight: 700;
+    }
+
+    /* ── Screenshots ── */
+    .screenshot-gallery {
+      display: grid;
+      gap: 0.8rem;
+      margin-top: 1rem;
+    }
+
+    .screenshot-gallery.cols-2 {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .screenshot-fig {
+      margin: 0;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(2, 6, 23, 0.5);
+    }
+
+    .screenshot-fig img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .screenshot-fig figcaption {
+      padding: 0.6rem 0.8rem;
+      color: var(--muted);
+      font-size: 0.84rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    /* ── Callouts ── */
+    .insight {
+      padding: 1.15rem 1.2rem;
+      border-left: 4px solid var(--accent);
+      border-radius: 16px;
+      background: rgba(255, 153, 0, 0.08);
+      color: #fde7c2;
+    }
+
+    .info {
+      border-left-color: var(--accent-2);
+      background: rgba(56, 189, 248, 0.08);
+      color: #d8f3ff;
+    }
+
+    /* ── Checklist ── */
+    .checklist {
+      display: grid;
+      gap: 0.7rem;
+      margin-top: 1rem;
+    }
+
+    .check {
+      display: flex;
+      gap: 0.75rem;
+      align-items: flex-start;
+      padding: 0.9rem 1rem;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+    }
+
+    .check-mark {
+      flex: 0 0 auto;
+      width: 28px;
+      height: 28px;
+      display: grid;
+      place-items: center;
+      border-radius: 999px;
+      background: rgba(34, 197, 94, 0.15);
+      color: #86efac;
+      font-weight: 800;
+    }
+
+    /* ── Code ── */
+    code {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 0.15rem 0.4rem;
+      border-radius: 6px;
+      font-size: 0.9em;
+      font-family: "Cascadia Code", "Fira Code", monospace;
+    }
+
+    pre {
+      margin: 0.8rem 0 0;
+      background: rgba(2, 6, 23, 0.65);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 14px;
+      padding: 1rem 1.1rem;
+      overflow-x: auto;
+      max-height: 480px;
+      overflow-y: auto;
+    }
+
+    pre code {
+      background: transparent;
+      padding: 0;
+      font-size: 0.85rem;
+      color: #cbd5e1;
+      line-height: 1.55;
+    }
+
+    /* ── Architecture table ── */
+    .arch-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+      font-size: 0.95rem;
+    }
+
+    .arch-table th,
+    .arch-table td {
+      text-align: left;
+      padding: 0.7rem 0.9rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .arch-table th {
+      color: #ffd28a;
+      font-weight: 700;
+      background: rgba(255, 153, 0, 0.06);
+    }
+
+    .arch-table td {
+      color: #dbe4f0;
+    }
+
+    /* ── Footer ── */
+    .footer {
+      padding: 2.2rem 0 3.5rem;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 920px) {
+
+      .hero-grid,
+      .grid-3,
+      .grid-2,
+      .screenshot-gallery.cols-2 {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 680px) {
+      .nav-inner {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .step {
+        grid-template-columns: 1fr;
+      }
+
+      .step-num {
+        width: 60px;
+        height: 60px;
+        border-radius: 16px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <nav class="nav">
+    <div class="container nav-inner">
+      <div class="brand">
+        <div class="brand-badge">AWS</div>
+        <div>Lab Report · Monitoring</div>
+      </div>
+      <div class="nav-links">
+        <a href="../index.html" class="back-link">← All Labs</a>
+        <a href="#summary">Summary</a>
+        <a href="#architecture">Architecture</a>
+        <a href="#walkthrough">Walkthrough</a>
+        <a href="#learnings">Learnings</a>
+      </div>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <div class="container hero-grid">
+      <div class="panel hero-main">
+        <div class="eyebrow">AWS re/Start Lab · Monitoring &amp; Compliance</div>
+        <h1>Monitoring Infrastructure with CloudWatch Agent and AWS Config</h1>
+        <p>
+          Instrumented an EC2 web server with the CloudWatch Agent via Systems Manager Run Command, captured
+          Apache access/error logs into CloudWatch Logs, fired a metric-filter alarm on HTTP 404s,
+          wired an EventBridge rule on EC2 state changes, and audited compliance with two AWS Config rules.
+        </p>
+      </div>
+
+      <aside class="panel hero-side">
+        <div class="callout">
+          <strong>Lab Objective</strong>
+          Build a layered monitoring stack covering metrics, logs, events, and configuration compliance
+          for a single web server.
+        </div>
+
+        <div>
+          <div class="small" style="margin-bottom:0.7rem;">Services &amp; Concepts</div>
+          <div class="tech-stack">
+            <span class="chip">CloudWatch Agent</span>
+            <span class="chip">CloudWatch Logs</span>
+            <span class="chip">CloudWatch Metrics</span>
+            <span class="chip">EventBridge</span>
+            <span class="chip">AWS Config</span>
+            <span class="chip">SSM Run Command</span>
+            <span class="chip">SSM Parameter Store</span>
+            <span class="chip">SNS</span>
+          </div>
+        </div>
+
+        <div class="callout" style="border-color: rgba(34,197,94,0.2); background: rgba(34,197,94,0.08);">
+          <strong>Key Insight</strong>
+          The CloudWatch Agent reports from <em>inside</em> the instance (memory, disk usage, application logs);
+          native CloudWatch metrics come from the hypervisor <em>outside</em> it (CPU, network, disk I/O).
+          They are complementary, not redundant.
+        </div>
+      </aside>
+    </div>
+  </header>
+
+  <main>
+    <section id="summary">
+      <div class="container">
+        <h2 class="section-title">Lab Summary</h2>
+        <p class="section-subtitle">
+          A pre-provisioned <span class="highlight">Web Server</span> EC2 instance was instrumented end-to-end:
+          the CloudWatch Agent was pushed via <span class="highlight">SSM Run Command</span> using a JSON
+          configuration stored in <span class="highlight">Parameter Store</span>. Apache logs flowed into
+          CloudWatch Logs, a metric filter on the access log triggered an SNS-backed alarm when 404 errors
+          crossed a threshold, an EventBridge rule reacted to EC2 state changes, and AWS Config evaluated
+          the account against two managed rules.
+        </p>
+
+        <div class="grid-2" style="margin-top:1rem;">
+          <article class="card">
+            <h3>Agent installation via SSM</h3>
+            <p>Used <code>AWS-ConfigureAWSPackage</code> to install the agent, <code>AmazonCloudWatch-ManageAgent</code>
+              to start it, and Parameter Store to hold the configuration centrally.</p>
+          </article>
+          <article class="card">
+            <h3>Logs, alarms, and compliance</h3>
+            <p>Apache access logs → metric filter on status_code 404 → CloudWatch Alarm → SNS topic → email.
+              In parallel, AWS Config detected missing <code>project</code> tags and unused EBS volumes.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="architecture">
+      <div class="container">
+        <h2 class="section-title">Monitoring Architecture</h2>
+        <p class="section-subtitle">
+          Four monitoring layers, each handled by a different service. The CloudWatch Agent unifies the first
+          two; the rest run independently against the same EC2 resources.
+        </p>
+
+        <table class="arch-table">
+          <thead>
+            <tr>
+              <th>Layer</th>
+              <th>What it watches</th>
+              <th>Service</th>
+              <th>Source</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>System metrics</strong></td>
+              <td>CPU per mode, memory, disk used %, swap, disk I/O</td>
+              <td>CloudWatch Metrics (<code>CWAgent</code> namespace)</td>
+              <td>CloudWatch Agent (inside the OS)</td>
+            </tr>
+            <tr>
+              <td><strong>Application logs</strong></td>
+              <td><code>access_log</code> and <code>error_log</code> from Apache</td>
+              <td>CloudWatch Logs</td>
+              <td>CloudWatch Agent tailing files</td>
+            </tr>
+            <tr>
+              <td><strong>Infrastructure events</strong></td>
+              <td>EC2 state-change notifications (stopped, terminated)</td>
+              <td>EventBridge (CloudWatch Events)</td>
+              <td>EC2 service emitting events</td>
+            </tr>
+            <tr>
+              <td><strong>Compliance</strong></td>
+              <td>Required tags, EBS volume attachment state</td>
+              <td>AWS Config (managed rules)</td>
+              <td>Continuous configuration evaluation</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="insight info" style="margin-top:1.2rem;">
+          <strong>Naming note:</strong> the lab guide calls it <em>CloudWatch Events</em>, but the AWS Console
+          now exposes the feature as <strong>Amazon EventBridge</strong>. They are the same product — the rules
+          API is identical and existing CloudWatch Events rules are visible from the EventBridge console.
+        </div>
+      </div>
+    </section>
+
+    <section id="walkthrough">
+      <div class="container">
+        <h2 class="section-title">Step-by-Step Walkthrough</h2>
+        <p class="section-subtitle">
+          Five tasks, with screenshots where the lab produced visual evidence (Tasks 2 and 5). The remaining
+          tasks are documented in prose without padding.
+        </p>
+
+        <div class="timeline">
+
+          <!-- ══════ TASK 1 ══════ -->
+          <article class="step">
+            <div class="step-num">01</div>
+            <div>
+              <h3>Install the CloudWatch Agent via SSM Run Command</h3>
+              <p>
+                From <strong>Systems Manager → Run Command</strong>, ran the AWS-managed document
+                <code>AWS-ConfigureAWSPackage</code> against the Web Server instance with
+                <code>Action=Install</code>, <code>Name=AmazonCloudWatchAgent</code>, and
+                <code>Version=latest</code>. The command finished as <em>Success</em>, which means the agent
+                binary is on disk but not yet configured — nothing is being collected until the configuration
+                is provided and the agent is started in Task 1b.
+              </p>
+              <p class="small" style="margin-top:0.6rem;">
+                No screenshot was captured for this step; the Run Command result page only shows a success
+                status with no service-specific details worth preserving.
+              </p>
+            </div>
+          </article>
+
+          <!-- ══════ TASK 1b — Parameter Store + Manage Agent ══════ -->
+          <article class="step">
+            <div class="step-num">1b</div>
+            <div>
+              <h3>Store agent configuration in Parameter Store and start the agent</h3>
+              <p>
+                Created the SSM parameter <code>Monitor-Web-Server</code> (String type) holding the full
+                CloudWatch Agent configuration in JSON. Two log files are tailed
+                (<code>/var/log/httpd/access_log</code> and <code>/var/log/httpd/error_log</code>) and five
+                metric groups are collected every 10 seconds (cpu, disk, diskio, mem, swap).
+              </p>
+
+              <pre><code>{
+  "logs": {
+    "logs_collected": {
+      "files": {
+        "collect_list": [
+          {
+            "log_group_name": "HttpAccessLog",
+            "file_path": "/var/log/httpd/access_log",
+            "log_stream_name": "{instance_id}",
+            "timestamp_format": "%b %d %H:%M:%S"
+          },
+          {
+            "log_group_name": "HttpErrorLog",
+            "file_path": "/var/log/httpd/error_log",
+            "log_stream_name": "{instance_id}",
+            "timestamp_format": "%b %d %H:%M:%S"
+          }
+        ]
+      }
+    }
+  },
+  "metrics": {
+    "metrics_collected": {
+      "cpu": {
+        "measurement": [
+          "cpu_usage_idle",
+          "cpu_usage_iowait",
+          "cpu_usage_user",
+          "cpu_usage_system"
+        ],
+        "metrics_collection_interval": 10,
+        "totalcpu": false
+      },
+      "disk": {
+        "measurement": [
+          "used_percent",
+          "inodes_free"
+        ],
+        "metrics_collection_interval": 10,
+        "resources": ["*"]
+      },
+      "diskio": {
+        "measurement": ["io_time"],
+        "metrics_collection_interval": 10,
+        "resources": ["*"]
+      },
+      "mem": {
+        "measurement": ["mem_used_percent"],
+        "metrics_collection_interval": 10
+      },
+      "swap": {
+        "measurement": ["swap_used_percent"],
+        "metrics_collection_interval": 10
+      }
+    }
+  }
+}</code></pre>
+
+              <p style="margin-top:0.9rem;">
+                With the configuration parameter in place, ran a second Run Command using
+                <code>AmazonCloudWatch-ManageAgent</code> with
+                <code>Action=configure</code>, <code>Mode=ec2</code>,
+                <code>Optional Configuration Source=ssm</code>,
+                <code>Optional Configuration Location=Monitor-Web-Server</code>, and
+                <code>Optional Restart=yes</code>. The script reads the JSON from Parameter Store and starts
+                the agent on the target instance.
+              </p>
+
+              <div class="insight info" style="margin-top:1rem;">
+                <strong>Why Parameter Store:</strong> the same JSON can now be referenced from every Run Command
+                target without baking it into each instance's user-data or AMI. Updating the parameter and
+                re-running <code>AmazonCloudWatch-ManageAgent</code> reconfigures the fleet in place.
+              </div>
+            </div>
+          </article>
+
+          <!-- ══════ TASK 2 ══════ -->
+          <article class="step">
+            <div class="step-num">02</div>
+            <div>
+              <h3>Capture Apache logs and alarm on HTTP 404 errors</h3>
+              <p>
+                Generated traffic against the web server's public IP from a browser, hitting both valid and
+                non-existent paths. Within seconds the CloudWatch Agent forwarded the access log entries to
+                the <code>HttpAccessLog</code> log group, in a log stream named after the instance ID.
+              </p>
+
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/01-log-stream-httpaccess.png"
+                       alt="CloudWatch Logs stream showing Apache GET requests with 200, 403, and 404 status codes"
+                       loading="lazy" />
+                  <figcaption>
+                    <code>HttpAccessLog</code> → log stream <code>i-04582ab5953a65808</code>: four GETs from
+                    the same client — <code>GET /</code> (403), <code>apache_pb2.gif</code> (200),
+                    <code>favicon.ico</code> (404), and <code>GET /start</code> (404).
+                  </figcaption>
+                </figure>
+              </div>
+
+              <p style="margin-top:1rem;">
+                On the access log group, created a metric filter with the space-delimited pattern
+                <code>[ip, id, user, timestamp, request, status_code=404, size]</code> — this matches the
+                Apache common log format and pins position 6 to <code>404</code>. The filter publishes the
+                metric <code>404Errors</code> into the namespace <code>LogMetrics</code> with value
+                <code>1</code> per matching line.
+              </p>
+
+              <p>
+                Built an alarm on <code>LogMetrics/404Errors</code>: statistic <code>Sum</code>, period
+                <strong>60 seconds</strong>, threshold <strong>≥ 5</strong>, treat missing data as
+                <em>missing</em>. The alarm action publishes to a new SNS topic whose subscription is an
+                email address — confirmed via the standard SNS confirmation link before generating traffic.
+              </p>
+
+              <p>
+                Triggered the alarm by hitting <code>/start</code> repeatedly. As soon as the count of 404s
+                in a one-minute window crossed five, the alarm transitioned from <em>OK</em> to
+                <em>ALARM</em> and SNS delivered the notification email.
+              </p>
+
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/02-email-alarm-404.png"
+                       alt="Email notification for CloudWatch alarm: 404 Errors in US West Oregon, threshold 5, transition OK to ALARM"
+                       loading="lazy" />
+                  <figcaption>
+                    SNS-delivered alarm email: state change <code>OK → ALARM</code> at 07:40 UTC because
+                    the one-minute sum of <code>LogMetrics/404Errors</code> was 8 (≥ 5). Arn:
+                    <code>arn:aws:cloudwatch:us-west-2:724266761322:alarm:404 Errors</code>.
+                  </figcaption>
+                </figure>
+              </div>
+
+              <div class="insight" style="margin-top:1rem;">
+                <strong>End-to-end proof:</strong> log → metric filter → alarm → SNS → email closes the loop
+                in a single screenshot. The MetricNamespace, MetricName, period and threshold visible in
+                the email body all match what was configured.
+              </div>
+            </div>
+          </article>
+
+          <!-- ══════ TASK 3 ══════ -->
+          <article class="step">
+            <div class="step-num">03</div>
+            <div>
+              <h3>Inspect CloudWatch Agent metrics (CWAgent namespace)</h3>
+              <p>
+                Navigated to <strong>CloudWatch → Metrics → All metrics</strong> and confirmed the
+                <code>CWAgent</code> namespace had appeared alongside the default <code>AWS/EC2</code>
+                namespace. CWAgent exposes the metrics the agent collects from inside the instance:
+                <code>mem_used_percent</code>, <code>disk_used_percent</code>, <code>swap_used_percent</code>,
+                <code>diskio_io_time</code>, and per-mode <code>cpu_usage_*</code>.
+              </p>
+
+              <table class="arch-table" style="margin-top:0.8rem;">
+                <thead>
+                  <tr>
+                    <th>Source</th>
+                    <th>Namespace</th>
+                    <th>Captures</th>
+                    <th>Sees what</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>EC2 hypervisor</td>
+                    <td><code>AWS/EC2</code></td>
+                    <td>CPU utilization, network in/out, disk read/write bytes</td>
+                    <td>The instance from <em>outside</em></td>
+                  </tr>
+                  <tr>
+                    <td>CloudWatch Agent</td>
+                    <td><code>CWAgent</code></td>
+                    <td>Memory %, disk free %, swap %, per-process and per-mode CPU</td>
+                    <td>The OS from <em>inside</em></td>
+                  </tr>
+                </tbody>
+              </table>
+
+              <p class="small" style="margin-top:0.8rem;">
+                No screenshot of the metric explorer was captured for this task. The presence of the
+                <code>CWAgent</code> namespace is implicit evidence the agent started successfully in Task 1b
+                — without a running agent, that namespace simply would not exist in the account.
+              </p>
+            </div>
+          </article>
+
+          <!-- ══════ TASK 4 ══════ -->
+          <article class="step">
+            <div class="step-num">04</div>
+            <div>
+              <h3>EventBridge rule on EC2 state changes</h3>
+              <p>
+                Created a CloudWatch Events / EventBridge rule named
+                <code>Instance_Stopped_Terminated</code>. Service <strong>EC2</strong>, event type
+                <strong>EC2 Instance State-change Notification</strong>, specific states
+                <code>stopped, terminated</code>. The target is the existing SNS topic
+                <code>Default_CloudWatch_Alarms_Topic</code> — reusing the topic already wired in Task 2 so
+                stop/terminate events are delivered to the same email inbox.
+              </p>
+              <p class="small" style="margin-top:0.6rem;">
+                The rule was created but not exercised (no instance was stopped or terminated during the lab
+                window), so no confirmation email was generated and no screenshot was captured. The
+                configuration matches the canonical example in the AWS docs: rules on EC2 state changes
+                are commonly used to trigger remediation Lambdas or notifications when fleet membership
+                changes.
+              </p>
+            </div>
+          </article>
+
+          <!-- ══════ TASK 5 ══════ -->
+          <article class="step">
+            <div class="step-num">05</div>
+            <div>
+              <h3>Audit compliance with AWS Config</h3>
+              <p>
+                Opened <strong>AWS Config → Rules</strong> and added two AWS-managed rules in DETECTIVE mode:
+              </p>
+              <ul>
+                <li>
+                  <code>required-tags</code> with parameter <code>tag1Key=project</code> — flags every
+                  resource that does <em>not</em> carry a <code>project</code> tag.
+                </li>
+                <li>
+                  <code>ec2-volume-inuse-check</code> (no parameters) — flags EBS volumes that exist but are
+                  not attached to any running instance.
+                </li>
+              </ul>
+
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/03-aws-config-rules.png"
+                       alt="AWS Config Rules console showing ec2-volume-inuse-check with 1 noncompliant resource and required-tags with 21 noncompliant resources"
+                       loading="lazy" />
+                  <figcaption>
+                    AWS Config Rules: both rules active in DETECTIVE mode.
+                    <code>ec2-volume-inuse-check</code> reports 1 noncompliant volume,
+                    <code>required-tags</code> reports 21 noncompliant resources — most account resources
+                    were never tagged with <code>project</code>.
+                  </figcaption>
+                </figure>
+              </div>
+
+              <div class="insight info" style="margin-top:1rem;">
+                <strong>Detective vs preventive:</strong> Config rules in DETECTIVE mode report
+                non-compliance after the fact; they do not block a resource from being created. For
+                enforcement at create time the alternatives are Service Control Policies, IAM permission
+                boundaries, or CloudFormation Guard / Hooks during deployment.
+              </div>
+            </div>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+    <section id="learnings">
+      <div class="container">
+        <h2 class="section-title">Key Learnings</h2>
+        <div class="grid-2">
+          <div class="card">
+            <h3>What was actually learned</h3>
+            <div class="checklist">
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>The CloudWatch Agent collects metrics and logs <strong>from inside</strong> the OS;
+                  the native EC2 namespace only sees what the hypervisor exposes.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>Storing the agent configuration in <strong>Parameter Store</strong> decouples it from
+                  the instance — one parameter can drive an entire fleet.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>Metric filters turn unstructured log lines into CloudWatch metrics that can drive
+                  alarms; a single pattern <code>[..., status_code=404, ...]</code> is enough.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div><strong>CloudWatch Events</strong> in the docs is the same product as
+                  <strong>EventBridge</strong> in the console.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>AWS Config is <em>detective</em> by default — it reports drift, it does not prevent it.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Technical conclusion</h3>
+            <p>
+              This lab is a small reference architecture for "observing one server end-to-end". The four
+              layers — system metrics, application logs, infrastructure events, configuration compliance —
+              cover the bulk of what monitoring means in AWS at the EC2 level, and each layer can be
+              extended without touching the others.
+            </p>
+            <p style="margin-top: 1rem;">
+              The most reusable artifact from this lab is the CloudWatch Agent JSON configuration above:
+              the same file, lifted unchanged into Parameter Store, can be applied to any Amazon Linux
+              instance running Apache. Replacing the file paths is enough to repoint it at NGINX, an
+              application server, or any other log source.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      Lab report documenting the Monitoring Infrastructure lab · AWS re/Start Program
+    </div>
+  </footer>
+</body>
+
+</html>

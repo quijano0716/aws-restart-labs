@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lab Report: Troubleshooting EC2 Instance Creation with AWS CLI (LAMP)</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --bg-soft: #111827;
+      --card: rgba(255, 255, 255, 0.08);
+      --card-strong: rgba(255, 255, 255, 0.12);
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --accent: #ff9900;
+      --accent-2: #38bdf8;
+      --ok: #22c55e;
+      --warn: #f59e0b;
+      --danger: #ef4444;
+      --border: rgba(255, 255, 255, 0.12);
+      --shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+      --radius: 22px;
+      --max: 1120px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(255, 153, 0, 0.16), transparent 28%),
+        radial-gradient(circle at top right, rgba(56, 189, 248, 0.14), transparent 24%),
+        linear-gradient(180deg, #020617 0%, #0f172a 48%, #111827 100%);
+      color: var(--text);
+      line-height: 1.65;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    .container {
+      width: min(var(--max), calc(100% - 2rem));
+      margin: 0 auto;
+    }
+
+    /* ── Nav ── */
+    .nav {
+      position: sticky; top: 0; z-index: 10;
+      backdrop-filter: blur(16px);
+      background: rgba(2, 6, 23, 0.72);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .nav-inner {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 0.9rem 0; gap: 1rem;
+    }
+    .brand {
+      font-weight: 800; letter-spacing: -0.02em;
+      display: flex; align-items: center; gap: 0.7rem;
+    }
+    .brand-badge {
+      width: 38px; height: 38px; border-radius: 12px;
+      display: grid; place-items: center;
+      background: linear-gradient(135deg, var(--accent), #ffb84d);
+      color: #111827; font-weight: 900; box-shadow: var(--shadow);
+    }
+    .nav-links {
+      display: flex; gap: 1rem; flex-wrap: wrap;
+      color: var(--muted); font-size: 0.95rem;
+    }
+    .nav-links a:hover { color: var(--text); }
+    .back-link {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      color: var(--muted); font-size: 0.9rem; transition: color 0.2s;
+    }
+    .back-link:hover { color: var(--accent); }
+
+    /* ── Hero ── */
+    .hero { padding: 4.8rem 0 2rem; }
+    .hero-grid {
+      display: grid; grid-template-columns: 1.2fr 0.8fr;
+      gap: 1.5rem; align-items: stretch;
+    }
+    .panel {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.05));
+      border: 1px solid var(--border); border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+    .hero-main { padding: 2rem; }
+    .eyebrow {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      padding: 0.45rem 0.8rem; border-radius: 999px;
+      background: rgba(255, 153, 0, 0.12); color: #ffd28a;
+      border: 1px solid rgba(255, 153, 0, 0.25);
+      font-size: 0.9rem; margin-bottom: 1rem;
+    }
+    h1, h2, h3 { line-height: 1.15; letter-spacing: -0.03em; margin: 0; }
+    h1 { font-size: clamp(2rem, 4vw, 3.4rem); margin-bottom: 0.9rem; }
+    .hero-main p { margin: 0; color: #cbd5e1; font-size: 1.05rem; max-width: 65ch; }
+    .hero-side {
+      padding: 1.5rem; display: flex; flex-direction: column;
+      justify-content: space-between; gap: 1rem;
+    }
+    .hero-side .callout {
+      padding: 1rem 1.1rem; border-radius: 18px;
+      border: 1px solid rgba(56, 189, 248, 0.18);
+      background: rgba(56, 189, 248, 0.08);
+    }
+    .hero-side .callout strong { display: block; margin-bottom: 0.35rem; }
+    .tech-stack { display: flex; flex-wrap: wrap; gap: 0.55rem; }
+    .chip {
+      padding: 0.45rem 0.75rem; border-radius: 999px;
+      font-size: 0.88rem; background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.1); color: #dbeafe;
+    }
+    .small { font-size: 0.92rem; color: var(--muted); }
+
+    /* ── Sections ── */
+    section { padding: 1rem 0 0.4rem; }
+    .section-title { margin-bottom: 1rem; font-size: clamp(1.5rem, 2vw, 2.2rem); }
+    .section-subtitle { color: var(--muted); margin-top: 0.45rem; max-width: 75ch; }
+
+    /* ── Grids ── */
+    .grid-3 {
+      display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem;
+    }
+    .grid-2 {
+      display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem;
+    }
+    .card {
+      padding: 1.3rem; background: var(--card);
+      border: 1px solid var(--border); border-radius: 20px;
+      box-shadow: var(--shadow);
+    }
+    .card h3 { font-size: 1.05rem; margin-bottom: 0.6rem; }
+    .card p { margin: 0; color: #cbd5e1; }
+
+    /* ── Timeline / steps ── */
+    .timeline { display: grid; gap: 1rem; margin-top: 1rem; }
+    .step {
+      display: grid; grid-template-columns: 90px 1fr;
+      gap: 1rem; align-items: start; padding: 1.25rem;
+      border-radius: 22px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: var(--shadow);
+    }
+    .step-num {
+      width: 72px; height: 72px; border-radius: 20px;
+      background: linear-gradient(135deg, rgba(255, 153, 0, 0.18), rgba(56, 189, 248, 0.18));
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      display: grid; place-items: center;
+      font-size: 1.1rem; font-weight: 900; color: #fff;
+    }
+    .step h3 { margin-bottom: 0.55rem; font-size: 1.2rem; }
+    .step ul { margin: 0.3rem 0 0; padding-left: 1.1rem; color: #dbe4f0; }
+    .step li + li { margin-top: 0.4rem; }
+    .highlight { color: #ffd28a; font-weight: 700; }
+
+    /* ── Screenshots ── */
+    .screenshot-gallery { display: grid; gap: 0.8rem; margin-top: 1rem; }
+    .screenshot-gallery.cols-2 { grid-template-columns: repeat(2, 1fr); }
+    .screenshot-fig {
+      margin: 0; border-radius: 16px; overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(2, 6, 23, 0.5);
+    }
+    .screenshot-fig img { width: 100%; height: auto; display: block; }
+    .screenshot-fig figcaption {
+      padding: 0.6rem 0.8rem; color: var(--muted);
+      font-size: 0.84rem; border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    /* ── Callouts ── */
+    .insight {
+      padding: 1.15rem 1.2rem; border-left: 4px solid var(--accent);
+      border-radius: 16px; background: rgba(255, 153, 0, 0.08);
+      color: #fde7c2;
+    }
+    .info {
+      border-left-color: var(--accent-2);
+      background: rgba(56, 189, 248, 0.08);
+      color: #d8f3ff;
+    }
+    .warn {
+      border-left-color: var(--warn);
+      background: rgba(245, 158, 11, 0.1);
+      color: #fde7c2;
+    }
+
+    /* ── Checklist ── */
+    .checklist { display: grid; gap: 0.7rem; margin-top: 1rem; }
+    .check {
+      display: flex; gap: 0.75rem; align-items: flex-start;
+      padding: 0.9rem 1rem; border-radius: 16px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+    }
+    .check-mark {
+      flex: 0 0 auto; width: 28px; height: 28px;
+      display: grid; place-items: center;
+      border-radius: 999px; background: rgba(34, 197, 94, 0.15);
+      color: #86efac; font-weight: 800;
+    }
+
+    /* ── Code ── */
+    code {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 0.15rem 0.4rem; border-radius: 6px;
+      font-size: 0.9em; font-family: "Cascadia Code", "Fira Code", monospace;
+    }
+    pre {
+      background: rgba(2, 6, 23, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 14px; padding: 1rem 1.1rem;
+      overflow-x: auto; font-size: 0.88rem;
+      line-height: 1.55; margin: 0.8rem 0;
+    }
+    pre code {
+      background: transparent; padding: 0;
+      font-size: inherit; color: #dbeafe;
+    }
+
+    /* ── Tables ── */
+    .table-wrap { overflow-x: auto; margin-top: 0.8rem; }
+    table.script-map {
+      width: 100%; border-collapse: collapse;
+      font-size: 0.92rem;
+      background: rgba(255, 255, 255, 0.04);
+      border-radius: 14px; overflow: hidden;
+    }
+    table.script-map th, table.script-map td {
+      padding: 0.7rem 0.9rem; text-align: left;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      vertical-align: top;
+    }
+    table.script-map th {
+      background: rgba(255, 153, 0, 0.1);
+      color: #ffd28a; font-weight: 700;
+      font-size: 0.85rem; letter-spacing: 0.02em;
+    }
+    table.script-map tr:last-child td { border-bottom: none; }
+    table.script-map td:first-child {
+      font-family: "Cascadia Code", "Fira Code", monospace;
+      color: #38bdf8; white-space: nowrap;
+    }
+
+    /* ── Troubleshooting issue cards (custom for this lab) ── */
+    .issue-card {
+      padding: 1.4rem 1.5rem; border-radius: 22px;
+      background: rgba(239, 68, 68, 0.05);
+      border: 1px solid rgba(239, 68, 68, 0.2);
+      box-shadow: var(--shadow); margin-top: 1rem;
+    }
+    .issue-card.resolved { border-color: rgba(34, 197, 94, 0.25); background: rgba(34, 197, 94, 0.04); }
+    .issue-header {
+      display: flex; align-items: center; gap: 0.8rem;
+      margin-bottom: 1rem;
+      padding-bottom: 0.8rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .issue-badge {
+      padding: 0.3rem 0.7rem; border-radius: 999px;
+      font-size: 0.78rem; font-weight: 800; letter-spacing: 0.03em;
+      background: rgba(239, 68, 68, 0.18);
+      color: #fca5a5;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+    .issue-card h3 { font-size: 1.2rem; }
+    .issue-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.8rem;
+    }
+    .issue-cell {
+      padding: 0.9rem 1rem; border-radius: 14px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+    }
+    .issue-cell .label {
+      display: block; font-size: 0.72rem;
+      color: var(--muted); letter-spacing: 0.08em;
+      text-transform: uppercase; font-weight: 700;
+      margin-bottom: 0.4rem;
+    }
+    .issue-cell.symptom .label { color: #fca5a5; }
+    .issue-cell.diagnosis .label { color: #fcd34d; }
+    .issue-cell.cause .label { color: #c4b5fd; }
+    .issue-cell.fix .label { color: #86efac; }
+    .issue-cell p { margin: 0; font-size: 0.93rem; color: #dbe4f0; }
+    .issue-cell code { font-size: 0.82em; }
+
+    /* ── Footer ── */
+    .footer {
+      padding: 2.2rem 0 3.5rem;
+      color: var(--muted); text-align: center;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 920px) {
+      .hero-grid, .grid-3, .grid-2,
+      .screenshot-gallery.cols-2 {
+        grid-template-columns: 1fr;
+      }
+      .issue-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 680px) {
+      .nav-inner { flex-direction: column; align-items: flex-start; }
+      .step { grid-template-columns: 1fr; }
+      .step-num { width: 60px; height: 60px; border-radius: 16px; }
+      .issue-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+
+<body>
+  <nav class="nav">
+    <div class="container nav-inner">
+      <div class="brand">
+        <div class="brand-badge">AWS</div>
+        <div>Lab Report · EC2 Troubleshooting</div>
+      </div>
+      <div class="nav-links">
+        <a href="../index.html" class="back-link">← All Labs</a>
+        <a href="#summary">Summary</a>
+        <a href="#script">Script</a>
+        <a href="#issues">Issues</a>
+        <a href="#verify">Verification</a>
+        <a href="#learnings">Learnings</a>
+      </div>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <div class="container hero-grid">
+      <div class="panel hero-main">
+        <div class="eyebrow">AWS re/Start Lab · EC2 · AWS CLI</div>
+        <h1>Troubleshooting EC2 Instance Creation with AWS CLI</h1>
+        <p>
+          Launched a LAMP-stack EC2 instance using a provided shell script that wraps several
+          <code>aws ec2</code> CLI calls. The script intentionally ships with two defects.
+          The work was to read the script, run it, interpret the failure, and apply targeted
+          fixes until the Café web application responded on <code>http://&lt;public-ip&gt;/cafe</code>.
+        </p>
+      </div>
+
+      <aside class="panel hero-side">
+        <div class="callout">
+          <strong>Lab Objective</strong>
+          Identify and resolve two issues in an AWS CLI provisioning workflow: an invalid AMI
+          reference at <code>run-instances</code> time and a missing inbound rule that hides a
+          fully-running web server.
+        </div>
+
+        <div>
+          <div class="small" style="margin-bottom:0.7rem;">Tools &amp; Concepts</div>
+          <div class="tech-stack">
+            <span class="chip">EC2</span>
+            <span class="chip">AWS CLI</span>
+            <span class="chip">User Data</span>
+            <span class="chip">LAMP Stack</span>
+            <span class="chip">Security Groups</span>
+            <span class="chip">nmap</span>
+            <span class="chip">cloud-init</span>
+          </div>
+        </div>
+
+        <div class="callout" style="border-color: rgba(34,197,94,0.2); background: rgba(34,197,94,0.08);">
+          <strong>Key Insight</strong>
+          An EC2 instance can be <em>running</em> and the user-data script can complete cleanly
+          while the application stays unreachable. The boundary that matters externally is the
+          Security Group, not the OS service state.
+        </div>
+      </aside>
+    </div>
+  </header>
+
+  <main>
+    <section id="summary">
+      <div class="container">
+        <h2 class="section-title">Lab Summary</h2>
+        <p class="section-subtitle">
+          The lab provides a CLI host (already provisioned) and a shell script
+          <code>create-lamp-instance-v2.sh</code> that should provision a second EC2 instance
+          running Apache, MariaDB and PHP. Running the script fails. The job is to read it,
+          locate the failure points, fix them, and prove the Café application is reachable.
+        </p>
+
+        <div class="grid-3" style="margin-top:1rem;">
+          <article class="card">
+            <h3>Provisioning model</h3>
+            <p>EC2 launched via <code>aws ec2 run-instances</code> from a CLI host, with a
+              user-data file installing Apache, MariaDB and PHP at first boot.</p>
+          </article>
+          <article class="card">
+            <h3>Issue #1 — Control plane</h3>
+            <p><code>InvalidAMIID.NotFound</code>. The AMI lookup logic in the script returns a
+              value that <code>run-instances</code> rejects in the target Region.</p>
+          </article>
+          <article class="card">
+            <h3>Issue #2 — Data plane</h3>
+            <p>The instance boots, <code>httpd</code> serves on port 80 internally, but the
+              browser times out. The new Security Group does not allow inbound TCP/80.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="setup">
+      <div class="container">
+        <h2 class="section-title">Setup: CLI host and credentials</h2>
+        <p class="section-subtitle">
+          The lab pre-creates a <strong>CLI Host</strong> instance. Connection is done through
+          <strong>EC2 Instance Connect</strong> rather than PuTTY/SSH, so no key material has to
+          be downloaded locally. From that shell the AWS CLI is configured against the lab
+          account.
+        </p>
+
+        <pre><code># From EC2 Instance Connect, on the CLI Host
+aws configure
+# AWS Access Key ID     : &lt;AccessKey from lab Details&gt;
+# AWS Secret Access Key : &lt;SecretKey from lab Details&gt;
+# Default region name   : &lt;LabRegion&gt;
+# Default output format : json</code></pre>
+
+        <div class="insight info" style="margin-top: 1rem;">
+          The lab credentials are short-lived and Region-scoped. Mismatching the region at
+          <code>aws configure</code> would surface as cross-region lookup failures later on, so
+          it is worth getting it right before running any provisioning script.
+        </div>
+      </div>
+    </section>
+
+    <section id="script">
+      <div class="container">
+        <h2 class="section-title">Anatomy of <code>create-lamp-instance-v2.sh</code></h2>
+        <p class="section-subtitle">
+          Before running anything, the script was backed up and inspected. The structure below
+          is what an operator should know before debugging — the script is a wrapper around
+          several read-only <code>aws ec2 describe-*</code> calls feeding a single
+          <code>run-instances</code> call.
+        </p>
+
+        <pre><code>cd ~/sysops-activity-files/starters
+cp create-lamp-instance-v2.sh create-lamp-instance.backup
+view create-lamp-instance-v2.sh   # read-only in vi; :set number to show line numbers</code></pre>
+
+        <div class="table-wrap">
+          <table class="script-map">
+            <thead>
+              <tr>
+                <th>Lines</th>
+                <th>Role</th>
+                <th>Notes</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>1</td>
+                <td>Shebang</td>
+                <td><code>#!/bin/bash</code></td>
+              </tr>
+              <tr>
+                <td>7–11</td>
+                <td>Hard-coded values</td>
+                <td>Instance type fixed to <code>t3.small</code>; AWS profile fixed to <code>default</code>.</td>
+              </tr>
+              <tr>
+                <td>16–29</td>
+                <td>VPC discovery loop</td>
+                <td>Iterates over <code>aws ec2 describe-regions</code> and, per region, calls
+                  <code>describe-vpcs --filters "Name=tag:Name,Values='Cafe VPC'"</code> until the
+                  Cafe VPC is found. Captures both the VPC ID and its Region, then breaks.</td>
+              </tr>
+              <tr>
+                <td>31–55</td>
+                <td>Lookups</td>
+                <td>Resolves subnet ID (<code>Cafe Public Subnet 1</code>), key pair, and AMI ID
+                  using individual <code>describe-*</code> calls. This is where Issue #1 is
+                  seeded.</td>
+              </tr>
+              <tr>
+                <td>57–122</td>
+                <td>Idempotency cleanup</td>
+                <td>If a previous <code>cafeserver</code> instance or a SG containing
+                  <code>cafeSG</code> already exists, the script offers to delete them so the
+                  rerun starts clean.</td>
+              </tr>
+              <tr>
+                <td>124–152</td>
+                <td>Security Group creation</td>
+                <td>Creates a fresh SG. Per the guide it should open ports 22 and 80 inbound —
+                  but in practice the rule for TCP/80 is not effective at first boot, which is
+                  what Issue #2 exposes.</td>
+              </tr>
+              <tr>
+                <td>154–168</td>
+                <td><code>run-instances</code></td>
+                <td>Calls <code>aws ec2 run-instances</code> with the values gathered above and
+                  a user-data reference. The full response is captured in
+                  <code>$instanceDetails</code>.</td>
+              </tr>
+              <tr>
+                <td>179–188</td>
+                <td>Wait for public IP</td>
+                <td>Parses the instance ID and loops every 10 s on <code>describe-instances</code>
+                  until a public IPv4 is associated, then prints it.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="screenshot-gallery">
+          <figure class="screenshot-fig">
+            <img src="assets/screenshots/01-create-lamp-script-head.png"
+                 alt="Head of create-lamp-instance-v2.sh in vi view mode"
+                 loading="lazy" />
+            <figcaption>
+              <code>view create-lamp-instance-v2.sh</code> — top of the script: shebang,
+              hard-coded <code>instanceType="t3.small"</code> and <code>profile="default"</code>,
+              and the VPC discovery loop that runs <code>describe-regions</code> /
+              <code>describe-vpcs</code> filtered by tag <code>Name=Cafe VPC</code>.
+            </figcaption>
+          </figure>
+        </div>
+
+        <div class="insight info" style="margin-top: 1rem;">
+          The user-data file <code>create-lamp-instance-userdata-v2.txt</code> was inspected
+          with <code>cat</code> only — it installs Apache, MariaDB and PHP, drops the Café web
+          app under the document root, and runs the database init scripts on first boot.
+        </div>
+      </div>
+    </section>
+
+    <section id="issues">
+      <div class="container">
+        <h2 class="section-title">Issues encountered</h2>
+        <p class="section-subtitle">
+          The script was run with <code>./create-lamp-instance-v2.sh</code>. Two distinct
+          failures surfaced, one before the instance existed and one after.
+        </p>
+
+        <!-- ══════ ISSUE #1 ══════ -->
+        <article class="issue-card">
+          <div class="issue-header">
+            <span class="issue-badge">Issue #1 · Control plane</span>
+            <h3><code>InvalidAMIID.NotFound</code> on <code>run-instances</code></h3>
+          </div>
+
+          <div class="issue-grid">
+            <div class="issue-cell symptom">
+              <span class="label">Symptom</span>
+              <p>The script aborts during <code>run-instances</code> with:
+                <code>An error occurred (InvalidAMIID.NotFound) when calling the RunInstances
+                operation: The image id '[ami-xxxxxxxxxx]' does not exist</code>.</p>
+            </div>
+            <div class="issue-cell diagnosis">
+              <span class="label">Diagnosis</span>
+              <p>The AMI lookup block (lines 31–55) returns an image ID, but the value passed to
+                <code>run-instances</code> is not valid in the Region selected by the VPC
+                discovery loop. AMI IDs are <strong>Region-scoped</strong>; the lookup and the
+                launch must use the same Region.</p>
+            </div>
+            <div class="issue-cell cause">
+              <span class="label">Root cause</span>
+              <p>The AMI <code>describe-images</code> call (or the parsed result) does not
+                propagate the Region resolved earlier by the VPC loop, so the AMI ID either
+                comes from a different Region or matches no available image in the launch
+                Region.</p>
+            </div>
+            <div class="issue-cell fix">
+              <span class="label">Fix</span>
+              <p>Align the AMI lookup with the Region captured in the VPC loop (passing
+                <code>--region $region</code>) and confirm the resolved ID with
+                <code>aws ec2 describe-images --region $region --image-ids $amiId</code> before
+                rerunning the script. Answer <code>Y</code> at the cleanup prompts on rerun.</p>
+            </div>
+          </div>
+
+          <div class="insight warn" style="margin-top: 1rem;">
+            <strong>Honesty note:</strong> The exact textual diff of the fix is not in the
+            screenshots captured during this run, so the fix is described conceptually rather
+            than reproduced verbatim. What the rerun proved is that <code>run-instances</code>
+            then succeeded and the loop on lines 179–188 reported a public IPv4 for the new
+            instance.
+          </div>
+        </article>
+
+        <!-- ══════ ISSUE #2 ══════ -->
+        <article class="issue-card">
+          <div class="issue-header">
+            <span class="issue-badge">Issue #2 · Data plane</span>
+            <h3>Webpage does not load despite a healthy instance</h3>
+          </div>
+
+          <div class="issue-grid">
+            <div class="issue-cell symptom">
+              <span class="label">Symptom</span>
+              <p>Browser request to <code>http://&lt;public-ip&gt;</code> times out. EC2
+                Instance Connect succeeds, the instance is in <em>running</em> state, and
+                <code>systemctl status httpd</code> reports the service is up.</p>
+            </div>
+            <div class="issue-cell diagnosis">
+              <span class="label">Diagnosis</span>
+              <p>From the CLI host, scanned the new instance with <code>nmap -Pn
+                &lt;public-ip&gt;</code>. Port 22 shows as open; <strong>port 80 is filtered /
+                not reachable</strong>. The service is up internally but the perimeter rejects
+                the traffic before it arrives.</p>
+            </div>
+            <div class="issue-cell cause">
+              <span class="label">Root cause</span>
+              <p>The newly created Security Group does not have an effective inbound rule
+                allowing TCP/80 from <code>0.0.0.0/0</code>. The OS is fine, the routing is fine,
+                the boundary blocks the request.</p>
+            </div>
+            <div class="issue-cell fix">
+              <span class="label">Fix</span>
+              <p>Add the missing inbound rule to the SG attached to the instance: <strong>TCP,
+                port 80, source <code>0.0.0.0/0</code></strong>. Reload the browser — no instance
+                restart needed; SG changes apply immediately.</p>
+            </div>
+          </div>
+
+          <pre><code>sudo yum install -y nmap
+nmap -Pn &lt;public-ip&gt;
+# Expected after fix: 22/tcp open ssh, 80/tcp open http</code></pre>
+        </article>
+
+        <div class="insight info" style="margin-top: 1rem;">
+          The two issues live at different layers on purpose. Issue #1 is rejected by the
+          <strong>EC2 control plane</strong> before any instance exists. Issue #2 only shows up
+          on the <strong>data plane</strong> once the instance is running — it is invisible to
+          <code>run-instances</code> and to the script's own <code>echo</code> output.
+        </div>
+      </div>
+    </section>
+
+    <section id="verify">
+      <div class="container">
+        <h2 class="section-title">Verification</h2>
+        <p class="section-subtitle">
+          Two complementary checks: read the cloud-init log to confirm the user-data installer
+          finished cleanly, then exercise the Café application end-to-end through the browser.
+        </p>
+
+        <div class="timeline">
+          <article class="step">
+            <div class="step-num">01</div>
+            <div>
+              <h3>Cloud-init output on the LAMP instance</h3>
+              <p>Connected to the new instance with EC2 Instance Connect and tailed the log
+                that records user-data execution:</p>
+              <pre><code>sudo tail -f /var/log/cloud-init-output.log
+# Look for the MariaDB / PHP install lines and the
+# "Create Database script completed" message.
+# Ctrl-C to exit tail.
+# Full file:
+sudo cat /var/log/cloud-init-output.log</code></pre>
+              <p>No error lines appeared around the LAMP packages or the database init script,
+                so the user-data path was not the cause of the earlier failures — it confirmed
+                the issue was strictly at the SG boundary.</p>
+            </div>
+          </article>
+
+          <article class="step">
+            <div class="step-num">02</div>
+            <div>
+              <h3>Café application end-to-end</h3>
+              <p>Browsed to <code>http://&lt;public-ip&gt;/cafe</code>, used the
+                <strong>Menu</strong> page to submit an order, then opened
+                <strong>Order History</strong> to confirm the order was persisted in MariaDB.</p>
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/02-cafe-order-history.png"
+                       alt="Café Order History page showing order #1 with 4 croissants"
+                       loading="lazy" />
+                  <figcaption>
+                    Café Order History at <code>/cafe</code> — order #1, 4 × Croissant @ $1.50
+                    = $6.00. Renders correctly with the Home / Menu / Order History nav, which
+                    proves Apache is serving, PHP is executing, and MariaDB stored and returned
+                    the row.
+                  </figcaption>
+                </figure>
+              </div>
+            </div>
+          </article>
+        </div>
+
+        <div class="insight warn" style="margin-top: 1rem;">
+          <strong>Evidence gap:</strong> only two screenshots were captured during this lab —
+          the head of the script and the final Order History page. The intermediate steps
+          (the <code>InvalidAMIID.NotFound</code> error, the <code>nmap</code> output before
+          and after the SG fix, the <code>cloud-init-output.log</code> tail, and the order
+          submission form) were performed but not screenshotted, and are documented in prose
+          only.
+        </div>
+      </div>
+    </section>
+
+    <section id="learnings">
+      <div class="container">
+        <h2 class="section-title">Key Learnings</h2>
+        <div class="grid-2">
+          <div class="card">
+            <h3>Concepts confirmed</h3>
+            <div class="checklist">
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>AMI IDs are <strong>Region-scoped</strong>. A script that resolves a Region
+                  dynamically must propagate <code>--region</code> to every dependent
+                  <code>describe-*</code> call.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>"Instance running" is not the same as "application reachable". A green
+                  status check still leaves the SG, NACL and routing layers to validate.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div><code>nmap -Pn &lt;public-ip&gt;</code> from a peer inside the VPC is a
+                  cheap, fast way to separate "service is down" from "service is up but
+                  filtered".</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div><code>/var/log/cloud-init-output.log</code> is the canonical place to debug
+                  user-data scripts on Amazon Linux. If it ends cleanly, the failure is past
+                  the OS.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>A LAMP stack (Linux + Apache + MariaDB/MySQL + PHP) can be fully bootstrapped
+                  through EC2 user data, including database init scripts.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Technical conclusion</h3>
+            <p>
+              The lab was less about typing AWS CLI commands and more about reading a
+              non-trivial bash script that orchestrates them. The two seeded defects map
+              cleanly onto two layers: a <strong>control-plane</strong> failure that the API
+              surfaces immediately, and a <strong>data-plane</strong> failure that only an
+              external probe (browser, <code>nmap</code>) can reveal.
+            </p>
+            <p style="margin-top: 1rem;">
+              The mental model worth keeping: when an EC2-hosted service does not respond,
+              start from the closest layer to the application (OS service, then user-data log),
+              then move outward (Security Group, NACL, route table, IGW). Skipping straight to
+              "it's the network" wastes time when the service was actually dead — and the
+              reverse mistake wastes time when the service is fine but the perimeter is closed.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      Lab report documenting Troubleshooting the Creation of an EC2 Instance · AWS re/Start Program
+    </div>
+  </footer>
+</body>
+
+</html>

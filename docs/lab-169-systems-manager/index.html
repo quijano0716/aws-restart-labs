@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lab Report: Using AWS Systems Manager</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --bg-soft: #111827;
+      --card: rgba(255, 255, 255, 0.08);
+      --card-strong: rgba(255, 255, 255, 0.12);
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --accent: #ff9900;
+      --accent-2: #38bdf8;
+      --ok: #22c55e;
+      --warn: #f59e0b;
+      --danger: #ef4444;
+      --border: rgba(255, 255, 255, 0.12);
+      --shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+      --radius: 22px;
+      --max: 1120px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(255, 153, 0, 0.16), transparent 28%),
+        radial-gradient(circle at top right, rgba(56, 189, 248, 0.14), transparent 24%),
+        linear-gradient(180deg, #020617 0%, #0f172a 48%, #111827 100%);
+      color: var(--text);
+      line-height: 1.65;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .container {
+      width: min(var(--max), calc(100% - 2rem));
+      margin: 0 auto;
+    }
+
+    /* ── Nav ── */
+    .nav {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      backdrop-filter: blur(16px);
+      background: rgba(2, 6, 23, 0.72);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .nav-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.9rem 0;
+      gap: 1rem;
+    }
+
+    .brand {
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+    }
+
+    .brand-badge {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, var(--accent), #ffb84d);
+      color: #111827;
+      font-weight: 900;
+      box-shadow: var(--shadow);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .nav-links a:hover {
+      color: var(--text);
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      color: var(--muted);
+      font-size: 0.9rem;
+      transition: color 0.2s;
+    }
+
+    .back-link:hover {
+      color: var(--accent);
+    }
+
+    /* ── Hero ── */
+    .hero {
+      padding: 4.8rem 0 2rem;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 1.5rem;
+      align-items: stretch;
+    }
+
+    .panel {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.05));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .hero-main {
+      padding: 2rem;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.45rem 0.8rem;
+      border-radius: 999px;
+      background: rgba(255, 153, 0, 0.12);
+      color: #ffd28a;
+      border: 1px solid rgba(255, 153, 0, 0.25);
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+    }
+
+    h1,
+    h2,
+    h3 {
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+      margin: 0;
+    }
+
+    h1 {
+      font-size: clamp(2rem, 4vw, 3.7rem);
+      margin-bottom: 0.9rem;
+    }
+
+    .hero-main p {
+      margin: 0;
+      color: #cbd5e1;
+      font-size: 1.05rem;
+      max-width: 65ch;
+    }
+
+    .hero-side {
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .hero-side .callout {
+      padding: 1rem 1.1rem;
+      border-radius: 18px;
+      border: 1px solid rgba(56, 189, 248, 0.18);
+      background: rgba(56, 189, 248, 0.08);
+    }
+
+    .hero-side .callout strong {
+      display: block;
+      margin-bottom: 0.35rem;
+    }
+
+    .tech-stack {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.55rem;
+    }
+
+    .chip {
+      padding: 0.45rem 0.75rem;
+      border-radius: 999px;
+      font-size: 0.88rem;
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #dbeafe;
+    }
+
+    .small {
+      font-size: 0.92rem;
+      color: var(--muted);
+    }
+
+    /* ── Sections ── */
+    section {
+      padding: 1rem 0 0.4rem;
+    }
+
+    .section-title {
+      margin-bottom: 1rem;
+      font-size: clamp(1.5rem, 2vw, 2.2rem);
+    }
+
+    .section-subtitle {
+      color: var(--muted);
+      margin-top: 0.45rem;
+      max-width: 75ch;
+    }
+
+    /* ── Grids ── */
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .card {
+      padding: 1.3rem;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+    }
+
+    .card h3 {
+      font-size: 1.05rem;
+      margin-bottom: 0.6rem;
+    }
+
+    .card p {
+      margin: 0;
+      color: #cbd5e1;
+    }
+
+    /* ── Timeline ── */
+    .timeline {
+      display: grid;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .step {
+      display: grid;
+      grid-template-columns: 90px 1fr;
+      gap: 1rem;
+      align-items: start;
+      padding: 1.25rem;
+      border-radius: 22px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: var(--shadow);
+    }
+
+    .step-num {
+      width: 72px;
+      height: 72px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, rgba(255, 153, 0, 0.18), rgba(56, 189, 248, 0.18));
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      display: grid;
+      place-items: center;
+      font-size: 1.1rem;
+      font-weight: 900;
+      color: #fff;
+    }
+
+    .step h3 {
+      margin-bottom: 0.55rem;
+      font-size: 1.2rem;
+    }
+
+    .step ul {
+      margin: 0.3rem 0 0;
+      padding-left: 1.1rem;
+      color: #dbe4f0;
+    }
+
+    .step li+li {
+      margin-top: 0.4rem;
+    }
+
+    .highlight {
+      color: #ffd28a;
+      font-weight: 700;
+    }
+
+    /* ── Screenshots ── */
+    .screenshot-gallery {
+      display: grid;
+      gap: 0.8rem;
+      margin-top: 1rem;
+    }
+
+    .screenshot-gallery.cols-2 {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .screenshot-fig {
+      margin: 0;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(2, 6, 23, 0.5);
+    }
+
+    .screenshot-fig img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .screenshot-fig figcaption {
+      padding: 0.6rem 0.8rem;
+      color: var(--muted);
+      font-size: 0.84rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    /* ── Callouts ── */
+    .insight {
+      padding: 1.15rem 1.2rem;
+      border-left: 4px solid var(--accent);
+      border-radius: 16px;
+      background: rgba(255, 153, 0, 0.08);
+      color: #fde7c2;
+    }
+
+    .insight.info {
+      border-left-color: var(--accent-2);
+      background: rgba(56, 189, 248, 0.08);
+      color: #d8f3ff;
+    }
+
+    .insight.warn {
+      border-left-color: var(--warn);
+      background: rgba(245, 158, 11, 0.08);
+      color: #fde7c2;
+    }
+
+    /* ── Checklist ── */
+    .checklist {
+      display: grid;
+      gap: 0.7rem;
+      margin-top: 1rem;
+    }
+
+    .check {
+      display: flex;
+      gap: 0.75rem;
+      align-items: flex-start;
+      padding: 0.9rem 1rem;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+    }
+
+    .check-mark {
+      flex: 0 0 auto;
+      width: 28px;
+      height: 28px;
+      display: grid;
+      place-items: center;
+      border-radius: 999px;
+      background: rgba(34, 197, 94, 0.15);
+      color: #86efac;
+      font-weight: 800;
+    }
+
+    /* ── Code ── */
+    code {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 0.15rem 0.4rem;
+      border-radius: 6px;
+      font-size: 0.9em;
+      font-family: "Cascadia Code", "Fira Code", monospace;
+    }
+
+    pre {
+      background: rgba(2, 6, 23, 0.65);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 14px;
+      padding: 1rem 1.1rem;
+      overflow-x: auto;
+      font-size: 0.88rem;
+      line-height: 1.55;
+      margin: 0.8rem 0 0;
+    }
+
+    pre code {
+      background: transparent;
+      padding: 0;
+      border-radius: 0;
+      font-size: 0.88rem;
+      color: #e2e8f0;
+    }
+
+    /* ── Tables ── */
+    .table-wrap {
+      overflow-x: auto;
+      border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      margin-top: 1rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.94rem;
+    }
+
+    th,
+    td {
+      padding: 0.75rem 0.9rem;
+      text-align: left;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+      vertical-align: top;
+    }
+
+    th {
+      background: rgba(255, 255, 255, 0.05);
+      color: #f1f5f9;
+      font-weight: 700;
+    }
+
+    td code {
+      font-size: 0.85em;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    /* ── Footer ── */
+    .footer {
+      padding: 2.2rem 0 3.5rem;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 920px) {
+
+      .hero-grid,
+      .grid-3,
+      .grid-2,
+      .screenshot-gallery.cols-2 {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 680px) {
+      .nav-inner {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .step {
+        grid-template-columns: 1fr;
+      }
+
+      .step-num {
+        width: 60px;
+        height: 60px;
+        border-radius: 16px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <nav class="nav">
+    <div class="container nav-inner">
+      <div class="brand">
+        <div class="brand-badge">AWS</div>
+        <div>Lab Report · Systems Manager</div>
+      </div>
+      <div class="nav-links">
+        <a href="../index.html" class="back-link">← All Labs</a>
+        <a href="#summary">Summary</a>
+        <a href="#architecture">Architecture</a>
+        <a href="#walkthrough">Walkthrough</a>
+        <a href="#commands">Commands</a>
+        <a href="#learnings">Learnings</a>
+      </div>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <div class="container hero-grid">
+      <div class="panel hero-main">
+        <div class="eyebrow">AWS re/Start Lab · Operations</div>
+        <h1>Using AWS Systems Manager</h1>
+        <p>
+          Operate an EC2 instance entirely without SSH using four capabilities of AWS Systems Manager:
+          Fleet Manager (inventory), Run Command (remote execution), Parameter Store (configuration),
+          and Session Manager (auditable shell). All access is brokered by the SSM agent plus an IAM
+          instance profile — no port 22, no key pairs, no bastion host.
+        </p>
+      </div>
+
+      <aside class="panel hero-side">
+        <div class="callout">
+          <strong>Lab Objective</strong>
+          Use the four core SSM capabilities to inventory, configure, and access a managed EC2 instance
+          without exposing SSH.
+        </div>
+
+        <div>
+          <div class="small" style="margin-bottom:0.7rem;">Tools &amp; Concepts</div>
+          <div class="tech-stack">
+            <span class="chip">AWS Systems Manager</span>
+            <span class="chip">Fleet Manager</span>
+            <span class="chip">Run Command</span>
+            <span class="chip">Parameter Store</span>
+            <span class="chip">Session Manager</span>
+            <span class="chip">IAM Instance Profile</span>
+            <span class="chip">IMDS</span>
+          </div>
+        </div>
+
+        <div class="callout" style="border-color: rgba(34,197,94,0.2); background: rgba(34,197,94,0.08);">
+          <strong>Key Insight</strong>
+          The unlock for everything in SSM is the SSM agent + an IAM role with
+          <code>AmazonSSMManagedInstanceCore</code>. With that pair, the instance becomes a
+          <em>Managed Instance</em> and the whole SSM toolkit lights up.
+        </div>
+      </aside>
+    </div>
+  </header>
+
+  <main>
+    <section id="summary">
+      <div class="container">
+        <h2 class="section-title">Lab Summary</h2>
+        <p class="section-subtitle">
+          A single EC2 instance (<code>i-02ee2bf02e6d075c8</code> in <strong>us-west-2</strong>) was managed
+          end-to-end through SSM: software inventory was gathered through Fleet Manager, the
+          <span class="highlight">Widget Manufacturing Dashboard</span> web app was installed via Run Command,
+          a feature flag was toggled through Parameter Store, and the instance shell was reached through
+          Session Manager — never opening port 22.
+        </p>
+
+        <div class="grid-2" style="margin-top:1rem;">
+          <article class="card">
+            <h3>Four capabilities, one instance</h3>
+            <p>Fleet Manager + Run Command + Parameter Store + Session Manager covered the full lifecycle:
+              inspect → install → configure → access.</p>
+          </article>
+          <article class="card">
+            <h3>SSH was never used</h3>
+            <p>No PuTTY, no key pair download, no port 22 open. The IAM instance profile <code>App-Role</code>
+              plus the SSM agent replaced the entire bastion / SSH workflow.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="architecture">
+      <div class="container">
+        <h2 class="section-title">Lab Architecture</h2>
+        <p class="section-subtitle">
+          A single EC2 instance pre-configured as a Managed Instance. The SSM agent runs inside the OS and
+          dials out to the SSM service; the instance profile authorizes that connection. The user interacts
+          with SSM from the console — never directly with the instance.
+        </p>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Component</th>
+                <th>Identifier</th>
+                <th>Role in the lab</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>EC2 Managed Instance</strong></td>
+                <td><code>i-02ee2bf02e6d075c8</code> · <code>ip-10-0-0-48</code></td>
+                <td>Target for every SSM operation. Pre-installed SSM agent.</td>
+              </tr>
+              <tr>
+                <td><strong>IAM Instance Profile</strong></td>
+                <td><code>arn:aws:iam::370129130217:instance-profile/App-Role</code></td>
+                <td>Grants the SSM agent permission to register and accept commands.</td>
+              </tr>
+              <tr>
+                <td><strong>Region</strong></td>
+                <td><code>us-west-2</code></td>
+                <td>All resources scoped here. Derived dynamically from IMDS in Task 4.</td>
+              </tr>
+              <tr>
+                <td><strong>Web app target</strong></td>
+                <td>Apache + PHP + AWS SDK + Widget Manufacturing Dashboard</td>
+                <td>Installed by Run Command. Reads <code>/dashboard/*</code> from Parameter Store at request time.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="insight info" style="margin-top:1rem;">
+          <strong>Why this matters:</strong> The same pattern scales to fleets — replace "this one instance"
+          with a tag selector and every action below applies to thousands of nodes without inbound network access.
+        </div>
+      </div>
+    </section>
+
+    <section id="walkthrough">
+      <div class="container">
+        <h2 class="section-title">Step-by-Step Walkthrough</h2>
+        <p class="section-subtitle">
+          One section per SSM capability. Trivial console navigation is collapsed into prose; each section
+          ends with the evidence captured during the lab.
+        </p>
+
+        <div class="timeline">
+
+          <!-- ══════ TASK 1 ══════ -->
+          <article class="step">
+            <div class="step-num">01</div>
+            <div>
+              <h3>Fleet Manager — Inventory the Managed Instance</h3>
+              <p style="margin: 0 0 0.6rem; color:#dbe4f0;">
+                Inside Systems Manager → <strong>Node Management</strong> → <strong>Fleet Manager</strong>,
+                opened the <strong>Account management</strong> dropdown and chose <strong>Set up inventory</strong>.
+                Created an association named <code>Inventory-Association</code> targeting the Managed Instance
+                manually. Defaults were left intact.
+              </p>
+              <ul>
+                <li>Inventory is set up as an <strong>SSM association</strong>, not a one-shot scan — it
+                  re-collects on a schedule, so the data stays fresh without manual refreshes.</li>
+                <li>The association immediately reported a banner <em>"Setup inventory request succeeded"</em>
+                  and the inventory began populating from the SSM agent's side.</li>
+                <li>Drilling into the Node ID and opening the <strong>Inventory</strong> tab exposed every
+                  inventory type (applications, network, services, etc.) — useful to validate software policy
+                  without touching the instance.</li>
+              </ul>
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/01-fleet-manager-inventory-applications.png"
+                    alt="Fleet Manager inventory showing 456 applications on the managed instance" loading="lazy" />
+                  <figcaption>Fleet Manager → Inventory type <code>AWS:Application</code>: 456 packages
+                    detected on the Managed Instance, no SSH required.</figcaption>
+                </figure>
+              </div>
+
+              <div class="insight info" style="margin-top:1rem;">
+                <strong>Takeaway:</strong> the inventory list is the proof that the agent + IAM pairing is
+                wired correctly. If <code>AWS:Application</code> returns rows, every later capability will work.
+              </div>
+            </div>
+          </article>
+
+          <!-- ══════ TASK 2 ══════ -->
+          <article class="step">
+            <div class="step-num">02</div>
+            <div>
+              <h3>Run Command — Install the Widget Manufacturing Dashboard</h3>
+              <p style="margin: 0 0 0.6rem; color:#dbe4f0;">
+                Under <strong>Node Management</strong> → <strong>Run Command</strong>, picked the custom
+                document <strong>Install Dashboard App</strong> (filtered by <em>Owner = Owned by me</em>).
+                That document runs an install script that lays down Apache, PHP, the AWS SDK, and the dashboard
+                files, then starts the web server. Targets were specified manually (<em>Managed Instance</em>)
+                and the S3 output bucket option was cleared.
+              </p>
+              <ul>
+                <li>The lab guide highlights that the console form exposes the exact CLI under
+                  <em>AWS command line interface command</em>. That snippet (<code>aws ssm send-command</code>)
+                  is the same call you'd put in a script or CI pipeline — the GUI is just a wizard around it.</li>
+                <li>Right after submitting, the Command ID page showed <strong>In Progress</strong>; per the
+                  guide it converges to <em>Success</em> in 1–2 minutes. The captured screenshot is the
+                  In Progress moment — the dashboard rendering after is the real proof the script finished.</li>
+                <li>Targeting was manual here, but the same form accepts tag-based selection — that's how a
+                  single Run Command call hits an entire fleet.</li>
+              </ul>
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/02-run-command-in-progress.png"
+                    alt="Run Command 5c8b7057-6dfa-4241-899d-809db54be59b in progress against the Managed Instance" loading="lazy" />
+                  <figcaption>Run Command <code>5c8b7057-6dfa-4241-899d-809db54be59b</code> dispatched to
+                    <code>i-02ee2bf02e6d075c8</code>. Status: In Progress while the install script runs.</figcaption>
+                </figure>
+              </div>
+
+              <p style="margin: 1rem 0 0; color:#dbe4f0;">
+                After the command finished, the <strong>ServerIP</strong> value from the lab Credentials
+                panel was opened in a browser. The dashboard rendered with two charts — output gauge and
+                stage throughput bar — confirming that Apache, PHP, the SDK, and the app were all installed
+                and the service was up.
+              </p>
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/03-manufacturing-dashboard-baseline.png"
+                    alt="Widget Manufacturing Dashboard rendering with output gauge and stage bar chart" loading="lazy" />
+                  <figcaption>Baseline dashboard after Run Command: 2 charts (Output gauge + Extrude→Package
+                    bar). This is the real success signal — the In Progress screen above is just the dispatch.</figcaption>
+                </figure>
+              </div>
+            </div>
+          </article>
+
+          <!-- ══════ TASK 3 ══════ -->
+          <article class="step">
+            <div class="step-num">03</div>
+            <div>
+              <h3>Parameter Store — Toggle a feature flag without redeploying</h3>
+              <p style="margin: 0 0 0.6rem; color:#dbe4f0;">
+                Under <strong>Application Management</strong> → <strong>Parameter Store</strong>, created
+                a parameter with the configuration below. No screenshot of the form — the dashboard's third
+                chart is the proof that the value was picked up.
+              </p>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Field</th>
+                      <th>Value</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>Name</td>
+                      <td><code>/dashboard/show-beta-features</code></td>
+                    </tr>
+                    <tr>
+                      <td>Description</td>
+                      <td><code>Display beta features</code></td>
+                    </tr>
+                    <tr>
+                      <td>Tier</td>
+                      <td>Standard (default)</td>
+                    </tr>
+                    <tr>
+                      <td>Type</td>
+                      <td>String (default)</td>
+                    </tr>
+                    <tr>
+                      <td>Value</td>
+                      <td><code>True</code></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <ul style="margin-top: 1rem;">
+                <li>The hierarchical name <code>/dashboard/&lt;option&gt;</code> is intentional — Parameter
+                  Store supports path queries (<code>get-parameters-by-path</code>), so the whole namespace
+                  is one fetch from the application.</li>
+                <li>The app polls Parameter Store on each request. No redeploy, no config file rewrite, no
+                  restart — flip the value and the next refresh sees it. That's the dark-features /
+                  feature-flag pattern in one of its simplest forms.</li>
+                <li>Refreshing the dashboard's browser tab showed a <strong>third chart appear</strong>:
+                  <em>Shipping Throughput (Beta feature)</em>. Deleting the parameter would make it disappear
+                  again on the next refresh (optional step, not executed here — the apparition was proof enough).</li>
+              </ul>
+
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/04-manufacturing-dashboard-beta-feature.png"
+                    alt="Same dashboard now with a third chart Shipping Throughput Beta feature after Parameter Store was set" loading="lazy" />
+                  <figcaption>After creating <code>/dashboard/show-beta-features = True</code>: the third
+                    chart <em>Shipping Throughput (Beta feature)</em> appears. Same code, no redeploy.</figcaption>
+                </figure>
+              </div>
+
+              <div class="insight" style="margin-top:1rem;">
+                <strong>Before / after:</strong> compare screenshot 03 (two charts) against 04 (three charts).
+                The only thing that changed between them is a single key in Parameter Store.
+              </div>
+            </div>
+          </article>
+
+          <!-- ══════ TASK 4 ══════ -->
+          <article class="step">
+            <div class="step-num">04</div>
+            <div>
+              <h3>Session Manager — Browser shell into the instance, no SSH</h3>
+              <p style="margin: 0 0 0.6rem; color:#dbe4f0;">
+                Under <strong>Node Management</strong> → <strong>Session Manager</strong>, started a session
+                against the Managed Instance. A browser tab opened with a working shell as
+                <code>sh-4.2$</code> — no keypair, no port 22, no bastion. The session ID and the instance ID
+                are stamped at the top of the terminal banner, which is what CloudTrail correlates for audit.
+              </p>
+              <ul>
+                <li>Listed the application files installed by Run Command:
+                  <pre><code>ls /var/www/html</code></pre>
+                </li>
+                <li>Derived the region from the Instance Metadata Service (IMDS) and ran a
+                  region-aware describe-instances:
+                  <pre><code># Get region from IMDS
+AZ=$(curl -s http://169.254.169.254/latest/meta-data/placement/availability-zone)
+export AWS_DEFAULT_REGION=${AZ::-1}
+
+# List information about EC2 instances
+aws ec2 describe-instances</code></pre>
+                </li>
+                <li>The <code>${AZ::-1}</code> trim is the small clever bit — IMDS returns the AZ
+                  (<code>us-west-2a</code>); slicing off the trailing letter yields the region
+                  (<code>us-west-2</code>) without hardcoding it. The same script works in any region.</li>
+                <li>The describe-instances output confirmed identity from the inside: the instance profile is
+                  <code>arn:aws:iam::370129130217:instance-profile/App-Role</code> and the tag
+                  <code>Name = Managed Instance</code> matches everything seen in the console.</li>
+              </ul>
+
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/05-session-manager-describe-instances.png"
+                    alt="Session Manager browser shell showing describe-instances JSON output with IamInstanceProfile App-Role and MetadataOptions" loading="lazy" />
+                  <figcaption>Session Manager shell · <code>aws ec2 describe-instances</code> JSON output.
+                    The IAM instance profile <code>App-Role</code> and the SSM-managed identity are visible
+                    from inside the box. The prompt <code>sh-4.2$</code> is the browser-based shell — no SSH client.</figcaption>
+                </figure>
+              </div>
+
+              <div class="insight warn" style="margin-top:1rem;">
+                <strong>Misleading filename, deliberate lesson:</strong> the original screenshot was saved as
+                <code>ec2detailsfromSSH.png</code>. It is <em>not</em> SSH — that's literally what this task
+                teaches. Session Manager looks like SSH from the user's seat, but the connection is an
+                outbound HTTPS tunnel brokered by the SSM agent. The file was renamed to
+                <code>05-session-manager-describe-instances.png</code> so the evidence matches the lesson.
+              </div>
+
+              <div class="insight info" style="margin-top:1rem;">
+                <strong>IMDS observation:</strong> the JSON shows
+                <code>"MetadataOptions": { "HttpTokens": "optional" }</code>. That means this lab instance
+                still accepts <strong>IMDSv1</strong> requests. Production hardening would set
+                <code>HttpTokens: required</code> to force <strong>IMDSv2</strong> session tokens and block
+                SSRF-style metadata abuse. Worth noting because the IMDS endpoint
+                <code>169.254.169.254</code> was used in the script above.
+              </div>
+            </div>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+    <section id="commands">
+      <div class="container">
+        <h2 class="section-title">Capabilities Reference</h2>
+        <p class="section-subtitle">Quick map of the four SSM capabilities exercised, what they replace,
+          and the key prerequisite shared by all of them.</p>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Capability</th>
+                <th>What it does</th>
+                <th>Replaces</th>
+                <th>Evidence</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Fleet Manager</strong></td>
+                <td>Periodically collects OS, package, network, and service inventory via an SSM association.</td>
+                <td>SSH + <code>rpm -qa</code> / <code>dpkg -l</code> loops; agent-based CMDB tools.</td>
+                <td>456 apps listed under <code>AWS:Application</code></td>
+              </tr>
+              <tr>
+                <td><strong>Run Command</strong></td>
+                <td>Executes a pre-approved <em>document</em> on one or many instances; supports tag-based fleet selection.</td>
+                <td>SSH + bash for-loops; Ansible ad-hoc against managed hosts.</td>
+                <td>Command ID <code>5c8b7057-…59b</code> → dashboard live</td>
+              </tr>
+              <tr>
+                <td><strong>Parameter Store</strong></td>
+                <td>Hierarchical key/value store. Polled by the app at request time for feature flags &amp; config.</td>
+                <td>Config files baked into AMIs; environment variables requiring restart.</td>
+                <td>Third dashboard chart appeared on refresh</td>
+              </tr>
+              <tr>
+                <td><strong>Session Manager</strong></td>
+                <td>Browser- or CLI-based shell brokered by the SSM agent. Auditable through CloudTrail.</td>
+                <td>SSH on port 22 + bastion hosts + key-pair rotation.</td>
+                <td>Browser shell running <code>aws ec2 describe-instances</code></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="insight info" style="margin-top:1rem;">
+          <strong>Shared prerequisite:</strong> SSM agent running on the instance <em>plus</em> an IAM
+          instance profile that includes <code>AmazonSSMManagedInstanceCore</code>. Without that pairing,
+          none of the four capabilities can reach the instance.
+        </div>
+      </div>
+    </section>
+
+    <section id="learnings">
+      <div class="container">
+        <h2 class="section-title">Key Learnings</h2>
+        <div class="grid-2">
+          <div class="card">
+            <h3>What Was Actually Learned</h3>
+            <div class="checklist">
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>A Managed Instance is the union of <strong>SSM agent</strong> + <strong>IAM role with
+                  AmazonSSMManagedInstanceCore</strong>. Everything else in SSM is built on that.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>Inventory is delivered as an <strong>SSM association</strong>, not a manual scan — the
+                  agent reports on a schedule.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>Run Command's console form exposes the equivalent <code>aws ssm send-command</code> —
+                  the GUI is a wizard around the CLI, the CLI is what you put in pipelines.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>Parameter Store with hierarchical names (<code>/dashboard/*</code>) is enough to ship
+                  a working feature-flag pattern without redeploying.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>Session Manager replaces the SSH + bastion + key-pair stack with an HTTPS tunnel +
+                  IAM + CloudTrail. The shell looks identical from the user's seat.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>IMDS at <code>169.254.169.254</code> is the canonical way to make scripts region-aware.
+                  <code>HttpTokens: optional</code> means the instance still accepts IMDSv1 — production
+                  should require IMDSv2.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Technical Conclusion</h3>
+            <p>
+              The SSH workflow established in earlier labs (PuTTY + .ppk key + port 22) is not the only way
+              to operate an EC2 instance — and in many production environments it is the wrong way. AWS
+              Systems Manager folds inspection, remote execution, configuration, and interactive access
+              into a single agent-plus-IAM pattern. Once the instance profile is in place, the inbound
+              network surface for management can drop to zero.
+            </p>
+            <p style="margin-top: 1rem;">
+              The lab also illustrates an honest operational pattern: the <em>"In Progress"</em> screenshot
+              from Run Command isn't really the success signal — the rendered dashboard is. And the
+              <em>"misnamed SSH screenshot"</em> from Task 4 is the lab's actual punchline: it looks like
+              SSH, it isn't, and that's the point.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      Lab report documenting the Using AWS Systems Manager lab · AWS re/Start Program
+    </div>
+  </footer>
+</body>
+
+</html>

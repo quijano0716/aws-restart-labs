@@ -1,0 +1,1183 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lab Report: AWS CloudTrail — Incident Response</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --bg-soft: #111827;
+      --card: rgba(255, 255, 255, 0.08);
+      --card-strong: rgba(255, 255, 255, 0.12);
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --accent: #ff9900;
+      --accent-2: #38bdf8;
+      --ok: #22c55e;
+      --warn: #f59e0b;
+      --danger: #f87171;
+      --border: rgba(255, 255, 255, 0.12);
+      --shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+      --radius: 22px;
+      --max: 1120px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(255, 153, 0, 0.16), transparent 28%),
+        radial-gradient(circle at top right, rgba(56, 189, 248, 0.14), transparent 24%),
+        linear-gradient(180deg, #020617 0%, #0f172a 48%, #111827 100%);
+      color: var(--text);
+      line-height: 1.65;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .container {
+      width: min(var(--max), calc(100% - 2rem));
+      margin: 0 auto;
+    }
+
+    /* ── Nav ── */
+    .nav {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      backdrop-filter: blur(16px);
+      background: rgba(2, 6, 23, 0.72);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .nav-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.9rem 0;
+      gap: 1rem;
+    }
+
+    .brand {
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+    }
+
+    .brand-badge {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, var(--accent), #ffb84d);
+      color: #111827;
+      font-weight: 900;
+      box-shadow: var(--shadow);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .nav-links a:hover {
+      color: var(--text);
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      color: var(--muted);
+      font-size: 0.9rem;
+      transition: color 0.2s;
+    }
+
+    .back-link:hover {
+      color: var(--accent);
+    }
+
+    /* ── Hero ── */
+    .hero {
+      padding: 4.8rem 0 2rem;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 1.5rem;
+      align-items: stretch;
+    }
+
+    .panel {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.05));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .hero-main {
+      padding: 2rem;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.45rem 0.8rem;
+      border-radius: 999px;
+      background: rgba(255, 153, 0, 0.12);
+      color: #ffd28a;
+      border: 1px solid rgba(255, 153, 0, 0.25);
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+    }
+
+    h1,
+    h2,
+    h3 {
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+      margin: 0;
+    }
+
+    h1 {
+      font-size: clamp(2rem, 4vw, 3.7rem);
+      margin-bottom: 0.9rem;
+    }
+
+    .hero-main p {
+      margin: 0;
+      color: #cbd5e1;
+      font-size: 1.05rem;
+      max-width: 65ch;
+    }
+
+    .hero-side {
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .hero-side .callout {
+      padding: 1rem 1.1rem;
+      border-radius: 18px;
+      border: 1px solid rgba(56, 189, 248, 0.18);
+      background: rgba(56, 189, 248, 0.08);
+    }
+
+    .hero-side .callout strong {
+      display: block;
+      margin-bottom: 0.35rem;
+    }
+
+    .tech-stack {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.55rem;
+    }
+
+    .chip {
+      padding: 0.45rem 0.75rem;
+      border-radius: 999px;
+      font-size: 0.88rem;
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #dbeafe;
+    }
+
+    .small {
+      font-size: 0.92rem;
+      color: var(--muted);
+    }
+
+    /* ── Sections ── */
+    section {
+      padding: 1rem 0 0.4rem;
+    }
+
+    .section-title {
+      margin-bottom: 1rem;
+      font-size: clamp(1.5rem, 2vw, 2.2rem);
+    }
+
+    .section-subtitle {
+      color: var(--muted);
+      margin-top: 0.45rem;
+      max-width: 75ch;
+    }
+
+    /* ── Grids ── */
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .card {
+      padding: 1.3rem;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+    }
+
+    .card h3 {
+      font-size: 1.05rem;
+      margin-bottom: 0.6rem;
+    }
+
+    .card p {
+      margin: 0;
+      color: #cbd5e1;
+    }
+
+    /* ── Timeline ── */
+    .timeline {
+      display: grid;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .step {
+      display: grid;
+      grid-template-columns: 90px 1fr;
+      gap: 1rem;
+      align-items: start;
+      padding: 1.25rem;
+      border-radius: 22px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: var(--shadow);
+    }
+
+    .step-num {
+      width: 72px;
+      height: 72px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, rgba(255, 153, 0, 0.18), rgba(56, 189, 248, 0.18));
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      display: grid;
+      place-items: center;
+      font-size: 1.1rem;
+      font-weight: 900;
+      color: #fff;
+    }
+
+    .step h3 {
+      margin-bottom: 0.55rem;
+      font-size: 1.2rem;
+    }
+
+    .step ul {
+      margin: 0.3rem 0 0;
+      padding-left: 1.1rem;
+      color: #dbe4f0;
+    }
+
+    .step li + li {
+      margin-top: 0.4rem;
+    }
+
+    .highlight {
+      color: #ffd28a;
+      font-weight: 700;
+    }
+
+    /* ── Screenshots ── */
+    .screenshot-gallery {
+      display: grid;
+      gap: 0.8rem;
+      margin-top: 1rem;
+    }
+
+    .screenshot-gallery.cols-2 {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .screenshot-fig {
+      margin: 0;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(2, 6, 23, 0.5);
+    }
+
+    .screenshot-fig img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .screenshot-fig figcaption {
+      padding: 0.6rem 0.8rem;
+      color: var(--muted);
+      font-size: 0.84rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    /* ── Callouts ── */
+    .insight {
+      padding: 1.15rem 1.2rem;
+      border-left: 4px solid var(--accent);
+      border-radius: 16px;
+      background: rgba(255, 153, 0, 0.08);
+      color: #fde7c2;
+    }
+
+    .info {
+      border-left-color: var(--accent-2);
+      background: rgba(56, 189, 248, 0.08);
+      color: #d8f3ff;
+    }
+
+    .warn {
+      border-left-color: var(--warn);
+      background: rgba(245, 158, 11, 0.08);
+      color: #fde7c2;
+    }
+
+    /* ── Checklist ── */
+    .checklist {
+      display: grid;
+      gap: 0.7rem;
+      margin-top: 1rem;
+    }
+
+    .check {
+      display: flex;
+      gap: 0.75rem;
+      align-items: flex-start;
+      padding: 0.9rem 1rem;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+    }
+
+    .check-mark {
+      flex: 0 0 auto;
+      width: 28px;
+      height: 28px;
+      display: grid;
+      place-items: center;
+      border-radius: 999px;
+      background: rgba(34, 197, 94, 0.15);
+      color: #86efac;
+      font-weight: 800;
+    }
+
+    /* ── Code ── */
+    code {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 0.15rem 0.4rem;
+      border-radius: 6px;
+      font-size: 0.9em;
+      font-family: "Cascadia Code", "Fira Code", monospace;
+    }
+
+    pre {
+      background: rgba(2, 6, 23, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 14px;
+      padding: 1rem 1.1rem;
+      overflow-x: auto;
+      margin: 0.9rem 0 0.2rem;
+      box-shadow: var(--shadow);
+    }
+
+    pre code {
+      background: transparent;
+      padding: 0;
+      border-radius: 0;
+      font-size: 0.86rem;
+      color: #e2e8f0;
+      line-height: 1.55;
+    }
+
+    /* ── Footer ── */
+    .footer {
+      padding: 2.2rem 0 3.5rem;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    /* ── Custom for incident response ── */
+    .incident-card {
+      padding: 1.3rem 1.4rem;
+      border-radius: 20px;
+      background: rgba(248, 113, 113, 0.08);
+      border: 1px solid rgba(248, 113, 113, 0.2);
+      box-shadow: var(--shadow);
+    }
+
+    .incident-card h3 {
+      font-size: 1.05rem;
+      margin-bottom: 0.7rem;
+      color: #fda4af;
+    }
+
+    .incident-grid {
+      display: grid;
+      grid-template-columns: 140px 1fr;
+      gap: 0.4rem 1rem;
+      color: #fee2e2;
+      font-size: 0.95rem;
+    }
+
+    .incident-grid dt {
+      color: #fda4af;
+      font-weight: 700;
+    }
+
+    .incident-grid dd {
+      margin: 0;
+    }
+
+    .verdict {
+      padding: 1.4rem 1.5rem;
+      border-radius: 20px;
+      background: linear-gradient(180deg, rgba(248, 113, 113, 0.12), rgba(248, 113, 113, 0.04));
+      border: 1px solid rgba(248, 113, 113, 0.28);
+      box-shadow: var(--shadow);
+      margin-top: 1rem;
+    }
+
+    .verdict h3 {
+      color: #fecaca;
+      font-size: 1.15rem;
+      margin-bottom: 0.6rem;
+    }
+
+    .verdict-list {
+      margin: 0.4rem 0 0;
+      padding-left: 1.1rem;
+      color: #fee2e2;
+    }
+
+    .verdict-list li + li {
+      margin-top: 0.35rem;
+    }
+
+    .verdict-list code {
+      background: rgba(248, 113, 113, 0.16);
+      color: #fecaca;
+    }
+
+    /* IR checklist for remediation */
+    .ir-check .check-mark {
+      background: rgba(248, 113, 113, 0.18);
+      color: #fda4af;
+    }
+
+    /* Tables (used for comparisons) */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 0.6rem;
+      font-size: 0.92rem;
+    }
+
+    th, td {
+      text-align: left;
+      padding: 0.6rem 0.8rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      color: #dbe4f0;
+    }
+
+    th {
+      color: #ffd28a;
+      font-weight: 700;
+      background: rgba(255, 153, 0, 0.06);
+    }
+
+    /* Bounded viewport for tall screenshots */
+    .screenshot-fig.bounded img {
+      max-height: 560px;
+      width: auto;
+      max-width: 100%;
+      margin: 0 auto;
+    }
+
+    .screenshot-fig.bounded {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 920px) {
+
+      .hero-grid,
+      .grid-3,
+      .grid-2,
+      .screenshot-gallery.cols-2 {
+        grid-template-columns: 1fr;
+      }
+
+      .incident-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 680px) {
+      .nav-inner {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .step {
+        grid-template-columns: 1fr;
+      }
+
+      .step-num {
+        width: 60px;
+        height: 60px;
+        border-radius: 16px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <nav class="nav">
+    <div class="container nav-inner">
+      <div class="brand">
+        <div class="brand-badge">AWS</div>
+        <div>Lab Report · Seguridad</div>
+      </div>
+      <div class="nav-links">
+        <a href="../index.html" class="back-link">← All Labs</a>
+        <a href="#summary">Summary</a>
+        <a href="#incident">Incident</a>
+        <a href="#walkthrough">Walkthrough</a>
+        <a href="#commands">Commands</a>
+        <a href="#learnings">Learnings</a>
+      </div>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <div class="container hero-grid">
+      <div class="panel hero-main">
+        <div class="eyebrow">AWS re/Start Lab · Seguridad · CloudTrail</div>
+        <h1>Working with AWS CloudTrail</h1>
+        <p>
+          A defacement on the Café web server triggers a full incident response cycle: enable CloudTrail,
+          analyze logs with <strong>grep</strong>, the <strong>AWS CLI</strong> and <strong>Amazon Athena</strong>,
+          identify the IAM user behind the attack, and remediate both the AWS account and the EC2 instance.
+        </p>
+      </div>
+
+      <aside class="panel hero-side">
+        <div class="callout">
+          <strong>Lab Objective</strong>
+          Audit account activity with CloudTrail, identify the culprit of a website defacement, and harden
+          the security group, the OS and the IAM user inventory.
+        </div>
+
+        <div>
+          <div class="small" style="margin-bottom:0.7rem;">Tools & Concepts</div>
+          <div class="tech-stack">
+            <span class="chip">CloudTrail</span>
+            <span class="chip">Athena (SQL on S3)</span>
+            <span class="chip">EC2 + Security Groups</span>
+            <span class="chip">IAM</span>
+            <span class="chip">grep / AWS CLI</span>
+            <span class="chip">sshd_config hardening</span>
+          </div>
+        </div>
+
+        <div class="callout" style="border-color: rgba(34,197,94,0.2); background: rgba(34,197,94,0.08);">
+          <strong>Key Insight</strong>
+          CloudTrail only captures what happens <em>after</em> the trail is enabled. The lab proves
+          why every account needs a trail on day zero — without it, the API call that opened port 22
+          to the world would have left no trace.
+        </div>
+      </aside>
+    </div>
+  </header>
+
+  <main>
+    <section id="summary">
+      <div class="container">
+        <h2 class="section-title">Lab Summary</h2>
+        <p class="section-subtitle">
+          Investigated and remediated a real defacement on the Café Web Server. CloudTrail was enabled
+          before the attack happened, so the audit trail captured the unauthorized API call. After
+          escalating from <span class="highlight">grep</span> on raw JSON logs to
+          <span class="highlight">AWS CLI lookup-events</span> to <span class="highlight">Athena SQL queries</span>,
+          the attacker (IAM user <code>chaos</code>) and the rogue OS account (<code>chaos-user</code>) were
+          identified, removed, and the security group was restored to a safe baseline.
+        </p>
+
+        <div class="grid-2" style="margin-top:1rem;">
+          <article class="card">
+            <h3>Detection</h3>
+            <p>Enabled a CloudTrail trail named <code>monitor</code> storing logs in S3 (KMS-encrypted).
+              Within a minute the Café website was defaced — and every API call leading to it was logged.</p>
+          </article>
+          <article class="card">
+            <h3>Triage at three levels</h3>
+            <p>Used <strong>grep</strong> on the raw JSON, then <strong>AWS CLI</strong> filters by
+              <code>ResourceType=AWS::EC2::SecurityGroup</code>, and finally an
+              <strong>Athena</strong> SQL query that surfaced the attacker in seconds.</p>
+          </article>
+          <article class="card">
+            <h3>Remediation</h3>
+            <p>Killed the active <code>chaos-user</code> SSH session, deleted the OS account, removed the
+              rogue inbound rule <code>SSH/22 0.0.0.0/0</code>, disabled SSH password authentication, and
+              deleted the IAM user <code>chaos</code>.</p>
+          </article>
+          <article class="card">
+            <h3>Recovery</h3>
+            <p>Restored the original <code>Coffee-and-Pastries.jpg</code> from the backup file the attacker
+              left behind in <code>/var/www/html/cafe/images/</code>.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="incident">
+      <div class="container">
+        <h2 class="section-title">Incident Snapshot</h2>
+        <p class="section-subtitle">
+          Sofía's investigation kicks off after Martha and Frank notice the homepage was modified.
+          Initial evidence before any analysis:
+        </p>
+
+        <div class="grid-2" style="margin-top:1rem;">
+          <div class="incident-card">
+            <h3>Initial Findings</h3>
+            <dl class="incident-grid">
+              <dt>Asset</dt>
+              <dd>EC2 instance <code>Café Web Server</code> (WebSecurityGroup)</dd>
+              <dt>Symptom</dt>
+              <dd>Bakery photo replaced by a cartoon monkey wearing "Be Cool" sunglasses</dd>
+              <dt>SG state</dt>
+              <dd>Unauthorized inbound rule: <code>SSH/22 0.0.0.0/0</code></dd>
+              <dt>Open questions</dt>
+              <dd>Who did it? When? From which IP? Console or API?</dd>
+            </dl>
+          </div>
+
+          <div class="incident-card">
+            <h3>Investigative Plan</h3>
+            <ul style="margin: 0; padding-left: 1.1rem; color: #fee2e2;">
+              <li>Enable CloudTrail <strong>before</strong> looking at any other evidence — capture future activity.</li>
+              <li>Download the CloudTrail logs from S3 onto the web server itself and inspect them with <code>grep</code>.</li>
+              <li>Narrow the search with <code>aws cloudtrail lookup-events</code> filtered by resource type.</li>
+              <li>Move to Athena once filtering with the CLI becomes tedious.</li>
+              <li>Contain, eradicate, recover — in that order.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="walkthrough">
+      <div class="container">
+        <h2 class="section-title">Incident Timeline</h2>
+        <p class="section-subtitle">
+          Documented chronologically by phase of the incident, not by AWS service. Each step shows the
+          actual commands executed and the evidence captured.
+        </p>
+
+        <div class="timeline">
+
+          <!-- ══════ TASK 1 — Hardening previo ══════ -->
+          <article class="step">
+            <div class="step-num">01</div>
+            <div>
+              <h3>Pre-incident hardening — SSH restricted to "My IP"</h3>
+              <ul>
+                <li>Located the <strong>Café Web Server</strong> instance and opened its security group.</li>
+                <li>The SG started with a single inbound rule: <strong>HTTP/80</strong> from anywhere — expected for a public website.</li>
+                <li>Added an inbound rule for <strong>SSH/22</strong> with source <strong>My IP</strong>, so the CIDR was a <code>/32</code>, not <code>0.0.0.0/0</code>. This becomes important later: anything wider than <code>/32</code> on port 22 is a red flag.</li>
+                <li>Browsed <code>http://&lt;WebServerIP&gt;/cafe/</code> to confirm the site rendered normally. Baseline established.</li>
+              </ul>
+
+              <div class="insight info" style="margin-top:1rem;">
+                <strong>Why this matters:</strong> Confirming the baseline before enabling CloudTrail means
+                anything detected afterwards is signal, not noise from the initial setup.
+              </div>
+            </div>
+          </article>
+
+          <!-- ══════ TASK 2 — Enable CloudTrail + defacement ══════ -->
+          <article class="step">
+            <div class="step-num">02</div>
+            <div>
+              <h3>Enable CloudTrail and observe the defacement</h3>
+              <ul>
+                <li>From the CloudTrail console, created a trail with the <strong>exact</strong> name <code>monitor</code> (the lab depends on this name).</li>
+                <li>Storage: new S3 bucket <code>monitoring####</code> (four random digits, in this run <code>monitoring0423</code>).</li>
+                <li>Encryption: a new KMS alias of the form <code>&lt;initials&gt;-KMS</code>.</li>
+                <li>Log events: kept the default (management events), then created the trail.</li>
+                <li>Returned to the Café browser tab, did a hard refresh (Shift + reload). After about a minute the bakery cake photo was replaced by a monkey illustration. The site had been defaced.</li>
+              </ul>
+
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/01-cafe-hacked.png" alt="Café website defaced with monkey illustration" loading="lazy" />
+                  <figcaption>Café site after the hack: the original cake photo is still there, but a cartoon monkey image with "Be Cool" lettering was injected next to it. The trigger for the investigation.</figcaption>
+                </figure>
+              </div>
+
+              <ul style="margin-top:1rem;">
+                <li>Back in the EC2 console → Security tab → the SG now had a <strong>second</strong> inbound rule: <code>SSH/22</code> from <code>0.0.0.0/0</code>. Not added by the operator.</li>
+                <li>The attack chain was now visible at two layers: a static asset under <code>/var/www</code> was swapped, and the SG was modified through the AWS control plane.</li>
+              </ul>
+
+              <div class="insight warn" style="margin-top:1rem;">
+                <strong>Gotcha:</strong> CloudTrail delivers events to S3 in roughly 5-minute batches. The
+                attack happens fast; the evidence shows up later. Don't panic if the bucket is empty for a
+                few minutes after enabling the trail.
+              </div>
+            </div>
+          </article>
+
+          <!-- ══════ TASK 3 — grep + AWS CLI ══════ -->
+          <article class="step">
+            <div class="step-num">03</div>
+            <div>
+              <h3>First-pass analysis with <code>grep</code> and the AWS CLI</h3>
+              <ul>
+                <li>SSH'd into the Café Web Server as <code>ec2-user</code> (using the <code>/32</code> rule added earlier — note the irony of investigating from inside the compromised instance).</li>
+                <li>Created a working directory and downloaded the entire trail bucket recursively:</li>
+              </ul>
+
+<pre><code>mkdir ctraillogs && cd ctraillogs
+aws s3 ls
+aws s3 cp s3://monitoring0423/ . --recursive
+# Logs land in AWSLogs/&lt;account-num&gt;/CloudTrail/&lt;Region&gt;/&lt;yyyy&gt;/&lt;mm&gt;/&lt;dd&gt;/
+cd AWSLogs/.../...
+gunzip *.gz
+</code></pre>
+
+              <ul style="margin-top:0.8rem;">
+                <li>Inspected one entry to learn the schema (each event is a single JSON document):</li>
+              </ul>
+
+<pre><code>cat &lt;filename&gt;.json | python -m json.tool
+</code></pre>
+
+              <p class="small" style="margin-top:0.6rem;">
+                Standard fields surfaced: <code>awsRegion</code>, <code>eventName</code>, <code>eventSource</code>,
+                <code>eventTime</code>, <code>requestParameters</code>, <code>sourceIPAddress</code>,
+                <code>userIdentity</code>.
+              </p>
+
+              <ul style="margin-top:0.6rem;">
+                <li>Filtered all events by <code>sourceIPAddress</code> and <code>eventName</code> across every file with a bash <code>for</code> loop:</li>
+              </ul>
+
+<pre><code>for i in $(ls); do echo $i && cat $i | python -m json.tool | grep sourceIPAddress; done
+for i in $(ls); do echo $i && cat $i | python -m json.tool | grep eventName; done
+</code></pre>
+
+              <p style="margin-top:0.6rem;">
+                The output was noisy — a flood of <code>Describe*</code>, <code>List*</code> and the occasional
+                <code>Update*</code> action. Useful to confirm the trail was working, but not enough to
+                pinpoint the attacker. Time to switch tools.
+              </p>
+
+              <ul style="margin-top:0.6rem;">
+                <li>Moved to the AWS CLI's CloudTrail lookup, filtered by resource type and then by the specific SG ID:</li>
+              </ul>
+
+<pre><code># Discover region from the EC2 instance metadata service
+region=$(curl http://169.254.169.254/latest/dynamic/instance-identity/document \
+  | grep region | cut -d '"' -f4)
+
+# Resolve the SG ID of the Café Web Server by tag
+sgId=$(aws ec2 describe-instances \
+  --filters "Name=tag:Name,Values='Cafe Web Server'" \
+  --query 'Reservations[*].Instances[*].SecurityGroups[*].[GroupId]' \
+  --region $region --output text)
+echo $sgId
+
+# Console logins on the account (returned essentially just the current user)
+aws cloudtrail lookup-events \
+  --lookup-attributes AttributeKey=EventName,AttributeValue=ConsoleLogin
+
+# All actions on any SG, then narrowed to the Café SG
+aws cloudtrail lookup-events \
+  --lookup-attributes AttributeKey=ResourceType,AttributeValue=AWS::EC2::SecurityGroup \
+  --region $region --output text | grep $sgId
+</code></pre>
+
+              <div class="insight info" style="margin-top:1rem;">
+                <strong>Observation:</strong> The <code>ConsoleLogin</code> filter returned almost nothing
+                interesting. That's already a clue — if there's no rogue console login, the attacker likely
+                used programmatic access (an API key, not a browser).
+              </div>
+
+              <p style="margin-top:0.8rem;">
+                The CLI lookups returned useful but still hard-to-read text blocks. For a wider search across
+                fields like <code>useridentity.userName</code>, SQL on Athena is the better tool.
+              </p>
+            </div>
+          </article>
+
+          <!-- ══════ TASK 4 — Athena (the breakthrough) ══════ -->
+          <article class="step">
+            <div class="step-num">04</div>
+            <div>
+              <h3>Breakthrough — Athena SQL over the CloudTrail logs</h3>
+              <ul>
+                <li>From the CloudTrail console → Event history → <strong>Create Athena table</strong>, pointing at the same <code>monitoring0423</code> bucket. Athena generated a <code>CREATE EXTERNAL TABLE</code> that maps each JSON field to a column. The <code>useridentity</code> column is a <strong>struct</strong>, and <code>resources</code> is an <strong>array</strong>.</li>
+                <li>In the Athena Query Editor, set the query results location to <code>s3://monitoring0423/results/</code> under Settings → Manage.</li>
+                <li>Started with a small exploratory query:</li>
+              </ul>
+
+<pre><code>SELECT useridentity.userName, eventtime, eventsource, eventname, requestparameters
+FROM cloudtrail_logs_monitoring0423
+LIMIT 30;
+</code></pre>
+
+              <p style="margin-top:0.6rem;">
+                Useful for understanding the column layout. Not enough to find the culprit. Followed the
+                challenge hints and built up the filter step by step until landing on the query that
+                solved the case:
+              </p>
+
+<pre><code>SELECT DISTINCT useridentity.userName, eventName, eventSource
+FROM cloudtrail_logs_monitoring0423
+WHERE from_iso8601_timestamp(eventtime) &gt; date_add('day', -1, now())
+ORDER BY eventSource;
+</code></pre>
+
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/02-athena-query-editor.png" alt="Athena query editor running the DISTINCT users query" loading="lazy" />
+                  <figcaption>Athena: 83 rows returned in 652&nbsp;ms over 106.99&nbsp;KB scanned. The query lists every user active in the last day and the distinct actions they ran — the row that revealed the attacker is below the visible viewport.</figcaption>
+                </figure>
+              </div>
+
+              <p style="margin-top:0.8rem;">
+                Two complementary filters made the answer obvious. A tighter version using
+                <code>WHERE eventsource = 'ec2.amazonaws.com' AND eventname LIKE '%Security%'</code>
+                isolates only SG-related EC2 events, and the unauthorized
+                <code>AuthorizeSecurityGroupIngress</code> stands out clearly with a <code>userName</code>
+                that is <strong>not</strong> the current operator.
+              </p>
+
+              <div class="verdict">
+                <h3>Verdict — who did it</h3>
+                <ul class="verdict-list">
+                  <li><strong>IAM user:</strong> <code>chaos</code></li>
+                  <li><strong>API action:</strong> <code>ec2:AuthorizeSecurityGroupIngress</code> against the Café Web Server SG</li>
+                  <li><strong>Access method:</strong> programmatic (no console login event matched the same user)</li>
+                  <li><strong>Time &amp; source IP:</strong> captured in the row's <code>eventtime</code> and <code>sourceIPAddress</code> columns inside the Athena result set</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <!-- ══════ TASK 5 — Containment & remediation ══════ -->
+          <article class="step">
+            <div class="step-num">05</div>
+            <div>
+              <h3>Containment, eradication and recovery</h3>
+              <p>
+                Identification was only step one. The remediation is the part that actually stops the
+                bleeding — and it has to happen across <strong>three different layers</strong>: the OS, the
+                IAM control plane, and the static content of the website.
+              </p>
+
+              <h4 style="margin-top:1rem; color:#ffd28a; letter-spacing:-0.02em;">5.1 — Evict the OS attacker</h4>
+              <ul>
+                <li><code>sudo aureport --auth</code> confirmed an unknown account <code>chaos-user</code> had recent auth records.</li>
+                <li><code>who</code> showed <code>chaos-user</code> was <strong>still logged in</strong> over SSH.</li>
+                <li>First <code>sudo userdel -r chaos-user</code> failed — the user was active — but the error returned the live PID.</li>
+                <li><code>sudo kill -9 &lt;PID&gt;</code> dropped the session, then <code>sudo userdel -r chaos-user</code> succeeded.</li>
+                <li><code>sudo cat /etc/passwd | grep -v nologin</code> confirmed only standard Amazon Linux accounts (<code>root</code>, <code>sync</code>, <code>shutdown</code>, <code>halt</code>, <code>ec2-user</code>) remained.</li>
+              </ul>
+
+              <h4 style="margin-top:1rem; color:#ffd28a; letter-spacing:-0.02em;">5.2 — Harden SSH</h4>
+              <ul>
+                <li><code>sudo ls -l /etc/ssh/sshd_config</code> showed the file had been modified <strong>today</strong> — also part of the attack.</li>
+                <li>Edited <code>/etc/ssh/sshd_config</code> in vi:</li>
+              </ul>
+
+<pre><code># Before
+PasswordAuthentication yes
+#PasswordAuthentication no
+
+# After
+#PasswordAuthentication yes
+PasswordAuthentication no
+</code></pre>
+
+              <ul style="margin-top:0.4rem;">
+                <li>Restarted the daemon with <code>sudo service sshd restart</code>. From now on, only key-pair authentication is accepted — a guessed/leaked password is no longer enough.</li>
+              </ul>
+
+              <h4 style="margin-top:1rem; color:#ffd28a; letter-spacing:-0.02em;">5.3 — Close the network door</h4>
+              <p>
+                Removed the rogue inbound rule <code>SSH/22 0.0.0.0/0</code> from the Café Web Server SG.
+                Only the original <code>HTTP/80</code> and the <code>SSH/22</code> from <code>/32</code> remained:
+              </p>
+
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/03-inbound-rule-removed.png" alt="Security group inbound rules after removing 0.0.0.0/0" loading="lazy" />
+                  <figcaption>SG inbound rules after remediation: HTTP/80 and SSH/22 only. The <code>0.0.0.0/0</code> rule that <code>chaos</code> added via <code>AuthorizeSecurityGroupIngress</code> is gone.</figcaption>
+                </figure>
+              </div>
+
+              <h4 style="margin-top:1rem; color:#ffd28a; letter-spacing:-0.02em;">5.4 — Restore the website</h4>
+              <p>
+                The attacker conveniently kept a backup of the original image:
+              </p>
+
+<pre><code>cd /var/www/html/cafe/images/
+ls -l
+sudo mv Coffee-and-Pastries.backup Coffee-and-Pastries.jpg
+</code></pre>
+
+              <p style="margin-top:0.5rem;">
+                A hard refresh of the Café URL showed the legitimate bakery photo again.
+              </p>
+
+              <h4 style="margin-top:1rem; color:#ffd28a; letter-spacing:-0.02em;">5.5 — Remove the IAM user</h4>
+              <ul>
+                <li>IAM console → Users → selected <code>chaos</code> → Delete (typed the user name to confirm).</li>
+                <li>Result: only <code>awsstudent</code> remained as the active IAM user.</li>
+              </ul>
+
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/04-iam-user-chaos-deleted.png" alt="IAM Users page showing chaos user deleted" loading="lazy" />
+                  <figcaption>IAM Users after cleanup: green confirmation banner "User 'chaos' deleted" and only <code>awsstudent</code> remains. The credentials used to run <code>AuthorizeSecurityGroupIngress</code> no longer exist.</figcaption>
+                </figure>
+              </div>
+
+              <div class="insight info" style="margin-top:1rem;">
+                <strong>Order matters:</strong> evict the OS session first, <em>then</em> harden SSH,
+                <em>then</em> close the SG. Doing it in reverse order risks locking yourself out before
+                the attacker is actually gone.
+              </div>
+            </div>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+    <section id="commands">
+      <div class="container">
+        <h2 class="section-title">Command Reference</h2>
+        <p class="section-subtitle">
+          Quick reference of the tools and queries used during the investigation, grouped by purpose.
+        </p>
+
+        <div class="timeline">
+
+          <article class="step">
+            <div class="step-num" style="font-size:0.85rem;">log</div>
+            <div>
+              <h3>Downloading and inspecting CloudTrail logs from EC2</h3>
+              <ul>
+                <li><code>aws s3 ls</code> — list buckets to recover the <code>monitoring####</code> name.</li>
+                <li><code>aws s3 cp s3://monitoring0423/ . --recursive</code> — pull every object from the trail bucket.</li>
+                <li><code>gunzip *.gz</code> — CloudTrail writes each event batch as a gzipped JSON file.</li>
+                <li><code>cat &lt;file&gt;.json | python -m json.tool</code> — pretty-print one event to learn the schema.</li>
+              </ul>
+            </div>
+          </article>
+
+          <article class="step">
+            <div class="step-num" style="font-size:0.85rem;">grep</div>
+            <div>
+              <h3>Cross-file filtering with bash + grep</h3>
+              <ul>
+                <li>Iterate every JSON file in the current directory and print the field of interest:</li>
+              </ul>
+<pre><code>for i in $(ls); do
+  echo $i
+  cat $i | python -m json.tool | grep sourceIPAddress
+done
+</code></pre>
+              <p class="small" style="margin-top:0.4rem;">
+                Same pattern works for <code>eventName</code>, <code>userIdentity</code>, etc. Useful for a
+                first pass; breaks down once the logs grow into thousands of events.
+              </p>
+            </div>
+          </article>
+
+          <article class="step">
+            <div class="step-num" style="font-size:0.85rem;">cli</div>
+            <div>
+              <h3>AWS CLI — <code>cloudtrail lookup-events</code></h3>
+              <ul>
+                <li>By event name:
+<pre><code>aws cloudtrail lookup-events \
+  --lookup-attributes AttributeKey=EventName,AttributeValue=ConsoleLogin
+</code></pre>
+                </li>
+                <li>By resource type, scoped to a region:
+<pre><code>aws cloudtrail lookup-events \
+  --lookup-attributes AttributeKey=ResourceType,AttributeValue=AWS::EC2::SecurityGroup \
+  --region $region --output text
+</code></pre>
+                </li>
+                <li>Narrow to a specific SG by piping into <code>grep</code>:
+<pre><code>aws cloudtrail lookup-events \
+  --lookup-attributes AttributeKey=ResourceType,AttributeValue=AWS::EC2::SecurityGroup \
+  --region $region --output text | grep $sgId
+</code></pre>
+                </li>
+                <li>Region discovered straight from the IMDS on the EC2 instance:
+<pre><code>region=$(curl http://169.254.169.254/latest/dynamic/instance-identity/document \
+  | grep region | cut -d '"' -f4)
+</code></pre>
+                <p class="small" style="margin-top:0.3rem;">
+                  Note: this is IMDSv1. In production, IMDSv2 (token-based) is the secure default.
+                </p>
+                </li>
+              </ul>
+            </div>
+          </article>
+
+          <article class="step">
+            <div class="step-num" style="font-size:0.85rem;">sql</div>
+            <div>
+              <h3>Athena — SQL over CloudTrail</h3>
+              <p>
+                Once Athena was pointed at the CloudTrail bucket, the same investigation became a series
+                of declarative queries instead of bash plumbing.
+              </p>
+<pre><code>-- Explore the schema
+SELECT useridentity.userName, eventtime, eventsource, eventname, requestparameters
+FROM cloudtrail_logs_monitoring0423
+LIMIT 30;
+
+-- All users active in the last day and the distinct actions they took
+SELECT DISTINCT useridentity.userName, eventName, eventSource
+FROM cloudtrail_logs_monitoring0423
+WHERE from_iso8601_timestamp(eventtime) &gt; date_add('day', -1, now())
+ORDER BY eventSource;
+
+-- Tight filter: only EC2 SG-related events
+SELECT useridentity.userName, eventtime, eventname, sourceIPAddress
+FROM cloudtrail_logs_monitoring0423
+WHERE eventsource = 'ec2.amazonaws.com'
+  AND eventname LIKE '%Security%'
+ORDER BY eventtime DESC;
+</code></pre>
+            </div>
+          </article>
+
+          <article class="step">
+            <div class="step-num" style="font-size:0.85rem;">os</div>
+            <div>
+              <h3>OS-level eviction and hardening</h3>
+              <ul>
+                <li><code>sudo aureport --auth</code> — recent authentication records.</li>
+                <li><code>who</code> — currently logged-in sessions.</li>
+                <li><code>sudo userdel -r chaos-user</code> — delete OS user and home directory.</li>
+                <li><code>sudo kill -9 &lt;PID&gt;</code> — terminate the live session before delete.</li>
+                <li><code>sudo cat /etc/passwd | grep -v nologin</code> — verify no other login-capable users remain.</li>
+                <li><code>sudo vi /etc/ssh/sshd_config</code> → set <code>PasswordAuthentication no</code>.</li>
+                <li><code>sudo service sshd restart</code> — apply the change.</li>
+              </ul>
+            </div>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+    <section id="learnings">
+      <div class="container">
+        <h2 class="section-title">Key Learnings</h2>
+        <div class="grid-2">
+          <div class="card">
+            <h3>What the lab actually proved</h3>
+            <div class="checklist">
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div><strong>CloudTrail must be on from day zero.</strong> If the trail had been enabled <em>after</em> the attack, the <code>AuthorizeSecurityGroupIngress</code> call would have left no trace and the attacker would never have been identified.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div><strong>Right tool for the data size.</strong> <code>grep</code> works for a handful of files, <code>aws cloudtrail lookup-events</code> for targeted filters, and Athena once the dataset stops fitting in your terminal. Each is a step up in expressiveness.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div><strong>SSH from <code>/32</code> only.</strong> Any rule wider than <code>/32</code> on port 22 is an instant red flag in this account model — exactly how the rogue rule was spotted by visual inspection of the SG.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div><strong>Disable <code>PasswordAuthentication</code>.</strong> Even with a tight SG, an instance accepting password-based SSH is one credential leak away from compromise. Key-pair only is non-negotiable.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div><strong>Containment order matters.</strong> Kill the live session before deleting the OS user; delete the OS user before tightening the SG; delete the IAM user once everything else is sealed. Reverse the order and you risk evicting yourself.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Technical conclusion</h3>
+            <p>
+              The lab is a compressed end-to-end IR cycle: <strong>detect → triage → identify →
+              contain → eradicate → recover</strong>. The attacker's footprint touched both the
+              AWS control plane (an unauthorized API call against the SG) and the instance OS
+              (a rogue account plus a modified <code>sshd_config</code>). Neither half makes
+              sense in isolation — defending only the SG would have left the OS open; cleaning
+              only the OS would have left the SG hole behind for the next attacker.
+            </p>
+            <p style="margin-top: 1rem;">
+              The most valuable takeaway is not any single command but the realization that
+              auditability is a <em>prerequisite</em> for investigation, not a feature added
+              afterwards. CloudTrail is essentially free; not running it is the actual cost.
+            </p>
+            <p style="margin-top: 1rem;">
+              Athena is also more than a convenience: scanning ~107&nbsp;KB in 652&nbsp;ms
+              with a single SQL query against the same JSON files that took multiple bash
+              loops to skim shows why log analytics belongs in a query engine, not in a
+              terminal pager.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      Lab report documenting the AWS CloudTrail incident response activity · AWS re/Start Program
+    </div>
+  </footer>
+</body>
+
+</html>

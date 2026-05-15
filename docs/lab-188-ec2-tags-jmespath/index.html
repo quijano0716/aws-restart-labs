@@ -1,0 +1,1014 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lab Report: Managing Resources with Tagging</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --bg-soft: #111827;
+      --card: rgba(255, 255, 255, 0.08);
+      --card-strong: rgba(255, 255, 255, 0.12);
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --accent: #ff9900;
+      --accent-2: #38bdf8;
+      --ok: #22c55e;
+      --warn: #f59e0b;
+      --danger: #ef4444;
+      --border: rgba(255, 255, 255, 0.12);
+      --shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+      --radius: 22px;
+      --max: 1120px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(255, 153, 0, 0.16), transparent 28%),
+        radial-gradient(circle at top right, rgba(56, 189, 248, 0.14), transparent 24%),
+        linear-gradient(180deg, #020617 0%, #0f172a 48%, #111827 100%);
+      color: var(--text);
+      line-height: 1.65;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    .container {
+      width: min(var(--max), calc(100% - 2rem));
+      margin: 0 auto;
+    }
+
+    /* ── Nav ── */
+    .nav {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      backdrop-filter: blur(16px);
+      background: rgba(2, 6, 23, 0.72);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .nav-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.9rem 0;
+      gap: 1rem;
+    }
+
+    .brand {
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+    }
+
+    .brand-badge {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, var(--accent), #ffb84d);
+      color: #111827;
+      font-weight: 900;
+      box-shadow: var(--shadow);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .nav-links a:hover { color: var(--text); }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      color: var(--muted);
+      font-size: 0.9rem;
+      transition: color 0.2s;
+    }
+
+    .back-link:hover { color: var(--accent); }
+
+    /* ── Hero ── */
+    .hero { padding: 4.8rem 0 2rem; }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 1.5rem;
+      align-items: stretch;
+    }
+
+    .panel {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.05));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .hero-main { padding: 2rem; }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.45rem 0.8rem;
+      border-radius: 999px;
+      background: rgba(255, 153, 0, 0.12);
+      color: #ffd28a;
+      border: 1px solid rgba(255, 153, 0, 0.25);
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+    }
+
+    h1, h2, h3 {
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+      margin: 0;
+    }
+
+    h1 {
+      font-size: clamp(2rem, 4vw, 3.7rem);
+      margin-bottom: 0.9rem;
+    }
+
+    .hero-main p {
+      margin: 0;
+      color: #cbd5e1;
+      font-size: 1.05rem;
+      max-width: 65ch;
+    }
+
+    .hero-side {
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .hero-side .callout {
+      padding: 1rem 1.1rem;
+      border-radius: 18px;
+      border: 1px solid rgba(56, 189, 248, 0.18);
+      background: rgba(56, 189, 248, 0.08);
+    }
+
+    .hero-side .callout strong {
+      display: block;
+      margin-bottom: 0.35rem;
+    }
+
+    .tech-stack {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.55rem;
+    }
+
+    .chip {
+      padding: 0.45rem 0.75rem;
+      border-radius: 999px;
+      font-size: 0.88rem;
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #dbeafe;
+    }
+
+    .small {
+      font-size: 0.92rem;
+      color: var(--muted);
+    }
+
+    /* ── Sections ── */
+    section { padding: 1rem 0 0.4rem; }
+
+    .section-title {
+      margin-bottom: 1rem;
+      font-size: clamp(1.5rem, 2vw, 2.2rem);
+    }
+
+    .section-subtitle {
+      color: var(--muted);
+      margin-top: 0.45rem;
+      max-width: 75ch;
+    }
+
+    /* ── Grids ── */
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .card {
+      padding: 1.3rem;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+    }
+
+    .card h3 {
+      font-size: 1.05rem;
+      margin-bottom: 0.6rem;
+    }
+
+    .card p {
+      margin: 0;
+      color: #cbd5e1;
+    }
+
+    /* ── Code Display ── */
+    .code-block-wrapper {
+      margin: 1.2rem 0;
+      background: #020617;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .code-header {
+      background: rgba(255, 255, 255, 0.06);
+      padding: 0.5rem 1rem;
+      font-size: 0.85rem;
+      color: var(--muted);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      font-family: monospace;
+    }
+
+    .code-block {
+      padding: 1.2rem;
+      margin: 0;
+      overflow-x: auto;
+      color: #e2e8f0;
+      font-family: "Cascadia Code", "Fira Code", monospace;
+      font-size: 0.9rem;
+      line-height: 1.55;
+      white-space: pre;
+    }
+
+    .token-keyword { color: #818cf8; }
+    .token-string  { color: #a3e635; }
+    .token-var     { color: #f472b6; }
+    .token-comment { color: #64748b; font-style: italic; }
+    .token-command { color: #38bdf8; }
+    .token-flag    { color: #fbbf24; }
+
+    /* ── Timeline ── */
+    .timeline {
+      display: grid;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .step {
+      display: grid;
+      grid-template-columns: 90px 1fr;
+      gap: 1rem;
+      align-items: start;
+      padding: 1.25rem;
+      border-radius: 22px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: var(--shadow);
+    }
+
+    .step-num {
+      width: 72px;
+      height: 72px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, rgba(255, 153, 0, 0.18), rgba(56, 189, 248, 0.18));
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      display: grid;
+      place-items: center;
+      font-size: 1.1rem;
+      font-weight: 900;
+      color: #fff;
+    }
+
+    .step h3 {
+      margin-bottom: 0.55rem;
+      font-size: 1.2rem;
+    }
+
+    .step ul {
+      margin: 0.3rem 0 0;
+      padding-left: 1.1rem;
+      color: #dbe4f0;
+    }
+
+    .step li + li { margin-top: 0.4rem; }
+
+    .highlight {
+      color: #ffd28a;
+      font-weight: 700;
+    }
+
+    /* ── Screenshots ── */
+    .screenshot-gallery {
+      display: grid;
+      gap: 0.8rem;
+      margin-top: 1rem;
+    }
+
+    .screenshot-fig {
+      margin: 0;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(2, 6, 23, 0.5);
+    }
+
+    .screenshot-fig img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .screenshot-fig figcaption {
+      padding: 0.6rem 0.8rem;
+      color: var(--muted);
+      font-size: 0.84rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    /* Scrollable viewport for wide screenshots */
+    .screenshot-scroll {
+      max-height: 520px;
+      overflow: auto;
+    }
+
+    .screenshot-scroll img {
+      max-width: none;
+      width: auto;
+      min-width: 100%;
+    }
+
+    /* ── Callouts ── */
+    .insight {
+      padding: 1.15rem 1.2rem;
+      border-left: 4px solid var(--accent);
+      border-radius: 16px;
+      background: rgba(255, 153, 0, 0.08);
+      color: #fde7c2;
+    }
+
+    .info {
+      border-left-color: var(--accent-2);
+      background: rgba(56, 189, 248, 0.08);
+      color: #d8f3ff;
+    }
+
+    .warn-box {
+      border-left-color: var(--warn);
+      background: rgba(245, 158, 11, 0.08);
+      color: #fde68a;
+    }
+
+    /* ── Tables ── */
+    .lab-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      font-size: 0.94rem;
+    }
+
+    .lab-table th,
+    .lab-table td {
+      padding: 0.75rem 0.95rem;
+      text-align: left;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      vertical-align: top;
+    }
+
+    .lab-table th {
+      background: rgba(255, 153, 0, 0.08);
+      color: #ffd28a;
+      font-weight: 700;
+    }
+
+    .lab-table tr:last-child td { border-bottom: none; }
+    .lab-table code { white-space: nowrap; }
+
+    /* ── Checklist ── */
+    .checklist {
+      display: grid;
+      gap: 0.7rem;
+      margin-top: 1rem;
+    }
+
+    .check {
+      display: flex;
+      gap: 0.75rem;
+      align-items: flex-start;
+      padding: 0.9rem 1rem;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+    }
+
+    .check-mark {
+      flex: 0 0 auto;
+      width: 28px;
+      height: 28px;
+      display: grid;
+      place-items: center;
+      border-radius: 999px;
+      background: rgba(34, 197, 94, 0.15);
+      color: #86efac;
+      font-weight: 800;
+    }
+
+    /* ── Inline code ── */
+    code {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 0.15rem 0.4rem;
+      border-radius: 6px;
+      font-size: 0.9em;
+      font-family: "Cascadia Code", "Fira Code", monospace;
+    }
+
+    /* ── Footer ── */
+    .footer {
+      padding: 2.2rem 0 3.5rem;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 920px) {
+      .hero-grid,
+      .grid-3,
+      .grid-2 {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 680px) {
+      .nav-inner {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .step { grid-template-columns: 1fr; }
+
+      .step-num {
+        width: 60px;
+        height: 60px;
+        border-radius: 16px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <nav class="nav">
+    <div class="container nav-inner">
+      <div class="brand">
+        <div class="brand-badge">AWS</div>
+        <div>Lab Report · EC2 Tags + JMESPath</div>
+      </div>
+      <div class="nav-links">
+        <a href="../index.html" class="back-link">← All Labs</a>
+        <a href="#summary">Summary</a>
+        <a href="#scenario">Scenario</a>
+        <a href="#task1">Task 1</a>
+        <a href="#task2">Task 2</a>
+        <a href="#task3">Challenge</a>
+        <a href="#learnings">Learnings</a>
+      </div>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <div class="container hero-grid">
+      <div class="panel hero-main">
+        <div class="eyebrow">AWS re/Start Lab · EC2 + CLI</div>
+        <h1>Managing Resources with Tagging</h1>
+        <p>
+          Inventory, modify, stop and terminate Amazon EC2 instances in bulk based on tags, using
+          the AWS CLI with JMESPath queries and pre-provided scripts (Bash and PHP) running from a
+          <span class="highlight">CommandHost</span> EC2 instance. The lab also exercises a
+          <span class="highlight">tag-or-terminate</span> compliance policy as the optional challenge.
+        </p>
+      </div>
+
+      <aside class="panel hero-side">
+        <div class="callout">
+          <strong>Lab Objective</strong>
+          Use tags as the primary mechanism to identify, modify and lifecycle EC2 instances at scale
+          via the AWS CLI and SDK-based scripts.
+        </div>
+
+        <div>
+          <div class="small" style="margin-bottom:0.7rem;">Tools &amp; Concepts</div>
+          <div class="tech-stack">
+            <span class="chip">Amazon EC2</span>
+            <span class="chip">AWS CLI</span>
+            <span class="chip">JMESPath</span>
+            <span class="chip">Bash</span>
+            <span class="chip">AWS SDK for PHP</span>
+            <span class="chip">EC2 Tags</span>
+          </div>
+        </div>
+
+        <div class="callout" style="border-color: rgba(34,197,94,0.2); background: rgba(34,197,94,0.08);">
+          <strong>Key Insight</strong>
+          <code>--filter</code> narrows the result set on the AWS side, while
+          <code>--query</code> (JMESPath) reshapes the JSON locally. Combining both lets you build
+          custom inventory reports without touching the console.
+        </div>
+      </aside>
+    </div>
+  </header>
+
+  <main>
+    <section id="summary">
+      <div class="container">
+        <h2 class="section-title">Lab Summary</h2>
+        <p class="section-subtitle">
+          Connected via SSH to the <span class="highlight">CommandHost</span> EC2 instance and used the
+          AWS CLI to inspect, filter and reshape EC2 metadata using JMESPath. Bumped the
+          <code>Version</code> tag on all development instances via a small Bash script, then used
+          <code>stopinator.php</code> (AWS SDK for PHP) to stop and start instances by tag. The
+          challenge added a <span class="highlight">tag-or-terminate</span> policy: instances without
+          an <code>Environment</code> tag were terminated by <code>terminate-instances.php</code>.
+        </p>
+
+        <div class="grid-3" style="margin-top:1rem;">
+          <article class="card">
+            <h3>JMESPath scaling</h3>
+            <p>From a single field (<code>InstanceId</code>) up to a multi-field projection with
+              aliases and tag lookup, then a double tag filter.</p>
+          </article>
+          <article class="card">
+            <h3>Tag-based lifecycle</h3>
+            <p><code>stopinator.php</code> stops or starts every instance that matches a
+              <code>tag=value</code> filter across all regions.</p>
+          </article>
+          <article class="card">
+            <h3>Compliance enforcement</h3>
+            <p>Diff between "all instances in subnet" and "instances with tag X" produces the set to
+              terminate. Same logic underpins many FinOps and governance tools.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="scenario">
+      <div class="container">
+        <h2 class="section-title">Scenario</h2>
+        <p class="section-subtitle">
+          A VPC with a CommandHost in the public subnet and 8 Linux instances in a private subnet.
+          The private instances carry three custom tags that drive the entire lab.
+        </p>
+
+        <table class="lab-table">
+          <thead>
+            <tr>
+              <th>Tag</th>
+              <th>Possible values</th>
+              <th>Purpose</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>Project</code></td>
+              <td><code>ERPSystem</code>, <code>Experiment1</code></td>
+              <td>Which project the instance belongs to.</td>
+            </tr>
+            <tr>
+              <td><code>Version</code></td>
+              <td><code>1.0</code> (initial)</td>
+              <td>Version of the project the instance runs.</td>
+            </tr>
+            <tr>
+              <td><code>Environment</code></td>
+              <td><code>development</code>, <code>staging</code>, <code>production</code></td>
+              <td>Lifecycle environment. Drives stop/start and tag-or-terminate logic.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="insight info" style="margin-top:1rem;">
+          <strong>Region:</strong> The lab runs in <code>us-west-2</code>. All commands and scripts
+          are executed from the CommandHost over SSH.
+        </div>
+      </div>
+    </section>
+
+    <section id="task1">
+      <div class="container">
+        <h2 class="section-title">Task 1 — Inspect and modify tags from the AWS CLI</h2>
+        <p class="section-subtitle">
+          Progressive JMESPath: start with raw filters, narrow output, add aliases, look up tag
+          values, and finally apply a double tag filter. Then bulk-update a tag with a Bash script.
+        </p>
+
+        <div class="timeline">
+
+          <article class="step">
+            <div class="step-num">01</div>
+            <div>
+              <h3>Filter by tag, then trim the output with <code>--query</code></h3>
+              <ul>
+                <li>The unfiltered <code>describe-instances</code> output is overwhelming — most fields are not relevant for an inventory by tag.</li>
+                <li><code>--filter</code> filters server-side by tag; <code>--query</code> reshapes the JSON client-side using JMESPath.</li>
+                <li>First version: list only <code>InstanceId</code> for every instance with <code>Project=ERPSystem</code>.</li>
+              </ul>
+
+              <div class="code-block-wrapper">
+                <div class="code-header">CommandHost · AWS CLI</div>
+<pre class="code-block"><span class="token-comment"># Filter by tag and return only the instance IDs</span>
+<span class="token-command">aws</span> ec2 describe-instances \
+  <span class="token-flag">--filter</span> <span class="token-string">"Name=tag:Project,Values=ERPSystem"</span> \
+  <span class="token-flag">--query</span> <span class="token-string">'Reservations[*].Instances[*].InstanceId'</span></pre>
+              </div>
+
+              <p style="color:#cbd5e1; margin:0.4rem 0 0;">
+                The JMESPath expression <code>Reservations[*].Instances[*].InstanceId</code> uses
+                wildcards to walk every reservation and every instance, projecting only that single
+                field.
+              </p>
+            </div>
+          </article>
+
+          <article class="step">
+            <div class="step-num">02</div>
+            <div>
+              <h3>Add multi-field projection with aliases</h3>
+              <ul>
+                <li>JMESPath supports <code>{Alias:Field}</code> syntax to rename fields in the output.</li>
+                <li>Useful for building human-readable inventories where the raw schema is too noisy.</li>
+              </ul>
+
+              <div class="code-block-wrapper">
+                <div class="code-header">CommandHost · AWS CLI</div>
+<pre class="code-block"><span class="token-comment"># Project ID and Availability Zone, renamed</span>
+<span class="token-command">aws</span> ec2 describe-instances \
+  <span class="token-flag">--filter</span> <span class="token-string">"Name=tag:Project,Values=ERPSystem"</span> \
+  <span class="token-flag">--query</span> <span class="token-string">'Reservations[*].Instances[*].{ID:InstanceId,AZ:Placement.AvailabilityZone}'</span></pre>
+              </div>
+            </div>
+          </article>
+
+          <article class="step">
+            <div class="step-num">03</div>
+            <div>
+              <h3>Look up the value of a specific tag with a filter expression</h3>
+              <ul>
+                <li>EC2 tags are returned as an array of <code>{Key, Value}</code> objects, so a direct projection on <code>Tags.Project</code> does not work.</li>
+                <li>The pattern <code>Tags[?Key==`Project`] | [0].Value</code> filters the array to the element whose key is <code>Project</code>, pipes the single-element result to <code>[0]</code>, and returns its <code>Value</code>.</li>
+                <li>The same pattern is repeated for <code>Environment</code> and <code>Version</code> to build a full inventory row.</li>
+              </ul>
+
+              <div class="code-block-wrapper">
+                <div class="code-header">CommandHost · AWS CLI</div>
+<pre class="code-block"><span class="token-comment"># Inventory: ID, AZ, Project, Environment, Version</span>
+<span class="token-command">aws</span> ec2 describe-instances \
+  <span class="token-flag">--filter</span> <span class="token-string">"Name=tag:Project,Values=ERPSystem"</span> \
+  <span class="token-flag">--query</span> <span class="token-string">'Reservations[*].Instances[*].{
+    ID:InstanceId,
+    AZ:Placement.AvailabilityZone,
+    Project:Tags[?Key==`Project`]      | [0].Value,
+    Environment:Tags[?Key==`Environment`] | [0].Value,
+    Version:Tags[?Key==`Version`]      | [0].Value
+  }'</span></pre>
+              </div>
+            </div>
+          </article>
+
+          <article class="step">
+            <div class="step-num">04</div>
+            <div>
+              <h3>Add a second <code>--filter</code> for an AND condition</h3>
+              <ul>
+                <li>Passing two <code>Name=tag:...</code> filters in the same command performs an AND: only instances matching both tags are returned.</li>
+                <li>Here, the goal is the intersection of <code>Project=ERPSystem</code> and <code>Environment=development</code> — the development boxes of the ERP system.</li>
+              </ul>
+
+              <div class="code-block-wrapper">
+                <div class="code-header">CommandHost · AWS CLI</div>
+<pre class="code-block"><span class="token-comment"># Double tag filter — ERPSystem dev only</span>
+<span class="token-command">aws</span> ec2 describe-instances \
+  <span class="token-flag">--filter</span> <span class="token-string">"Name=tag:Project,Values=ERPSystem"</span> \
+            <span class="token-string">"Name=tag:Environment,Values=development"</span> \
+  <span class="token-flag">--query</span> <span class="token-string">'Reservations[*].Instances[*].{
+    ID:InstanceId,
+    AZ:Placement.AvailabilityZone,
+    Project:Tags[?Key==`Project`]      | [0].Value,
+    Environment:Tags[?Key==`Environment`] | [0].Value,
+    Version:Tags[?Key==`Version`]      | [0].Value
+  }'</span></pre>
+              </div>
+
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/01-jmespath-query-double-filter.png" alt="JSON output of the double tag filter showing two ERPSystem development instances" loading="lazy" />
+                  <figcaption>
+                    CommandHost terminal: output of the double tag filter. Two instances returned
+                    (<code>i-0798b4e50e2b64eae</code> and <code>i-0c4838001b8a28add</code>), both
+                    <code>ERPSystem / development / Version 1.0</code> in <code>us-west-2a</code>.
+                  </figcaption>
+                </figure>
+              </div>
+            </div>
+          </article>
+
+          <article class="step">
+            <div class="step-num">05</div>
+            <div>
+              <h3>Bulk-update the <code>Version</code> tag with a Bash script</h3>
+              <ul>
+                <li>The script <code>change-resource-tags.sh</code> uses the same double-filter query but with <code>--output text</code> so the IDs can be piped directly into <code>create-tags</code>.</li>
+                <li><code>aws ec2 create-tags</code> either creates a new tag or overwrites an existing one — here it bumps <code>Version</code> from <code>1.0</code> to <code>1.1</code> on every ERP-dev instance in a single call.</li>
+                <li>This is the simplest practical example of the pattern <em>query &rarr; pipe IDs &rarr; act in bulk</em>.</li>
+              </ul>
+
+              <div class="code-block-wrapper">
+                <div class="code-header">change-resource-tags.sh</div>
+<pre class="code-block"><span class="token-comment">#!/bin/bash</span>
+
+<span class="token-comment"># Collect IDs of all ERPSystem development instances</span>
+<span class="token-var">ids</span>=<span class="token-keyword">$(</span><span class="token-command">aws</span> ec2 describe-instances \
+  <span class="token-flag">--filter</span> <span class="token-string">"Name=tag:Project,Values=ERPSystem"</span> \
+            <span class="token-string">"Name=tag:Environment,Values=development"</span> \
+  <span class="token-flag">--query</span> <span class="token-string">'Reservations[*].Instances[*].InstanceId'</span> \
+  <span class="token-flag">--output</span> text<span class="token-keyword">)</span>
+
+<span class="token-comment"># Overwrite Version tag to 1.1 on every collected instance</span>
+<span class="token-command">aws</span> ec2 create-tags <span class="token-flag">--resources</span> <span class="token-var">$ids</span> \
+                   <span class="token-flag">--tags</span> <span class="token-string">'Key=Version,Value=1.1'</span></pre>
+              </div>
+
+              <div class="insight warn-box" style="margin-top:1rem;">
+                <strong>Note on evidence:</strong> The <code>Version 1.0 &rarr; 1.1</code> change ran
+                successfully against the lab fleet, but no before/after screenshot was captured. The
+                verification command from the lab guide
+                (<code>aws ec2 describe-instances --filter "Name=tag:Project,Values=ERPSystem" --query '...Version:Tags[?Key==`Version`] | [0].Value'</code>)
+                confirms the tag flips only on the development boxes; the others remain at 1.0.
+              </div>
+            </div>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+    <section id="task2">
+      <div class="container">
+        <h2 class="section-title">Task 2 — Stop and start instances by tag with <code>stopinator.php</code></h2>
+        <p class="section-subtitle">
+          A pre-provided PHP script that uses the AWS SDK for PHP to apply a stop/start lifecycle to
+          every instance matching a tag filter, across all regions.
+        </p>
+
+        <div class="timeline">
+
+          <article class="step">
+            <div class="step-num">01</div>
+            <div>
+              <h3>How the script works</h3>
+              <ul>
+                <li>Lives under <code>~/aws-tools/stopinator.php</code> on the CommandHost.</li>
+                <li>Iterates over every AWS region, calls <code>Ec2::DescribeInstances()</code> with a tag filter, then stops every matching instance with <code>Ec2::StopInstances()</code>.</li>
+                <li>Two arguments:
+                  <ul>
+                    <li><code>-t "Name=Value;Name=Value"</code> — tag filter (semicolon-separated pairs). If omitted, stops <em>every</em> running instance in the account.</li>
+                    <li><code>-s</code> — switch to start mode instead of stop.</li>
+                  </ul>
+                </li>
+                <li>Use case: shut down the dev environment at the end of the day, start it up the next morning.</li>
+              </ul>
+            </div>
+          </article>
+
+          <article class="step">
+            <div class="step-num">02</div>
+            <div>
+              <h3>Stop all ERP-dev instances</h3>
+              <p style="color:#cbd5e1; margin:0.2rem 0 0.6rem;">
+                The script reports each region it scans and lists the identified instances before
+                issuing the stop call:
+              </p>
+
+              <div class="code-block-wrapper">
+                <div class="code-header">CommandHost · stopinator.php (stop)</div>
+<pre class="code-block"><span class="token-command">cd</span> ~/aws-tools
+./stopinator.php <span class="token-flag">-t</span><span class="token-string">"Project=ERPSystem;Environment=development"</span>
+
+<span class="token-comment"># Output (abbreviated):</span>
+<span class="token-comment">#   Region is us-east-1</span>
+<span class="token-comment">#     No instances to stop in region</span>
+<span class="token-comment">#   Region is us-west-2</span>
+<span class="token-comment">#     Identified instance i-0798b4e50e2b64eae</span>
+<span class="token-comment">#     Identified instance i-0c4838001b8a28add</span>
+<span class="token-comment">#   Stopping all identified instances...</span></pre>
+              </div>
+
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig screenshot-scroll">
+                  <img src="assets/screenshots/02-stopinator-instances-stopped.png" alt="EC2 console showing nine instances, two transitioning to Stopped/Stopping" loading="lazy" />
+                  <figcaption>
+                    Two of the nine instances transition to <code>Stopped</code> / <code>Stopping</code>
+                    (<code>i-0798b4e50e2b64eae</code> labeled "app server",
+                    <code>i-0c4838001b8a28add</code> labeled "web server"). The CommandHost, NAT and
+                    the remaining web/app servers stay <code>Running</code>, which matches the
+                    expected behavior of filtering by
+                    <code>Project=ERPSystem;Environment=development</code>.
+                  </figcaption>
+                </figure>
+              </div>
+            </div>
+          </article>
+
+          <article class="step">
+            <div class="step-num">03</div>
+            <div>
+              <h3>Restart the same set with <code>-s</code></h3>
+              <ul>
+                <li>Same tag filter, plus the <code>-s</code> flag to switch to start mode.</li>
+                <li>No screenshot was captured of the restart; visible behaviour mirrors the stop call but with <code>StartInstances</code> in place of <code>StopInstances</code> and the instances eventually returning to <code>Running</code> in the console.</li>
+              </ul>
+
+              <div class="code-block-wrapper">
+                <div class="code-header">CommandHost · stopinator.php (start)</div>
+<pre class="code-block">./stopinator.php <span class="token-flag">-t</span><span class="token-string">"Project=ERPSystem;Environment=development"</span> <span class="token-flag">-s</span></pre>
+              </div>
+            </div>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+    <section id="task3">
+      <div class="container">
+        <h2 class="section-title">Task 3 — Challenge: tag-or-terminate</h2>
+        <p class="section-subtitle">
+          Policy: any instance in the private subnet without an <code>Environment</code> tag is
+          considered non-compliant and must be terminated. The provided
+          <code>terminate-instances.php</code> implements that policy as a set difference.
+        </p>
+
+        <div class="timeline">
+
+          <article class="step">
+            <div class="step-num">01</div>
+            <div>
+              <h3>Script logic in three blocks</h3>
+              <ul>
+                <li><strong>List tagged instances.</strong> <code>describeInstances()</code> with a filter for the existence of the <code>Environment</code> tag (any value). IDs go into a hash table.</li>
+                <li><strong>Diff against the subnet.</strong> Iterate over every instance in the target subnet; if its ID is not in the tagged hash, add it to a "to terminate" list.</li>
+                <li><strong>Terminate.</strong> A single <code>Ec2::terminateInstances()</code> call with the full ID list.</li>
+              </ul>
+
+              <div class="insight info" style="margin-top:0.8rem;">
+                <strong>Pattern:</strong> the script is a concrete example of the broader
+                "compliance-by-difference" pattern — define the compliant set with a filter, list
+                the full population, and act on the delta.
+              </div>
+            </div>
+          </article>
+
+          <article class="step">
+            <div class="step-num">02</div>
+            <div>
+              <h3>Preparing the test fleet</h3>
+              <ul>
+                <li>In the EC2 console, removed the <code>Environment</code> tag from two private instances (Add/Edit Tags &rarr; delete the row &rarr; Save).</li>
+                <li>This is the only way to create non-compliance in the lab, since every instance ships with the tag set.</li>
+                <li>Copied the region (AZ minus the trailing letter) and the private subnet ID for the script arguments.</li>
+              </ul>
+            </div>
+          </article>
+
+          <article class="step">
+            <div class="step-num">03</div>
+            <div>
+              <h3>Run the script and verify</h3>
+
+              <div class="code-block-wrapper">
+                <div class="code-header">CommandHost · terminate-instances.php</div>
+<pre class="code-block">./terminate-instances.php <span class="token-flag">-region</span> us-west-2 \
+                          <span class="token-flag">-subnetid</span> subnet-021318b87f05f11aa</pre>
+              </div>
+
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/03-terminate-instances-output.png" alt="terminate-instances.php output: Checking each ID then Terminating instances and Instances terminated" loading="lazy" />
+                  <figcaption>
+                    Seven instance IDs are checked one by one (the private-subnet fleet visible to
+                    the script, excluding CommandHost and NAT), then the script reports
+                    <code>Terminating instances...</code> and <code>Instances terminated.</code> —
+                    confirming the tag-or-terminate policy ran end-to-end.
+                  </figcaption>
+                </figure>
+              </div>
+            </div>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+    <section id="learnings">
+      <div class="container">
+        <h2 class="section-title">Key Learnings</h2>
+
+        <div class="grid-2">
+          <div class="card">
+            <h3>JMESPath, in five strokes</h3>
+            <div class="checklist">
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div><code>[*]</code> — wildcard projection over arrays of objects.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div><code>{Alias:Field}</code> — rename or reshape fields in the output.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div><code>[?Key==`X`]</code> — filter expression on array elements.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div><code>|</code> — pipe one expression into another (e.g. <code>[?...] | [0].Value</code>).</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>Multiple <code>--filter</code> arguments combine as AND, server-side.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Output format matters</h3>
+            <p>
+              JSON is fine for humans reading inventories; <code>--output text</code> is what you want
+              when piping IDs into other AWS CLI calls. The <code>change-resource-tags.sh</code> script
+              is a one-liner because of that single flag — switch it back to JSON and the
+              <code>create-tags --resources</code> call breaks immediately.
+            </p>
+          </div>
+
+          <div class="card">
+            <h3>Tag-based automation is the foundation of FinOps tooling</h3>
+            <p>
+              <code>stopinator.php</code> is a toy, but the pattern it shows — sweep all regions,
+              filter by tag, apply a lifecycle action — is exactly what production tools like
+              <strong>AWS Instance Scheduler</strong> and <strong>Cloud Custodian</strong> implement.
+              Once tags are reliable, scheduling, right-sizing and compliance enforcement are all
+              variations of the same script.
+            </p>
+          </div>
+
+          <div class="card">
+            <h3>Compliance by set difference</h3>
+            <p>
+              The tag-or-terminate challenge is the simplest expression of a compliance policy:
+              compliant set (<em>instances with required tag</em>) minus full set
+              (<em>instances in subnet</em>) equals violation set. The same shape generalises to
+              "untagged volumes", "security groups without owners", "S3 buckets without a
+              <code>CostCenter</code>". The lifecycle action at the end is what varies.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      Lab report documenting the Managing Resources with Tagging lab · AWS re/Start Program
+    </div>
+  </footer>
+</body>
+
+</html>

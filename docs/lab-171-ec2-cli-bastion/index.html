@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lab Report: Creating EC2 Instances (Console + AWS CLI)</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --bg-soft: #111827;
+      --card: rgba(255, 255, 255, 0.08);
+      --card-strong: rgba(255, 255, 255, 0.12);
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --accent: #ff9900;
+      --accent-2: #38bdf8;
+      --ok: #22c55e;
+      --warn: #f59e0b;
+      --border: rgba(255, 255, 255, 0.12);
+      --shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+      --radius: 22px;
+      --max: 1120px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(255, 153, 0, 0.16), transparent 28%),
+        radial-gradient(circle at top right, rgba(56, 189, 248, 0.14), transparent 24%),
+        linear-gradient(180deg, #020617 0%, #0f172a 48%, #111827 100%);
+      color: var(--text);
+      line-height: 1.65;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    .container {
+      width: min(var(--max), calc(100% - 2rem));
+      margin: 0 auto;
+    }
+
+    /* ── Nav ── */
+    .nav {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      backdrop-filter: blur(16px);
+      background: rgba(2, 6, 23, 0.72);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .nav-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.9rem 0;
+      gap: 1rem;
+    }
+
+    .brand {
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+    }
+
+    .brand-badge {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, var(--accent), #ffb84d);
+      color: #111827;
+      font-weight: 900;
+      box-shadow: var(--shadow);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .nav-links a:hover { color: var(--text); }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      color: var(--muted);
+      font-size: 0.9rem;
+      transition: color 0.2s;
+    }
+
+    .back-link:hover { color: var(--accent); }
+
+    /* ── Hero ── */
+    .hero { padding: 4.8rem 0 2rem; }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 1.5rem;
+      align-items: stretch;
+    }
+
+    .panel {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.05));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .hero-main { padding: 2rem; }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.45rem 0.8rem;
+      border-radius: 999px;
+      background: rgba(255, 153, 0, 0.12);
+      color: #ffd28a;
+      border: 1px solid rgba(255, 153, 0, 0.25);
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+    }
+
+    h1, h2, h3 {
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+      margin: 0;
+    }
+
+    h1 {
+      font-size: clamp(2rem, 4vw, 3.7rem);
+      margin-bottom: 0.9rem;
+    }
+
+    .hero-main p {
+      margin: 0;
+      color: #cbd5e1;
+      font-size: 1.05rem;
+      max-width: 65ch;
+    }
+
+    .hero-side {
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .hero-side .callout {
+      padding: 1rem 1.1rem;
+      border-radius: 18px;
+      border: 1px solid rgba(56, 189, 248, 0.18);
+      background: rgba(56, 189, 248, 0.08);
+    }
+
+    .hero-side .callout strong {
+      display: block;
+      margin-bottom: 0.35rem;
+    }
+
+    .tech-stack {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.55rem;
+    }
+
+    .chip {
+      padding: 0.45rem 0.75rem;
+      border-radius: 999px;
+      font-size: 0.88rem;
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #dbeafe;
+    }
+
+    .small {
+      font-size: 0.92rem;
+      color: var(--muted);
+    }
+
+    /* ── Sections ── */
+    section { padding: 1rem 0 0.4rem; }
+
+    .section-title {
+      margin-bottom: 1rem;
+      font-size: clamp(1.5rem, 2vw, 2.2rem);
+    }
+
+    .section-subtitle {
+      color: var(--muted);
+      margin-top: 0.45rem;
+      max-width: 75ch;
+    }
+
+    /* ── Grids ── */
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .card {
+      padding: 1.3rem;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+    }
+
+    .card h3 {
+      font-size: 1.05rem;
+      margin-bottom: 0.6rem;
+    }
+
+    .card p {
+      margin: 0;
+      color: #cbd5e1;
+    }
+
+    /* ── Timeline ── */
+    .timeline {
+      display: grid;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .step {
+      display: grid;
+      grid-template-columns: 90px 1fr;
+      gap: 1rem;
+      align-items: start;
+      padding: 1.25rem;
+      border-radius: 22px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: var(--shadow);
+    }
+
+    .step-num {
+      width: 72px;
+      height: 72px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, rgba(255, 153, 0, 0.18), rgba(56, 189, 248, 0.18));
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      display: grid;
+      place-items: center;
+      font-size: 1.1rem;
+      font-weight: 900;
+      color: #fff;
+    }
+
+    .step h3 {
+      margin-bottom: 0.55rem;
+      font-size: 1.2rem;
+    }
+
+    .step ul {
+      margin: 0.3rem 0 0;
+      padding-left: 1.1rem;
+      color: #dbe4f0;
+    }
+
+    .step li + li { margin-top: 0.4rem; }
+
+    .highlight {
+      color: #ffd28a;
+      font-weight: 700;
+    }
+
+    /* ── Screenshots ── */
+    .screenshot-gallery {
+      display: grid;
+      gap: 0.8rem;
+      margin-top: 1rem;
+    }
+
+    .screenshot-gallery.cols-2 { grid-template-columns: repeat(2, 1fr); }
+
+    .screenshot-fig {
+      margin: 0;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(2, 6, 23, 0.5);
+    }
+
+    .screenshot-fig img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .screenshot-fig figcaption {
+      padding: 0.6rem 0.8rem;
+      color: var(--muted);
+      font-size: 0.84rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    /* Scrollable viewport for wide terminal screenshots */
+    .screenshot-fig.scroll-x img {
+      width: auto;
+      max-width: none;
+      min-width: 100%;
+    }
+    .screenshot-fig.scroll-x { overflow-x: auto; }
+
+    /* ── Callouts ── */
+    .insight {
+      padding: 1.15rem 1.2rem;
+      border-left: 4px solid var(--accent);
+      border-radius: 16px;
+      background: rgba(255, 153, 0, 0.08);
+      color: #fde7c2;
+    }
+
+    .info {
+      border-left-color: var(--accent-2);
+      background: rgba(56, 189, 248, 0.08);
+      color: #d8f3ff;
+    }
+
+    .warn {
+      border-left-color: var(--warn);
+      background: rgba(245, 158, 11, 0.08);
+      color: #fde2b0;
+    }
+
+    /* ── Checklist ── */
+    .checklist {
+      display: grid;
+      gap: 0.7rem;
+      margin-top: 1rem;
+    }
+
+    .check {
+      display: flex;
+      gap: 0.75rem;
+      align-items: flex-start;
+      padding: 0.9rem 1rem;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+    }
+
+    .check-mark {
+      flex: 0 0 auto;
+      width: 28px;
+      height: 28px;
+      display: grid;
+      place-items: center;
+      border-radius: 999px;
+      background: rgba(34, 197, 94, 0.15);
+      color: #86efac;
+      font-weight: 800;
+    }
+
+    /* ── Code ── */
+    code {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 0.15rem 0.4rem;
+      border-radius: 6px;
+      font-size: 0.9em;
+      font-family: "Cascadia Code", "Fira Code", monospace;
+    }
+
+    /* ── Code Display ── */
+    .code-block-wrapper {
+      margin: 1.2rem 0;
+      background: #020617;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .code-header {
+      background: rgba(255, 255, 255, 0.06);
+      padding: 0.5rem 1rem;
+      font-size: 0.85rem;
+      color: var(--muted);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      font-family: monospace;
+    }
+
+    .code-block {
+      padding: 1.2rem 1.4rem;
+      margin: 0;
+      overflow-x: auto;
+      color: #e2e8f0;
+      font-family: "Cascadia Code", "Fira Code", monospace;
+      font-size: 0.92rem;
+      line-height: 1.55;
+    }
+
+    .token-keyword { color: #818cf8; }
+    .token-string  { color: #a3e635; }
+    .token-var     { color: #f472b6; }
+    .token-comment { color: #64748b; font-style: italic; }
+    .token-command { color: #38bdf8; }
+    .token-flag    { color: #fcd34d; }
+
+    /* ── Component cards (arquitectura) ── */
+    .arch-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .arch-card {
+      padding: 1.1rem 1.2rem;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+    }
+
+    .arch-card h4 {
+      margin: 0 0 0.5rem 0;
+      color: #ffd28a;
+      font-size: 1rem;
+      letter-spacing: -0.01em;
+    }
+
+    .arch-card ul {
+      margin: 0;
+      padding-left: 1.1rem;
+      color: #dbe4f0;
+      font-size: 0.93rem;
+    }
+
+    .arch-card li + li { margin-top: 0.3rem; }
+
+    /* ── Footer ── */
+    .footer {
+      padding: 2.2rem 0 3.5rem;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 920px) {
+      .hero-grid,
+      .grid-3,
+      .grid-2,
+      .arch-grid,
+      .screenshot-gallery.cols-2 {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 680px) {
+      .nav-inner {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .step {
+        grid-template-columns: 1fr;
+      }
+
+      .step-num {
+        width: 60px;
+        height: 60px;
+        border-radius: 16px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <nav class="nav">
+    <div class="container nav-inner">
+      <div class="brand">
+        <div class="brand-badge">AWS</div>
+        <div>Lab Report · Compute</div>
+      </div>
+      <div class="nav-links">
+        <a href="../index.html" class="back-link">← All Labs</a>
+        <a href="#summary">Summary</a>
+        <a href="#architecture">Architecture</a>
+        <a href="#bastion">Bastion</a>
+        <a href="#cli">CLI Launch</a>
+        <a href="#verify">Verify</a>
+        <a href="#methods">When to use what</a>
+        <a href="#optional">Optional</a>
+      </div>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <div class="container hero-grid">
+      <div class="panel hero-main">
+        <div class="eyebrow">AWS re/Start Lab · Amazon EC2</div>
+        <h1>Creating EC2 Instances — Console + AWS CLI</h1>
+        <p>
+          Launched a <strong>bastion host</strong> from the AWS Management Console and then, from
+          inside that bastion via <strong>EC2 Instance Connect</strong>, used the
+          <strong>AWS CLI</strong> to launch a second EC2 instance running an Apache web server with a
+          <code>UserData</code> bootstrap script. The bastion's IAM instance profile is what lets the
+          CLI call EC2 APIs without explicit credentials.
+        </p>
+      </div>
+
+      <aside class="panel hero-side">
+        <div class="callout">
+          <strong>Lab Objective</strong>
+          Provision two instances in the Lab VPC — one via Console, one via CLI — and verify the
+          web server boots correctly from UserData.
+        </div>
+
+        <div>
+          <div class="small" style="margin-bottom:0.7rem;">Tools & Concepts</div>
+          <div class="tech-stack">
+            <span class="chip">EC2</span>
+            <span class="chip">AWS CLI</span>
+            <span class="chip">IAM Instance Profile</span>
+            <span class="chip">SSM Parameter Store</span>
+            <span class="chip">EC2 Instance Connect</span>
+            <span class="chip">UserData</span>
+            <span class="chip">IMDS</span>
+          </div>
+        </div>
+
+        <div class="callout" style="border-color: rgba(34,197,94,0.2); background: rgba(34,197,94,0.08);">
+          <strong>Key Insight</strong>
+          An <code>IAM instance profile</code> attached to the bastion is what makes the CLI work
+          without storing access keys. The role <code>Bastion-Role</code> grants permission to call
+          <code>ec2:*</code> and <code>ssm:GetParameters</code>.
+        </div>
+      </aside>
+    </div>
+  </header>
+
+  <main>
+    <!-- ══════ SUMMARY ══════ -->
+    <section id="summary">
+      <div class="container">
+        <h2 class="section-title">Lab Summary</h2>
+        <p class="section-subtitle">
+          End-to-end flow: launch a bastion from the Console → connect with EC2 Instance Connect →
+          resolve AMI / Subnet / Security Group dynamically via the CLI → run
+          <code>aws ec2 run-instances</code> with a UserData script that installs Apache and the
+          dashboard app → poll until <code>running</code> → open the public DNS in a browser.
+        </p>
+      </div>
+    </section>
+
+    <!-- ══════ ARCHITECTURE ══════ -->
+    <section id="architecture">
+      <div class="container">
+        <h2 class="section-title">Architecture</h2>
+        <p class="section-subtitle">
+          Both instances live in the same Public Subnet of the Lab VPC. The bastion has the IAM role;
+          the web server has no role because it only needs to serve HTTP.
+        </p>
+
+        <div class="arch-grid">
+          <div class="arch-card">
+            <h4>Lab VPC · Public Subnet</h4>
+            <ul>
+              <li>Pre-provisioned by a CloudFormation template during lab setup.</li>
+              <li>Public subnet has <strong>auto-assign public IPv4</strong> enabled.</li>
+              <li>Tag <code>Name=Public Subnet</code> — used later by the CLI filter.</li>
+            </ul>
+          </div>
+
+          <div class="arch-card">
+            <h4>Bastion host (Console-launched)</h4>
+            <ul>
+              <li>AMI: Amazon Linux 2 · Type: <code>t3.micro</code></li>
+              <li>SG: <strong>Bastion security group</strong> — allows SSH (port 22).</li>
+              <li>IAM instance profile: <strong>Bastion-Role</strong> (lets CLI call EC2/SSM).</li>
+              <li>No key pair — access via EC2 Instance Connect.</li>
+            </ul>
+          </div>
+
+          <div class="arch-card">
+            <h4>Web Server (CLI-launched)</h4>
+            <ul>
+              <li>AMI: same Amazon Linux 2 (resolved dynamically via SSM Parameter Store).</li>
+              <li>SG: <strong>WebSecurityGroup</strong> — allows HTTP (port 80).</li>
+              <li>Bootstrapped by <code>UserData.txt</code>: <code>httpd</code> + dashboard-app.zip.</li>
+              <li>Tag <code>Name=Web Server</code>.</li>
+            </ul>
+          </div>
+
+          <div class="arch-card">
+            <h4>Data path</h4>
+            <ul>
+              <li>Browser → public DNS of Web Server (HTTP/80) → Apache → static dashboard files.</li>
+              <li>Operator → EC2 Instance Connect → bastion shell → AWS CLI → EC2 API.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════ BASTION (Console + Connect) ══════ -->
+    <section id="bastion">
+      <div class="container">
+        <h2 class="section-title">Bastion: Console launch &amp; connect</h2>
+        <p class="section-subtitle">
+          No screenshots for this phase — captured later, once already inside the bastion shell.
+          Documented here as compact parameter list since the choices are what matter, not the clicks.
+        </p>
+
+        <div class="timeline">
+          <article class="step">
+            <div class="step-num">01</div>
+            <div>
+              <h3>Launch <code>Bastion host</code> from the Console</h3>
+              <ul>
+                <li><strong>Name:</strong> <code>Bastion host</code></li>
+                <li><strong>AMI:</strong> Amazon Linux 2 AMI (HVM) · <strong>Instance type:</strong> <code>t3.micro</code></li>
+                <li><strong>Key pair:</strong> <em>Proceed without key pair</em> — connection is via EC2 Instance Connect, not SSH keys.</li>
+                <li><strong>Network:</strong> Lab VPC → Public Subnet · Auto-assign public IP: <em>Enable</em></li>
+                <li><strong>Security group:</strong> create new — <code>Bastion security group</code> (permit SSH/22).</li>
+                <li><strong>Advanced &gt; IAM instance profile:</strong> <code>Bastion-Role</code>.</li>
+              </ul>
+              <div class="insight info" style="margin-top:1rem;">
+                <strong>Why the IAM role matters:</strong> the bastion calls <code>aws ec2 …</code>
+                later. Without an instance profile, those calls would need static access keys baked
+                into the shell — bad practice. The role lets the bastion sign requests via IMDS
+                without ever holding long-lived credentials.
+              </div>
+            </div>
+          </article>
+
+          <article class="step">
+            <div class="step-num">02</div>
+            <div>
+              <h3>Connect with EC2 Instance Connect</h3>
+              <ul>
+                <li>Selected the bastion in the Console → <strong>Connect</strong> → <strong>EC2 Instance Connect</strong> tab → <strong>Connect</strong>.</li>
+                <li>Result: in-browser shell as <code>ec2-user</code> on the bastion (visible in the screenshots below as <code>ec2-user@ip-10-0-0-224</code>).</li>
+              </ul>
+              <div class="insight info" style="margin-top:1rem;">
+                EC2 Instance Connect pushes a one-time SSH public key to the instance through the
+                EC2 API, valid for ~60 seconds. That's why no permanent key pair was needed.
+              </div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════ CLI: Run-instances ══════ -->
+    <section id="cli">
+      <div class="container">
+        <h2 class="section-title">Launching the Web Server via AWS CLI</h2>
+        <p class="section-subtitle">
+          From inside the bastion, the CLI workflow is: resolve Region → pull latest AMI from SSM →
+          look up Subnet and SG by tag/name → download UserData → <code>run-instances</code> → poll
+          state → fetch public DNS.
+        </p>
+
+        <h3 style="margin-top:1.4rem; color:#ffd28a; font-size:1.05rem;">1. Region + AMI from instance metadata &amp; SSM Parameter Store</h3>
+
+        <div class="code-block-wrapper">
+          <div class="code-header">bastion shell — resolve Region and latest Amazon Linux 2 AMI</div>
+<pre class="code-block">
+<span class="token-comment"># Get the Availability Zone from IMDS, then trim the trailing letter to get the Region.</span>
+<span class="token-var">AZ</span>=<span class="token-keyword">$(</span><span class="token-command">curl</span> <span class="token-flag">-s</span> http://169.254.169.254/latest/meta-data/placement/availability-zone<span class="token-keyword">)</span>
+<span class="token-command">export</span> <span class="token-var">AWS_DEFAULT_REGION</span>=<span class="token-string">${AZ::-1}</span>
+
+<span class="token-comment"># Ask SSM for the latest Amazon Linux 2 AMI ID in this Region.</span>
+<span class="token-var">AMI</span>=<span class="token-keyword">$(</span><span class="token-command">aws</span> ssm get-parameters \
+  <span class="token-flag">--names</span> /aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2 \
+  <span class="token-flag">--query</span> <span class="token-string">'Parameters[0].[Value]'</span> \
+  <span class="token-flag">--output</span> text<span class="token-keyword">)</span>
+<span class="token-command">echo</span> <span class="token-var">$AMI</span>
+<span class="token-comment"># → ami-03bc3367c1f063162</span>
+</pre>
+        </div>
+
+        <div class="insight warn">
+          <strong>Gotcha observed in foto1:</strong>
+          right before <code>$AMI</code> printed, the shell logged
+          <code>-bash: -1: substring expression &lt; 0</code>. That comes from <code>${AZ::-1}</code>
+          when <code>$AZ</code> is empty or too short — typically a transient IMDS hiccup on the
+          first curl. In this lab the next commands worked, so the Region was effectively exported,
+          but the right hardening is to verify <code>$AZ</code> first (or use IMDSv2 with a token):
+          <code>[ -n "$AZ" ] || { echo "IMDS empty"; exit 1; }</code>.
+        </div>
+
+        <h3 style="margin-top:1.4rem; color:#ffd28a; font-size:1.05rem;">2. Subnet and Security Group by tag / name</h3>
+
+        <div class="code-block-wrapper">
+          <div class="code-header">bastion shell — resolve target network</div>
+<pre class="code-block">
+<span class="token-comment"># Subnet ID by tag Name=Public Subnet.</span>
+<span class="token-var">SUBNET</span>=<span class="token-keyword">$(</span><span class="token-command">aws</span> ec2 describe-subnets \
+  <span class="token-flag">--filters</span> <span class="token-string">'Name=tag:Name,Values=Public Subnet'</span> \
+  <span class="token-flag">--query</span> Subnets[].SubnetId \
+  <span class="token-flag">--output</span> text<span class="token-keyword">)</span>
+<span class="token-command">echo</span> <span class="token-var">$SUBNET</span>
+<span class="token-comment"># → subnet-0440cb1333588e7b5</span>
+
+<span class="token-comment"># Security group ID for the WebSecurityGroup (allows HTTP/80 inbound).</span>
+<span class="token-var">SG</span>=<span class="token-keyword">$(</span><span class="token-command">aws</span> ec2 describe-security-groups \
+  <span class="token-flag">--filters</span> Name=group-name,Values=WebSecurityGroup \
+  <span class="token-flag">--query</span> SecurityGroups[].GroupId \
+  <span class="token-flag">--output</span> text<span class="token-keyword">)</span>
+<span class="token-command">echo</span> <span class="token-var">$SG</span>
+<span class="token-comment"># → sg-07f067d492bc6f4b5</span>
+</pre>
+        </div>
+
+        <h3 style="margin-top:1.4rem; color:#ffd28a; font-size:1.05rem;">3. UserData bootstrap script</h3>
+
+        <p style="color:#cbd5e1; margin-top:0.4rem;">
+          Downloaded the script from the lab S3 bucket with <code>wget</code> and inspected it with
+          <code>cat</code>. The file is what the new instance will execute as root on first boot.
+        </p>
+
+        <div class="code-block-wrapper">
+          <div class="code-header">UserData.txt — runs on first boot of the Web Server</div>
+<pre class="code-block">
+<span class="token-comment">#!/bin/bash</span>
+<span class="token-comment"># Install Apache Web Server</span>
+<span class="token-command">yum</span> install <span class="token-flag">-y</span> httpd
+
+<span class="token-comment"># Turn on web server</span>
+<span class="token-command">systemctl</span> enable httpd.service
+<span class="token-command">systemctl</span> start  httpd.service
+
+<span class="token-comment"># Download App files and serve from /var/www/html</span>
+<span class="token-command">wget</span> https://aws-tc-largeobjects.s3.amazonaws.com/CUR-TF-100-RESTRT-1/171-lab-%5BJAWS%5D-create-ec2/dashboard-app.zip
+<span class="token-command">unzip</span> dashboard-app.zip <span class="token-flag">-d</span> /var/www/html/
+</pre>
+        </div>
+
+        <div class="screenshot-gallery">
+          <figure class="screenshot-fig">
+            <img src="assets/screenshots/01-bastion-cli-ami-subnet-sg-userdata.png"
+                 alt="Bastion shell running aws ssm/describe-subnets/describe-security-groups and cat UserData.txt"
+                 loading="lazy" />
+            <figcaption>
+              foto1 · bastion shell (<code>ec2-user@ip-10-0-0-224</code>): AMI resolved via SSM
+              (<code>ami-03bc3367c1f063162</code>), subnet (<code>subnet-04…b5</code>) and SG
+              (<code>sg-07f0…f4b5</code>) looked up by tag/name, <code>wget</code> of UserData.txt
+              returning <strong>200 OK · 327 bytes</strong>, and <code>cat</code> showing the
+              Apache + dashboard bootstrap. Note the
+              <code>-bash: -1: substring expression &lt; 0</code> warning above <code>echo $AMI</code>.
+            </figcaption>
+          </figure>
+        </div>
+
+        <h3 style="margin-top:1.4rem; color:#ffd28a; font-size:1.05rem;">4. <code>run-instances</code></h3>
+
+        <div class="code-block-wrapper">
+          <div class="code-header">bastion shell — launch the Web Server</div>
+<pre class="code-block">
+<span class="token-var">INSTANCE</span>=<span class="token-keyword">$(</span><span class="token-command">aws</span> ec2 run-instances \
+  <span class="token-flag">--image-id</span> <span class="token-var">$AMI</span> \
+  <span class="token-flag">--subnet-id</span> <span class="token-var">$SUBNET</span> \
+  <span class="token-flag">--security-group-ids</span> <span class="token-var">$SG</span> \
+  <span class="token-flag">--user-data</span> file:///home/ec2-user/UserData.txt \
+  <span class="token-flag">--instance-type</span> t3.micro \
+  <span class="token-flag">--tag-specifications</span> <span class="token-string">'ResourceType=instance,Tags=[{Key=Name,Value=Web Server}]'</span> \
+  <span class="token-flag">--query</span> <span class="token-string">'Instances[*].InstanceId'</span> \
+  <span class="token-flag">--output</span> text<span class="token-keyword">)</span>
+<span class="token-command">echo</span> <span class="token-var">$INSTANCE</span>
+</pre>
+        </div>
+
+        <p style="color:#cbd5e1;">
+          Every CLI parameter mirrors a Console field: <code>--image-id</code> = AMI choice,
+          <code>--subnet-id</code> = network step, <code>--security-group-ids</code> = firewall step,
+          <code>--user-data</code> = the bootstrap, and <code>--tag-specifications</code> applies the
+          <code>Name</code> tag at create time so the instance shows up labeled in the console list.
+        </p>
+
+        <h3 style="margin-top:1.4rem; color:#ffd28a; font-size:1.05rem;">5. Poll state &amp; get public DNS</h3>
+
+        <div class="code-block-wrapper">
+          <div class="code-header">bastion shell — wait for running, then fetch the URL</div>
+<pre class="code-block">
+<span class="token-comment"># Repeat until it prints "running".</span>
+<span class="token-command">aws</span> ec2 describe-instances <span class="token-flag">--instance-ids</span> <span class="token-var">$INSTANCE</span> \
+  <span class="token-flag">--query</span> <span class="token-string">'Reservations[].Instances[].State.Name'</span> \
+  <span class="token-flag">--output</span> text
+
+<span class="token-comment"># Then grab the public DNS name to open in a browser.</span>
+<span class="token-command">aws</span> ec2 describe-instances <span class="token-flag">--instance-ids</span> <span class="token-var">$INSTANCE</span> \
+  <span class="token-flag">--query</span> Reservations[].Instances[].PublicDnsName \
+  <span class="token-flag">--output</span> text
+</pre>
+        </div>
+
+        <div class="screenshot-gallery">
+          <figure class="screenshot-fig">
+            <img src="assets/screenshots/02-describe-instances-json-public-dns.png"
+                 alt="JSON output of aws ec2 describe-instances showing PublicDnsName and PublicIp"
+                 loading="lazy" />
+            <figcaption>
+              foto2 · full <code>describe-instances</code> JSON. Visible:
+              <code>Architecture: x86_64</code>, root volume <code>vol-08c1…66e</code> attached at
+              <code>/dev/xvda</code>, and the key field
+              <code>PublicDnsName: ec2-35-89-205-154.us-west-2.compute.amazonaws.com</code>
+              (<code>PublicIp 35.89.205.154</code>) — that's the URL used in the next step.
+            </figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════ VERIFY ══════ -->
+    <section id="verify">
+      <div class="container">
+        <h2 class="section-title">Verifying the web server</h2>
+        <p class="section-subtitle">
+          Pasted the public DNS into a browser tab. The instance answered HTTP on port 80 with the
+          dashboard that <code>UserData</code> unzipped into <code>/var/www/html/</code>.
+        </p>
+
+        <div class="screenshot-gallery">
+          <figure class="screenshot-fig">
+            <img src="assets/screenshots/03-widget-dashboard-served-by-apache.png"
+                 alt="Widget Manufacturing Dashboard served by Apache on the new EC2 instance"
+                 loading="lazy" />
+            <figcaption>
+              foto3 · <strong>Widget Manufacturing Dashboard</strong> rendered at
+              <code>http://ec2-35-89-205-154.us-west-2.compute.amazonaws.com/</code>. Output gauge
+              at 71, the cascade chart (Extrude → Cut → Weld → Polish → Package), and the Shipping
+              Throughput bars for queues 6–9. End-to-end proof: <code>httpd</code> running,
+              <code>dashboard-app.zip</code> unpacked, SG/NACL/route table all permitting HTTP from
+              the internet.
+            </figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════ METHODS COMPARISON ══════ -->
+    <section id="methods">
+      <div class="container">
+        <h2 class="section-title">Console vs CLI vs CloudFormation</h2>
+        <p class="section-subtitle">
+          The lab finishes with a take on when each launch method fits.
+        </p>
+
+        <div class="grid-3">
+          <article class="card">
+            <h3>Management Console</h3>
+            <p>Best for <strong>one-off</strong> or exploratory launches. Good for learning what
+              fields exist and what the defaults are. Not repeatable.</p>
+          </article>
+          <article class="card">
+            <h3>AWS CLI / scripts</h3>
+            <p><strong>Repeatable automation</strong> with low overhead. Same command runs in a
+              shell, a cron, a CI job. Pairs well with IAM roles to avoid hard-coded credentials.</p>
+          </article>
+          <article class="card">
+            <h3>CloudFormation</h3>
+            <p>When you need <strong>a set of related resources</strong> (VPC + subnets + SG +
+              instances + role) created and destroyed as one unit, with drift detection and
+              rollback on failure.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════ OPTIONAL (not done) ══════ -->
+    <section id="optional">
+      <div class="container">
+        <h2 class="section-title">Optional challenges — not performed</h2>
+        <p class="section-subtitle">
+          The lab guide includes two optional troubleshooting challenges on a pre-existing
+          <code>Misconfigured Web Server</code> instance. They were <strong>not performed</strong>
+          in this run, so they are intentionally left out of this report instead of fabricating a
+          diagnosis.
+        </p>
+
+        <div class="grid-2">
+          <article class="card">
+            <h3>Challenge 1 · Connect to the misconfigured server</h3>
+            <p>Goal would have been to diagnose why <strong>EC2 Instance Connect</strong> fails
+              against <code>Misconfigured Web Server</code> and fix the misconfiguration.
+              <em>Not done.</em></p>
+          </article>
+          <article class="card">
+            <h3>Challenge 2 · Fix the web server install</h3>
+            <p>Goal would have been to open the public DNS of that same instance, diagnose why the
+              site doesn't load, and fix the issue.
+              <em>Not done.</em></p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════ LEARNINGS ══════ -->
+    <section id="learnings">
+      <div class="container">
+        <h2 class="section-title">Key Learnings</h2>
+        <div class="grid-2">
+          <div class="card">
+            <h3>What stuck</h3>
+            <div class="checklist">
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>An <strong>IAM instance profile</strong> turns an EC2 instance into a trusted
+                  CLI client — no access keys needed.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>SSM Parameter Store has a <strong>public path</strong> for the latest Amazon
+                  Linux 2 AMI per Region; great for scripts that should always pick the patched image.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div><code>describe-subnets</code> and <code>describe-security-groups</code> with
+                  <code>--filters</code> + <code>--query</code> make CLI scripts deterministic even
+                  when IDs change between accounts.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div><code>--user-data file://…</code> is the same bootstrap mechanism as the
+                  Console's <em>Advanced &gt; User data</em> field, just expressed as a CLI flag.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div><code>${AZ::-1}</code> over <strong>IMDS</strong> output is brittle — if the
+                  first metadata call returns empty, the substring expression errors out. Worth
+                  guarding in real scripts.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Technical takeaway</h3>
+            <p>
+              The bastion pattern shown here is the seed of more elaborate setups: a small,
+              hardened instance with an IAM role becomes the "control plane" you SSH/Connect into,
+              and from there you operate on the rest of the fleet through APIs. The web server
+              never holds credentials — it only serves HTTP and is replaceable in seconds because
+              everything it needs is encoded in <code>UserData</code>.
+            </p>
+            <p style="margin-top: 1rem;">
+              The same flow scales naturally to <strong>CloudFormation</strong>: the parameters
+              passed to <code>run-instances</code> become a <code>AWS::EC2::Instance</code>
+              resource block, and the role + SG + subnet become sibling resources in the template.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      Lab report · Creating Amazon EC2 Instances (Console + AWS CLI) · AWS re/Start Program
+    </div>
+  </footer>
+</body>
+
+</html>

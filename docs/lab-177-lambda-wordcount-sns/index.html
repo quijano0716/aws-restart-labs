@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lab Report: AWS Lambda Word Count Challenge</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --bg-soft: #111827;
+      --card: rgba(255, 255, 255, 0.08);
+      --card-strong: rgba(255, 255, 255, 0.12);
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --accent: #ff9900;
+      --accent-2: #38bdf8;
+      --ok: #22c55e;
+      --warn: #f59e0b;
+      --border: rgba(255, 255, 255, 0.12);
+      --shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+      --radius: 22px;
+      --max: 1120px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(255, 153, 0, 0.16), transparent 28%),
+        radial-gradient(circle at top right, rgba(56, 189, 248, 0.14), transparent 24%),
+        linear-gradient(180deg, #020617 0%, #0f172a 48%, #111827 100%);
+      color: var(--text);
+      line-height: 1.65;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    .container {
+      width: min(var(--max), calc(100% - 2rem));
+      margin: 0 auto;
+    }
+
+    /* ── Nav ── */
+    .nav {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      backdrop-filter: blur(16px);
+      background: rgba(2, 6, 23, 0.72);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .nav-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.9rem 0;
+      gap: 1rem;
+    }
+    .brand {
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+    }
+    .brand-badge {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, var(--accent), #ffb84d);
+      color: #111827;
+      font-weight: 900;
+      box-shadow: var(--shadow);
+    }
+    .nav-links {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+    .nav-links a:hover { color: var(--text); }
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      color: var(--muted);
+      font-size: 0.9rem;
+      transition: color 0.2s;
+    }
+    .back-link:hover { color: var(--accent); }
+
+    /* ── Hero ── */
+    .hero { padding: 4.8rem 0 2rem; }
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 1.5rem;
+      align-items: stretch;
+    }
+    .panel {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.05));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+    .hero-main { padding: 2rem; }
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.45rem 0.8rem;
+      border-radius: 999px;
+      background: rgba(255, 153, 0, 0.12);
+      color: #ffd28a;
+      border: 1px solid rgba(255, 153, 0, 0.25);
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+    }
+    h1, h2, h3 {
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+      margin: 0;
+    }
+    h1 {
+      font-size: clamp(2rem, 4vw, 3.7rem);
+      margin-bottom: 0.9rem;
+    }
+    .hero-main p {
+      margin: 0;
+      color: #cbd5e1;
+      font-size: 1.05rem;
+      max-width: 65ch;
+    }
+    .hero-side {
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+    .hero-side .callout {
+      padding: 1rem 1.1rem;
+      border-radius: 18px;
+      border: 1px solid rgba(56, 189, 248, 0.18);
+      background: rgba(56, 189, 248, 0.08);
+    }
+    .hero-side .callout strong {
+      display: block;
+      margin-bottom: 0.35rem;
+    }
+    .tech-stack {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.55rem;
+    }
+    .chip {
+      padding: 0.45rem 0.75rem;
+      border-radius: 999px;
+      font-size: 0.88rem;
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #dbeafe;
+    }
+    .small {
+      font-size: 0.92rem;
+      color: var(--muted);
+    }
+
+    /* ── Sections ── */
+    section { padding: 1rem 0 0.4rem; }
+    .section-title {
+      margin-bottom: 1rem;
+      font-size: clamp(1.5rem, 2vw, 2.2rem);
+    }
+    .section-subtitle {
+      color: var(--muted);
+      margin-top: 0.45rem;
+      max-width: 75ch;
+    }
+
+    /* ── Grids ── */
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1rem;
+    }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+    }
+    .grid-4 {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 1rem;
+    }
+    .card {
+      padding: 1.3rem;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+    }
+    .card h3 {
+      font-size: 1.05rem;
+      margin-bottom: 0.6rem;
+    }
+    .card p {
+      margin: 0;
+      color: #cbd5e1;
+    }
+    .card .label {
+      display: inline-block;
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 0.3rem;
+      font-weight: 700;
+    }
+    .card ul {
+      margin: 0.5rem 0 0;
+      padding-left: 1.1rem;
+      color: #dbe4f0;
+      font-size: 0.94rem;
+    }
+    .card li + li { margin-top: 0.3rem; }
+
+    /* ── Timeline ── */
+    .timeline {
+      display: grid;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+    .step {
+      display: grid;
+      grid-template-columns: 90px 1fr;
+      gap: 1rem;
+      align-items: start;
+      padding: 1.25rem;
+      border-radius: 22px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: var(--shadow);
+    }
+    .step-num {
+      width: 72px;
+      height: 72px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, rgba(255, 153, 0, 0.18), rgba(56, 189, 248, 0.18));
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      display: grid;
+      place-items: center;
+      font-size: 1.1rem;
+      font-weight: 900;
+      color: #fff;
+    }
+    .step h3 {
+      margin-bottom: 0.55rem;
+      font-size: 1.2rem;
+    }
+    .step ul {
+      margin: 0.3rem 0 0;
+      padding-left: 1.1rem;
+      color: #dbe4f0;
+    }
+    .step li + li { margin-top: 0.4rem; }
+    .highlight {
+      color: #ffd28a;
+      font-weight: 700;
+    }
+
+    /* ── Screenshots ── */
+    .screenshot-gallery {
+      display: grid;
+      gap: 0.8rem;
+      margin-top: 1rem;
+    }
+    .screenshot-gallery.cols-2 {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .screenshot-fig {
+      margin: 0;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(2, 6, 23, 0.5);
+    }
+    .screenshot-fig img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+    .screenshot-fig figcaption {
+      padding: 0.6rem 0.8rem;
+      color: var(--muted);
+      font-size: 0.84rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    /* ── Callouts ── */
+    .insight {
+      padding: 1.15rem 1.2rem;
+      border-left: 4px solid var(--accent);
+      border-radius: 16px;
+      background: rgba(255, 153, 0, 0.08);
+      color: #fde7c2;
+    }
+    .info {
+      border-left-color: var(--accent-2);
+      background: rgba(56, 189, 248, 0.08);
+      color: #d8f3ff;
+    }
+
+    /* ── Checklist ── */
+    .checklist {
+      display: grid;
+      gap: 0.7rem;
+      margin-top: 1rem;
+    }
+    .check {
+      display: flex;
+      gap: 0.75rem;
+      align-items: flex-start;
+      padding: 0.9rem 1rem;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+    }
+    .check-mark {
+      flex: 0 0 auto;
+      width: 28px;
+      height: 28px;
+      display: grid;
+      place-items: center;
+      border-radius: 999px;
+      background: rgba(34, 197, 94, 0.15);
+      color: #86efac;
+      font-weight: 800;
+    }
+
+    /* ── Inline code ── */
+    code {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 0.15rem 0.4rem;
+      border-radius: 6px;
+      font-size: 0.9em;
+      font-family: "Cascadia Code", "Fira Code", monospace;
+    }
+
+    /* ── Code Display ── */
+    .code-block-wrapper {
+      margin: 1.5rem 0;
+      background: #020617;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .code-header {
+      background: rgba(255, 255, 255, 0.06);
+      padding: 0.5rem 1rem;
+      font-size: 0.85rem;
+      color: var(--muted);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      font-family: monospace;
+    }
+    .code-block {
+      padding: 1.5rem;
+      margin: 0;
+      overflow-x: auto;
+      color: #e2e8f0;
+      font-family: "Cascadia Code", "Fira Code", monospace;
+      font-size: 0.92rem;
+      line-height: 1.6;
+    }
+    .token-keyword { color: #818cf8; }
+    .token-string { color: #a3e635; }
+    .token-var { color: #f472b6; }
+    .token-comment { color: #64748b; font-style: italic; }
+    .token-builtin { color: #38bdf8; }
+    .token-deco { color: #fbbf24; }
+
+    /* ── ASCII flow diagram ── */
+    .flow-diagram {
+      margin: 1rem 0;
+      padding: 1.2rem;
+      background: #020617;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 14px;
+      overflow-x: auto;
+    }
+    .flow-diagram pre {
+      margin: 0;
+      color: #cbd5e1;
+      font-family: "Cascadia Code", "Fira Code", monospace;
+      font-size: 0.92rem;
+      line-height: 1.5;
+      white-space: pre;
+    }
+    .flow-diagram .flow-svc { color: var(--accent); font-weight: 700; }
+    .flow-diagram .flow-arrow { color: var(--accent-2); }
+
+    /* ── Footer ── */
+    .footer {
+      padding: 2.2rem 0 3.5rem;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 920px) {
+      .hero-grid,
+      .grid-3,
+      .grid-2,
+      .grid-4,
+      .screenshot-gallery.cols-2 {
+        grid-template-columns: 1fr;
+      }
+    }
+    @media (max-width: 680px) {
+      .nav-inner {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .step { grid-template-columns: 1fr; }
+      .step-num {
+        width: 60px;
+        height: 60px;
+        border-radius: 16px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <nav class="nav">
+    <div class="container nav-inner">
+      <div class="brand">
+        <div class="brand-badge">AWS</div>
+        <div>Lab Report · Serverless</div>
+      </div>
+      <div class="nav-links">
+        <a href="../index.html" class="back-link">← All Labs</a>
+        <a href="#summary">Summary</a>
+        <a href="#architecture">Architecture</a>
+        <a href="#resources">Resources</a>
+        <a href="#code">Lambda Code</a>
+        <a href="#trigger">Trigger &amp; Test</a>
+        <a href="#learnings">Learnings</a>
+      </div>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <div class="container hero-grid">
+      <div class="panel hero-main">
+        <div class="eyebrow">AWS re/Start Lab · Lambda Challenge</div>
+        <h1>AWS Lambda Exercise — Word Count from S3 with SNS Notification</h1>
+        <p>
+          Challenge lab without guided steps. Build a Python Lambda function that triggers on a
+          <code>.txt</code> upload to S3, counts the words in the file, and publishes the result by
+          email through an SNS topic. The full pipeline runs on event-driven serverless components
+          with a pre-existing IAM role.
+        </p>
+      </div>
+
+      <aside class="panel hero-side">
+        <div class="callout">
+          <strong>Lab Objective</strong>
+          Implement an event-driven S3 → Lambda → SNS pipeline that reports the word count of any
+          uploaded text file.
+        </div>
+
+        <div>
+          <div class="small" style="margin-bottom:0.7rem;">Services &amp; Concepts</div>
+          <div class="tech-stack">
+            <span class="chip">AWS Lambda</span>
+            <span class="chip">Amazon S3</span>
+            <span class="chip">Amazon SNS</span>
+            <span class="chip">IAM</span>
+            <span class="chip">Python 3 · boto3</span>
+            <span class="chip">Event-driven</span>
+          </div>
+        </div>
+
+        <div class="callout" style="border-color: rgba(34,197,94,0.2); background: rgba(34,197,94,0.08);">
+          <strong>Key Insight</strong>
+          Lambda + S3 events + SNS is the canonical serverless pattern: a notification source, a
+          stateless compute step, and a fan-out delivery channel — wired together by IAM and
+          resource-based policies.
+        </div>
+      </aside>
+    </div>
+  </header>
+
+  <main>
+    <section id="summary">
+      <div class="container">
+        <h2 class="section-title">Lab Summary</h2>
+        <p class="section-subtitle">
+          Created an <span class="highlight">SNS topic</span> with a confirmed email subscription, an
+          <span class="highlight">S3 bucket</span> to receive text files, and a
+          <span class="highlight">Python Lambda function</span> wired to the bucket as an event
+          trigger. The Lambda reads the uploaded file via <code>boto3</code>, counts its words with a
+          Unicode-aware regex, and publishes the result to SNS using the topic ARN injected as an
+          environment variable. The end-to-end test was validated by uploading <code>test1.txt</code>
+          (6 words) and receiving the matching email.
+        </p>
+
+        <div class="grid-2" style="margin-top:1rem;">
+          <article class="card">
+            <h3>What the challenge requires</h3>
+            <p>
+              No guided steps. The lab requires choosing the right services, formatting the response
+              message exactly as <code>The word count in the &lt;textFileName&gt; file is nnn.</code>,
+              using the subject <code>Word Count Result</code>, and wiring everything in the same
+              AWS Region.
+            </p>
+          </article>
+          <article class="card">
+            <h3>What was actually built</h3>
+            <p>
+              Four AWS resources (SNS topic, S3 bucket, Lambda function, S3 event trigger) plus one
+              environment variable. The IAM role <code>LambdaAccessRole</code> was provided by the
+              lab — the sandbox does not allow creating roles, so it was reused as-is.
+            </p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="architecture">
+      <div class="container">
+        <h2 class="section-title">Architecture &amp; Event Flow</h2>
+        <p class="section-subtitle">
+          A pure event-driven pipeline. No polling, no scheduled invocations: S3 publishes an
+          object-created event, Lambda receives it, and SNS handles delivery to the subscribed
+          email endpoint.
+        </p>
+
+        <div class="flow-diagram">
+<pre>
+  <span class="flow-svc">[ Upload .txt ]</span>
+        <span class="flow-arrow">│</span>
+        <span class="flow-arrow">▼</span>
+  <span class="flow-svc">[ S3 Bucket ]</span>  ── ObjectCreated event ──┐
+                                          <span class="flow-arrow">│</span>
+                                          <span class="flow-arrow">▼</span>
+                                  <span class="flow-svc">[ AWS Lambda ]</span>
+                                  · reads object (boto3)
+                                  · counts words (regex)
+                                  · builds message string
+                                          <span class="flow-arrow">│</span>
+                              sns:Publish <span class="flow-arrow">▼</span>
+                                  <span class="flow-svc">[ SNS Topic ]</span>
+                                          <span class="flow-arrow">│</span>
+                                          <span class="flow-arrow">▼</span>
+                                  <span class="flow-svc">[ Email Subscriber ]</span>
+</pre>
+        </div>
+
+        <h3 style="margin-top:1.4rem; font-size:1.1rem; color:#cbd5e1;">Order of resource creation</h3>
+        <p class="small" style="margin-top:0.3rem;">
+          The order matters: SNS first (so the ARN exists to inject into Lambda), then the bucket,
+          then the function, and the trigger last (because adding the trigger wires the resource-based
+          policy on the function from the S3 side).
+        </p>
+        <div class="grid-4" style="margin-top:0.9rem;">
+          <div class="card">
+            <span class="label">Step 01</span>
+            <h3>SNS Topic</h3>
+            <p>Create topic + email subscription. <strong>Confirm</strong> from the inbox.</p>
+          </div>
+          <div class="card">
+            <span class="label">Step 02</span>
+            <h3>S3 Bucket</h3>
+            <p>Same Region. Will receive the <code>.txt</code> uploads.</p>
+          </div>
+          <div class="card">
+            <span class="label">Step 03</span>
+            <h3>Lambda + env var</h3>
+            <p>Python runtime, <code>LambdaAccessRole</code>, <code>TOPIC_ARN</code> env var.</p>
+          </div>
+          <div class="card">
+            <span class="label">Step 04</span>
+            <h3>S3 Trigger</h3>
+            <p>Bind bucket → Lambda on <code>ObjectCreated</code>.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="resources">
+      <div class="container">
+        <h2 class="section-title">AWS Resource Configuration</h2>
+        <p class="section-subtitle">
+          The exact values used in the lab. All resources live in <code>us-west-2</code>.
+        </p>
+
+        <div class="grid-2" style="margin-top:1rem;">
+          <article class="card">
+            <span class="label">SNS</span>
+            <h3>Topic <code>wordCountTopic</code></h3>
+            <p>
+              Standard topic in <code>us-west-2</code>. Used to fan out the word-count result to an
+              email subscriber.
+            </p>
+            <ul>
+              <li><strong>ARN:</strong> <code>arn:aws:sns:us-west-2:792101447061:wordCountTopic</code></li>
+              <li><strong>Subscription:</strong> email endpoint, <strong>confirmed</strong> from the inbox before testing</li>
+              <li><strong>Subject (Lambda publish):</strong> <code>Word Count Result</code></li>
+            </ul>
+          </article>
+
+          <article class="card">
+            <span class="label">S3</span>
+            <h3>Input bucket</h3>
+            <p>
+              Receives <code>.txt</code> uploads. Configured as the event source for the Lambda
+              function via the S3 trigger UI in the Lambda console.
+            </p>
+            <ul>
+              <li><strong>Region:</strong> <code>us-west-2</code> (must match SNS &amp; Lambda)</li>
+              <li><strong>Event:</strong> <code>s3:ObjectCreated:*</code></li>
+              <li><strong>Trigger payload:</strong> standard S3 event with <code>bucket.name</code> and <code>object.key</code></li>
+            </ul>
+          </article>
+
+          <article class="card">
+            <span class="label">IAM</span>
+            <h3>Role <code>LambdaAccessRole</code></h3>
+            <p>
+              Pre-existing role provided by the lab. The sandbox does not allow creating IAM roles,
+              so this role is reused. It is a broad role for lab purposes — in production you would
+              scope it down to <em>only</em> the bucket and topic in use.
+            </p>
+            <ul>
+              <li><code>AWSLambdaBasicExecutionRole</code> — write to CloudWatch Logs</li>
+              <li><code>AmazonS3FullAccess</code> — read uploaded objects</li>
+              <li><code>AmazonSNSFullAccess</code> — publish to the topic</li>
+              <li><code>CloudWatchFullAccess</code> — extra observability</li>
+            </ul>
+          </article>
+
+          <article class="card">
+            <span class="label">Lambda Config</span>
+            <h3>Environment variable <code>TOPIC_ARN</code></h3>
+            <p>
+              The topic ARN is not hardcoded in the function body. It is injected as an environment
+              variable so the same code can be redeployed against a different topic without editing
+              the source.
+            </p>
+            <ul>
+              <li><strong>Key:</strong> <code>TOPIC_ARN</code></li>
+              <li><strong>Value:</strong> <code>arn:aws:sns:us-west-2:792101447061:wordCountTopic</code></li>
+              <li><strong>Read at module load:</strong> <code>os.environ["TOPIC_ARN"]</code> (fails fast if missing)</li>
+            </ul>
+          </article>
+        </div>
+
+        <div class="insight info" style="margin-top:1.4rem;">
+          <strong>Why the SNS confirmation step matters:</strong> SNS will not deliver any message to
+          an email endpoint that has not clicked the confirmation link. If the Lambda runs before
+          confirmation, CloudWatch shows a successful <code>Publish</code> but no email arrives — a
+          silent failure that is easy to misdiagnose.
+        </div>
+      </div>
+    </section>
+
+    <section id="code">
+      <div class="container">
+        <h2 class="section-title">Lambda Function (Python)</h2>
+        <p class="section-subtitle">
+          Full source of the handler. Three external clients (S3, SNS), one environment variable,
+          and a Unicode-aware regex for word counting.
+        </p>
+
+        <div class="code-block-wrapper">
+          <div class="code-header">lambda_function.py · Python 3.x · boto3</div>
+<pre class="code-block"><span class="token-keyword">import</span> json
+<span class="token-keyword">import</span> os
+<span class="token-keyword">import</span> re
+<span class="token-keyword">import</span> urllib.parse
+<span class="token-keyword">import</span> boto3
+
+s3_client  = boto3.client(<span class="token-string">"s3"</span>)
+sns_client = boto3.client(<span class="token-string">"sns"</span>)
+TOPIC_ARN  = os.environ[<span class="token-string">"TOPIC_ARN"</span>]
+
+
+<span class="token-keyword">def</span> <span class="token-builtin">lambda_handler</span>(event, context):
+    results = []
+
+    <span class="token-keyword">for</span> record <span class="token-keyword">in</span> event.get(<span class="token-string">"Records"</span>, []):
+        bucket_name = record[<span class="token-string">"s3"</span>][<span class="token-string">"bucket"</span>][<span class="token-string">"name"</span>]
+        object_key  = urllib.parse.unquote_plus(record[<span class="token-string">"s3"</span>][<span class="token-string">"object"</span>][<span class="token-string">"key"</span>])
+
+        response = s3_client.get_object(
+            Bucket=bucket_name,
+            Key=object_key,
+        )
+        file_content = response[<span class="token-string">"Body"</span>].read().decode(<span class="token-string">"utf-8"</span>, errors=<span class="token-string">"ignore"</span>)
+
+        <span class="token-comment"># Unicode-aware word match: \b…\b around \w with apostrophes</span>
+        words = re.findall(<span class="token-string">r"\b[\w']+\b"</span>, file_content, flags=re.UNICODE)
+        word_count = len(words)
+
+        file_name = object_key.split(<span class="token-string">"/"</span>)[-<span class="token-var">1</span>]
+        message   = <span class="token-string">f"The word count in the {file_name} file is {word_count}."</span>
+
+        sns_client.publish(
+            TopicArn=TOPIC_ARN,
+            Subject=<span class="token-string">"Word Count Result"</span>,
+            Message=message,
+        )
+
+        results.append({
+            <span class="token-string">"bucket"</span>: bucket_name,
+            <span class="token-string">"file"</span>: file_name,
+            <span class="token-string">"word_count"</span>: word_count,
+            <span class="token-string">"message"</span>: message,
+        })
+
+    <span class="token-keyword">return</span> {
+        <span class="token-string">"statusCode"</span>: <span class="token-var">200</span>,
+        <span class="token-string">"body"</span>: json.dumps(results),
+    }
+</pre>
+        </div>
+
+        <h3 style="margin-top:1.4rem; font-size:1.1rem; color:#cbd5e1;">Implementation notes</h3>
+        <div class="timeline" style="margin-top:0.8rem;">
+          <article class="step">
+            <div class="step-num" style="font-size:0.8rem;">key</div>
+            <div>
+              <h3><code>urllib.parse.unquote_plus(object_key)</code></h3>
+              <ul>
+                <li>S3 sends object keys <strong>URL-encoded</strong> in the event payload. A file named <code>my file.txt</code> arrives as <code>my+file.txt</code> or <code>my%20file.txt</code>.</li>
+                <li>Without decoding, <code>get_object</code> would receive a key that does not match the real object and fail with <code>NoSuchKey</code>.</li>
+              </ul>
+            </div>
+          </article>
+
+          <article class="step">
+            <div class="step-num" style="font-size:0.8rem;">regex</div>
+            <div>
+              <h3><code>re.findall(r"\b[\w']+\b", ..., flags=re.UNICODE)</code></h3>
+              <ul>
+                <li>Counts <em>word-like</em> tokens, not whitespace-separated fragments. A naive <code>text.split()</code> would count <code>"hello-world"</code> as one word and would mishandle Unicode.</li>
+                <li>The <code>'</code> inside the character class keeps contractions like <code>don't</code> as a single token.</li>
+                <li><code>re.UNICODE</code> makes <code>\w</code> match letters from non-ASCII alphabets (accents, etc.) — important for any text not strictly English.</li>
+              </ul>
+            </div>
+          </article>
+
+          <article class="step">
+            <div class="step-num" style="font-size:0.8rem;">io</div>
+            <div>
+              <h3><code>.decode("utf-8", errors="ignore")</code></h3>
+              <ul>
+                <li>Tolerates non-UTF-8 bytes instead of raising <code>UnicodeDecodeError</code>. For a word-counter, dropping bad bytes is acceptable; for binary-sensitive workloads it would not be.</li>
+              </ul>
+            </div>
+          </article>
+
+          <article class="step">
+            <div class="step-num" style="font-size:0.8rem;">loop</div>
+            <div>
+              <h3>Iterating <code>event["Records"]</code></h3>
+              <ul>
+                <li>S3 can deliver <strong>multiple records</strong> in a single Lambda invocation when several objects are created close together.</li>
+                <li>The handler processes each record independently and accumulates results so a single invocation reports every file it saw.</li>
+              </ul>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="trigger">
+      <div class="container">
+        <h2 class="section-title">Trigger Wiring &amp; End-to-End Test</h2>
+        <p class="section-subtitle">
+          The S3 trigger was added from the Lambda console (<em>Add trigger → S3 → bucket → All
+          object create events</em>). Adding the trigger from the Lambda side automatically attaches
+          the resource-based policy that lets S3 invoke the function — no manual <code>AddPermission</code>
+          call needed.
+        </p>
+
+        <div class="grid-2" style="margin-top:1rem;">
+          <article class="card">
+            <span class="label">Test file</span>
+            <h3><code>test1.txt</code> — 6 words</h3>
+            <p>
+              Contents: <code>This is a simple test file.</code> Regex-counted as 6 tokens
+              (<code>This</code>, <code>is</code>, <code>a</code>, <code>simple</code>,
+              <code>test</code>, <code>file</code>). The final period is not a word character.
+            </p>
+          </article>
+          <article class="card">
+            <span class="label">Validation</span>
+            <h3>Expected email body</h3>
+            <p>
+              <code>The word count in the test1.txt file is 6.</code> Sent with subject
+              <code>Word Count Result</code> from <code>no-reply@sns.amazonaws.com</code>.
+            </p>
+          </article>
+        </div>
+
+        <div class="screenshot-gallery cols-2" style="margin-top:1.2rem;">
+          <figure class="screenshot-fig">
+            <img src="assets/screenshots/01-test1-txt-source.png" alt="test1.txt source file open in gedit" loading="lazy" />
+            <figcaption>Source file <code>test1.txt</code> in <code>~/Documents/177/</code> — the input that was uploaded to the S3 bucket.</figcaption>
+          </figure>
+          <figure class="screenshot-fig">
+            <img src="assets/screenshots/02-word-count-email.png" alt="Email received from SNS with the word count result" loading="lazy" />
+            <figcaption>End-to-end proof: SNS email with subject <em>Word Count Result</em> and body <em>The word count in the test1.txt file is 6.</em></figcaption>
+          </figure>
+        </div>
+
+        <div class="insight info" style="margin-top:1.2rem;">
+          <strong>Pipeline verification:</strong> the email is the only externally-observable signal
+          that the full chain worked. Receiving it confirms (a) S3 fired the event, (b) IAM let the
+          function read the object and publish to SNS, (c) the function decoded and parsed the file
+          correctly, and (d) the subscription was confirmed before the test.
+        </div>
+
+        <h3 style="margin-top:1.4rem; font-size:1.1rem; color:#cbd5e1;">A second test file existed but was not used as evidence</h3>
+        <p class="small" style="margin-top:0.3rem;">
+          A second file <code>test2.txt</code> with contents <code>The word count in the test2.txt file is 14.</code>
+          was kept locally for format-verification purposes (its contents intentionally mirror the
+          expected message shape). It was not the artifact used to validate the lab — the email
+          screenshot above corresponds to <code>test1.txt</code>.
+        </p>
+      </div>
+    </section>
+
+    <section id="learnings">
+      <div class="container">
+        <h2 class="section-title">Key Learnings</h2>
+        <div class="grid-2">
+          <div class="card">
+            <h3>What Was Actually Learned</h3>
+            <div class="checklist">
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>The <strong>S3 → Lambda → SNS</strong> pattern as a reusable building block for event-driven processing.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>How the <strong>Lambda console trigger UI</strong> sets up the S3 resource-based policy automatically.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>Why <strong><code>urllib.parse.unquote_plus</code></strong> is mandatory when reading S3 event keys.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>The difference between counting words with <strong><code>split()</code></strong> and a <strong>Unicode-aware regex</strong>.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>Injecting configuration (the SNS ARN) via <strong>environment variables</strong> instead of hardcoding it.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>SNS <strong>email confirmation</strong> is required before any message is delivered to a new endpoint.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Technical Conclusion</h3>
+            <p>
+              The lab is small in surface area but encodes the canonical serverless pattern: a managed
+              event source (S3), a stateless compute function (Lambda), and a fan-out delivery
+              channel (SNS). Each piece is decoupled by IAM permissions and resource-based policies,
+              and configuration is externalised through environment variables.
+            </p>
+            <p style="margin-top: 1rem;">
+              The interesting engineering work is in the small details: URL-decoding event keys,
+              choosing a regex over <code>split()</code>, tolerating non-UTF-8 bytes, and iterating
+              over the <code>Records</code> array because S3 can batch events. These are the kind of
+              details that fail silently in production if missed.
+            </p>
+          </div>
+        </div>
+
+        <h3 style="margin-top:1.4rem; font-size:1.1rem; color:#cbd5e1;">Gotchas worth remembering</h3>
+        <div class="grid-3" style="margin-top:0.8rem;">
+          <article class="card">
+            <span class="label">Region</span>
+            <h3>Single-region pipeline</h3>
+            <p>S3, Lambda, and SNS must be in the same Region for the trigger UI to find the bucket and avoid cross-region IAM complications.</p>
+          </article>
+          <article class="card">
+            <span class="label">Silent failure</span>
+            <h3>Unconfirmed SNS subscription</h3>
+            <p>Lambda will succeed and CloudWatch will log a published message, but no email will arrive. Always confirm the subscription before testing.</p>
+          </article>
+          <article class="card">
+            <span class="label">Encoding</span>
+            <h3>S3 keys are URL-encoded</h3>
+            <p>Spaces become <code>+</code> or <code>%20</code>. Always run <code>unquote_plus</code> on <code>record["s3"]["object"]["key"]</code> before calling <code>get_object</code>.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      Lab report documenting the AWS Lambda Word Count challenge · AWS re/Start Program
+    </div>
+  </footer>
+</body>
+
+</html>

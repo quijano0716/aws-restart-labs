@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lab Report: Troubleshooting a VPC</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --bg-soft: #111827;
+      --card: rgba(255, 255, 255, 0.08);
+      --card-strong: rgba(255, 255, 255, 0.12);
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --accent: #ff9900;
+      --accent-2: #38bdf8;
+      --ok: #22c55e;
+      --warn: #f59e0b;
+      --danger: #ef4444;
+      --border: rgba(255, 255, 255, 0.12);
+      --shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+      --radius: 22px;
+      --max: 1120px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(255, 153, 0, 0.16), transparent 28%),
+        radial-gradient(circle at top right, rgba(56, 189, 248, 0.14), transparent 24%),
+        linear-gradient(180deg, #020617 0%, #0f172a 48%, #111827 100%);
+      color: var(--text);
+      line-height: 1.65;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    .container {
+      width: min(var(--max), calc(100% - 2rem));
+      margin: 0 auto;
+    }
+
+    /* Nav */
+    .nav {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      backdrop-filter: blur(16px);
+      background: rgba(2, 6, 23, 0.72);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .nav-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.9rem 0;
+      gap: 1rem;
+    }
+
+    .brand {
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+    }
+
+    .brand-badge {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, var(--accent), #ffb84d);
+      color: #111827;
+      font-weight: 900;
+      box-shadow: var(--shadow);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .nav-links a:hover { color: var(--text); }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      color: var(--muted);
+      font-size: 0.9rem;
+      transition: color 0.2s;
+    }
+
+    .back-link:hover { color: var(--accent); }
+
+    /* Hero */
+    .hero { padding: 4.8rem 0 2rem; }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 1.5rem;
+      align-items: stretch;
+    }
+
+    .panel {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.05));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .hero-main { padding: 2rem; }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.45rem 0.8rem;
+      border-radius: 999px;
+      background: rgba(255, 153, 0, 0.12);
+      color: #ffd28a;
+      border: 1px solid rgba(255, 153, 0, 0.25);
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+    }
+
+    h1, h2, h3 {
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+      margin: 0;
+    }
+
+    h1 {
+      font-size: clamp(2rem, 4vw, 3.7rem);
+      margin-bottom: 0.9rem;
+    }
+
+    .hero-main p {
+      margin: 0;
+      color: #cbd5e1;
+      font-size: 1.05rem;
+      max-width: 65ch;
+    }
+
+    .hero-side {
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .hero-side .callout {
+      padding: 1rem 1.1rem;
+      border-radius: 18px;
+      border: 1px solid rgba(56, 189, 248, 0.18);
+      background: rgba(56, 189, 248, 0.08);
+    }
+
+    .hero-side .callout strong {
+      display: block;
+      margin-bottom: 0.35rem;
+    }
+
+    .tech-stack { display: flex; flex-wrap: wrap; gap: 0.55rem; }
+
+    .chip {
+      padding: 0.45rem 0.75rem;
+      border-radius: 999px;
+      font-size: 0.88rem;
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #dbeafe;
+    }
+
+    .small { font-size: 0.92rem; color: var(--muted); }
+
+    /* Sections */
+    section { padding: 1rem 0 0.4rem; }
+
+    .section-title {
+      margin-bottom: 1rem;
+      font-size: clamp(1.5rem, 2vw, 2.2rem);
+    }
+
+    .section-subtitle {
+      color: var(--muted);
+      margin-top: 0.45rem;
+      max-width: 75ch;
+    }
+
+    /* Grids */
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .card {
+      padding: 1.3rem;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+    }
+
+    .card h3 { font-size: 1.05rem; margin-bottom: 0.6rem; }
+    .card p { margin: 0; color: #cbd5e1; }
+
+    /* Timeline */
+    .timeline {
+      display: grid;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .step {
+      display: grid;
+      grid-template-columns: 90px 1fr;
+      gap: 1rem;
+      align-items: start;
+      padding: 1.25rem;
+      border-radius: 22px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: var(--shadow);
+    }
+
+    .step-num {
+      width: 72px;
+      height: 72px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, rgba(255, 153, 0, 0.18), rgba(56, 189, 248, 0.18));
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      display: grid;
+      place-items: center;
+      font-size: 1.1rem;
+      font-weight: 900;
+      color: #fff;
+    }
+
+    .step h3 { margin-bottom: 0.55rem; font-size: 1.2rem; }
+
+    .step ul {
+      margin: 0.3rem 0 0;
+      padding-left: 1.1rem;
+      color: #dbe4f0;
+    }
+
+    .step li + li { margin-top: 0.4rem; }
+
+    .highlight { color: #ffd28a; font-weight: 700; }
+
+    /* Screenshots */
+    .screenshot-gallery {
+      display: grid;
+      gap: 0.8rem;
+      margin-top: 1rem;
+    }
+
+    .screenshot-gallery.cols-2 { grid-template-columns: repeat(2, 1fr); }
+
+    .screenshot-fig {
+      margin: 0;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(2, 6, 23, 0.5);
+    }
+
+    .screenshot-fig img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .screenshot-fig figcaption {
+      padding: 0.6rem 0.8rem;
+      color: var(--muted);
+      font-size: 0.84rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    /* Callouts */
+    .insight {
+      padding: 1.15rem 1.2rem;
+      border-left: 4px solid var(--accent);
+      border-radius: 16px;
+      background: rgba(255, 153, 0, 0.08);
+      color: #fde7c2;
+    }
+
+    .info {
+      border-left-color: var(--accent-2);
+      background: rgba(56, 189, 248, 0.08);
+      color: #d8f3ff;
+    }
+
+    .warn {
+      border-left-color: var(--warn);
+      background: rgba(245, 158, 11, 0.08);
+      color: #fde7c2;
+    }
+
+    /* Checklist */
+    .checklist { display: grid; gap: 0.7rem; margin-top: 1rem; }
+
+    .check {
+      display: flex;
+      gap: 0.75rem;
+      align-items: flex-start;
+      padding: 0.9rem 1rem;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+    }
+
+    .check-mark {
+      flex: 0 0 auto;
+      width: 28px;
+      height: 28px;
+      display: grid;
+      place-items: center;
+      border-radius: 999px;
+      background: rgba(34, 197, 94, 0.15);
+      color: #86efac;
+      font-weight: 800;
+    }
+
+    /* Code */
+    code {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 0.15rem 0.4rem;
+      border-radius: 6px;
+      font-size: 0.9em;
+      font-family: "Cascadia Code", "Fira Code", monospace;
+    }
+
+    pre {
+      background: rgba(2, 6, 23, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 1rem 1.1rem;
+      overflow-x: auto;
+      font-size: 0.88rem;
+      line-height: 1.55;
+      margin: 0.6rem 0;
+    }
+
+    pre code {
+      background: transparent;
+      padding: 0;
+      font-size: 0.88rem;
+      color: #e2e8f0;
+    }
+
+    .cmd-comment { color: #64748b; font-style: italic; }
+    .cmd-prompt { color: #22c55e; user-select: none; }
+    .cmd-out { color: #94a3b8; }
+
+    /* Footer */
+    .footer {
+      padding: 2.2rem 0 3.5rem;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    /* ── Custom for Lab 181 ── */
+
+    /* Troubleshooting cards: Síntoma → Diagnóstico → Causa raíz → Fix */
+    .tshoot {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.8rem;
+      margin: 1rem 0;
+    }
+
+    .tshoot-cell {
+      padding: 1rem;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+    }
+
+    .tshoot-cell .label {
+      display: block;
+      font-size: 0.75rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.45rem;
+      font-weight: 700;
+    }
+
+    .tshoot-cell.symptom { border-color: rgba(239, 68, 68, 0.3); background: rgba(239, 68, 68, 0.08); }
+    .tshoot-cell.symptom .label { color: #fca5a5; }
+    .tshoot-cell.diagnosis { border-color: rgba(56, 189, 248, 0.3); background: rgba(56, 189, 248, 0.08); }
+    .tshoot-cell.diagnosis .label { color: #7dd3fc; }
+    .tshoot-cell.cause { border-color: rgba(245, 158, 11, 0.3); background: rgba(245, 158, 11, 0.08); }
+    .tshoot-cell.cause .label { color: #fcd34d; }
+    .tshoot-cell.fix { border-color: rgba(34, 197, 94, 0.3); background: rgba(34, 197, 94, 0.08); }
+    .tshoot-cell.fix .label { color: #86efac; }
+
+    .tshoot-cell p { margin: 0; font-size: 0.92rem; color: #e2e8f0; }
+    .tshoot-cell code { font-size: 0.82rem; }
+
+    /* Flow log columns table */
+    .cols-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 0.8rem 0;
+      font-size: 0.92rem;
+    }
+
+    .cols-table th,
+    .cols-table td {
+      padding: 0.6rem 0.8rem;
+      text-align: left;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .cols-table th {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--muted);
+      font-size: 0.8rem;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+
+    .cols-table td:first-child { color: #ffd28a; font-weight: 700; font-family: "Cascadia Code", monospace; }
+
+    /* Architecture mini-diagram */
+    .arch-diagram {
+      padding: 1.2rem;
+      border-radius: 18px;
+      background: rgba(2, 6, 23, 0.55);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      font-family: "Cascadia Code", "Fira Code", monospace;
+      font-size: 0.85rem;
+      line-height: 1.7;
+      color: #cbd5e1;
+      overflow-x: auto;
+      white-space: pre;
+    }
+
+    /* Responsive */
+    @media (max-width: 920px) {
+      .hero-grid,
+      .grid-3,
+      .grid-2,
+      .screenshot-gallery.cols-2,
+      .tshoot {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 680px) {
+      .nav-inner {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .step { grid-template-columns: 1fr; }
+      .step-num { width: 60px; height: 60px; border-radius: 16px; }
+    }
+  </style>
+</head>
+
+<body>
+  <nav class="nav">
+    <div class="container nav-inner">
+      <div class="brand">
+        <div class="brand-badge">AWS</div>
+        <div>Lab Report · VPC Troubleshooting</div>
+      </div>
+      <div class="nav-links">
+        <a href="../index.html" class="back-link">← All Labs</a>
+        <a href="#summary">Summary</a>
+        <a href="#flowlogs">Flow Logs</a>
+        <a href="#tshoot">Troubleshooting</a>
+        <a href="#analysis">Log Analysis</a>
+        <a href="#commands">Commands</a>
+        <a href="#learnings">Learnings</a>
+      </div>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <div class="container hero-grid">
+      <div class="panel hero-main">
+        <div class="eyebrow">AWS re/Start Lab · Networking</div>
+        <h1>Troubleshooting a VPC</h1>
+        <p>
+          Diagnosed and fixed two connectivity failures in a custom VPC using only the AWS CLI,
+          then used VPC Flow Logs stored in S3 to audit the rejected traffic produced during the
+          troubleshooting process. The lab forces a methodical walk through the layered security
+          model of a VPC: <strong>Security Group → Route Table → Network ACL</strong>.
+        </p>
+      </div>
+
+      <aside class="panel hero-side">
+        <div class="callout">
+          <strong>Lab Objective</strong>
+          Enable VPC Flow Logs, troubleshoot a broken VPC (web + SSH unreachable), then analyze
+          the captured REJECT traffic from S3.
+        </div>
+
+        <div>
+          <div class="small" style="margin-bottom:0.7rem;">Tools & Concepts</div>
+          <div class="tech-stack">
+            <span class="chip">Amazon VPC</span>
+            <span class="chip">Flow Logs</span>
+            <span class="chip">Amazon S3</span>
+            <span class="chip">Route Tables</span>
+            <span class="chip">Network ACL</span>
+            <span class="chip">Security Groups</span>
+            <span class="chip">AWS CLI</span>
+            <span class="chip">grep / gunzip</span>
+          </div>
+        </div>
+
+        <div class="callout" style="border-color: rgba(34,197,94,0.2); background: rgba(34,197,94,0.08);">
+          <strong>Key Insight</strong>
+          Security Groups are <em>stateful</em> and allow what you list. Network ACLs are
+          <em>stateless</em> and evaluated <em>before</em> the SG — a single explicit DENY at the
+          subnet boundary will silently kill SSH even when port 22 is wide open on the SG.
+        </div>
+      </aside>
+    </div>
+  </header>
+
+  <main>
+    <!-- ══════ SUMMARY ══════ -->
+    <section id="summary">
+      <div class="container">
+        <h2 class="section-title">Lab Summary</h2>
+        <p class="section-subtitle">
+          Two VPCs were pre-built with broken networking. The job was to make the cafe web server
+          reachable from the public internet, fix SSH access, and then explain what happened
+          using flow logs.
+        </p>
+
+        <div class="grid-3" style="margin-top:1rem;">
+          <article class="card">
+            <h3>Issue #1 — Web timeout</h3>
+            <p>The public subnet route table was missing the default route to the Internet Gateway.
+              Traffic could enter the VPC but had no way out. Fixed with <code>aws ec2 create-route</code>.</p>
+          </article>
+          <article class="card">
+            <h3>Issue #2 — SSH blocked</h3>
+            <p>The Security Group allowed port 22, but a Network ACL ingress rule (number 40) was
+              denying SSH at the subnet level. Removed with <code>delete-network-acl-entry</code>.</p>
+          </article>
+          <article class="card">
+            <h3>Evidence — 2229 REJECTs</h3>
+            <p>VPC Flow Logs captured every blocked packet while troubleshooting. Counted
+              <span class="highlight">2229 REJECT records</span> across the captured window with
+              a single <code>grep | wc -l</code> pipeline.</p>
+          </article>
+        </div>
+
+        <div style="margin-top: 1.4rem;">
+          <h3 style="font-size: 1.05rem; margin-bottom: 0.6rem;">Environment</h3>
+          <div class="arch-diagram">VPC1 (10.0.0.0/16)  ─────  IGW (broken: no route)
+  │
+  └── Public Subnet
+        │
+        ├── Cafe Web Server  (port 80 open, NACL ingress #40 = DENY)
+        └── CLI Host         (used to drive aws-cli + analysis)
+
+Flow Logs ──► S3 bucket: flowlog######  (capture: ALL)</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════ FLOW LOGS SETUP ══════ -->
+    <section id="flowlogs">
+      <div class="container">
+        <h2 class="section-title">Enabling VPC Flow Logs</h2>
+        <p class="section-subtitle">
+          Created an S3 bucket and a flow log on VPC1 capturing <strong>ALL</strong> traffic
+          (accepted and rejected) before starting the troubleshooting. This is what made the
+          forensic analysis at the end possible.
+        </p>
+
+        <div class="timeline">
+          <article class="step">
+            <div class="step-num">01</div>
+            <div>
+              <h3>Bucket + flow log creation</h3>
+              <ul>
+                <li>Created a uniquely-named S3 bucket in <code>us-west-2</code> to receive the
+                  log files. The lab required suffixing with six random digits to avoid global name
+                  collisions.</li>
+                <li>Resolved VPC1's ID with a tag-filtered <code>describe-vpcs</code> query, then
+                  attached a flow log targeting that VPC with <code>--traffic-type ALL</code> and
+                  <code>--log-destination-type s3</code>.</li>
+                <li>Confirmed status <code>ACTIVE</code> via <code>describe-flow-logs</code>.</li>
+              </ul>
+<pre><code><span class="cmd-comment"># 1. S3 bucket for flow log delivery</span>
+aws s3api create-bucket \
+  --bucket flowlog###### \
+  --region us-west-2 \
+  --create-bucket-configuration LocationConstraint=us-west-2
+
+<span class="cmd-comment"># 2. Resolve VPC1 ID by tag</span>
+aws ec2 describe-vpcs \
+  --query 'Vpcs[*].[VpcId,Tags[?Key==`Name`].Value,CidrBlock]' \
+  --filters "Name=tag:Name,Values='VPC1'"
+
+<span class="cmd-comment"># 3. Create the flow log (ALL traffic, S3 destination)</span>
+aws ec2 create-flow-logs \
+  --resource-type VPC \
+  --resource-ids &lt;vpc-id&gt; \
+  --traffic-type ALL \
+  --log-destination-type s3 \
+  --log-destination arn:aws:s3:::flowlog######
+
+<span class="cmd-comment"># 4. Verify status = ACTIVE</span>
+aws ec2 describe-flow-logs</code></pre>
+
+              <div class="insight warn" style="margin-top: 0.8rem;">
+                <strong>Gotcha:</strong> <code>create-flow-logs</code> sometimes prints an
+                <code>"Unsuccessful"</code> entry in its JSON output. The lab guide explicitly
+                says to ignore it — the flow log still gets created. <code>describe-flow-logs</code>
+                is the source of truth, not the create response.
+              </div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════ TROUBLESHOOTING ══════ -->
+    <section id="tshoot">
+      <div class="container">
+        <h2 class="section-title">Troubleshooting Two Broken Paths</h2>
+        <p class="section-subtitle">
+          The lab forbade the AWS Console for diagnosis — everything had to be done with
+          <code>aws-cli</code>. This is the part of the lab worth keeping: the diagnostic order
+          (SG → Route Table → NACL) and the exact CLI calls that confirm or rule out each layer.
+        </p>
+
+        <!-- ── Issue #1 ── -->
+        <div class="timeline">
+          <article class="step">
+            <div class="step-num">#1</div>
+            <div>
+              <h3>The web server is up but the page never loads</h3>
+              <p style="color:#cbd5e1; margin-bottom: 0.8rem;">
+                Pasting <code>WebServerIP</code> in the browser results in a timeout. The instance
+                is reported as <code>running</code> by <code>describe-instances</code>, so the
+                problem has to be at the network layer.
+              </p>
+
+              <div class="tshoot">
+                <div class="tshoot-cell symptom">
+                  <span class="label">Síntoma</span>
+                  <p>Browser timeout on <code>http://&lt;WebServerIP&gt;</code>. No response, no
+                    connection refused — pure black hole.</p>
+                </div>
+                <div class="tshoot-cell diagnosis">
+                  <span class="label">Diagnóstico</span>
+                  <p><code>nmap</code> shows no open ports from the CLI Host. SG permits 80/22.
+                    <code>describe-route-tables</code> on the public subnet shows only the local
+                    VPC route (10.0.0.0/16). No <code>0.0.0.0/0</code> entry.</p>
+                </div>
+                <div class="tshoot-cell cause">
+                  <span class="label">Causa raíz</span>
+                  <p>The public route table is missing the default route to the Internet Gateway.
+                    The subnet is "public" by name but not by configuration.</p>
+                </div>
+                <div class="tshoot-cell fix">
+                  <span class="label">Fix</span>
+                  <p>Add a route for <code>0.0.0.0/0</code> targeting the VPC's IGW with
+                    <code>aws ec2 create-route</code>. Web responds immediately after.</p>
+                </div>
+              </div>
+
+<pre><code><span class="cmd-comment"># Install nmap on the CLI Host and probe the web server</span>
+sudo yum install -y nmap
+nmap &lt;WebServerIP&gt;
+
+<span class="cmd-comment"># Inspect the Security Group attached to the web server</span>
+aws ec2 describe-security-groups --group-ids 'WebServerSgId'
+
+<span class="cmd-comment"># Inspect the route table associated with the public subnet</span>
+aws ec2 describe-route-tables \
+  --route-table-ids 'VPC1PubRouteTableId' \
+  --filter "Name=association.subnet-id,Values='VPC1PubSubnetID'"
+
+<span class="cmd-comment"># Fix — add the missing default route to the IGW</span>
+aws ec2 create-route \
+  --route-table-id 'VPC1PubRouteTableId' \
+  --gateway-id 'VPC1GatewayId' \
+  --destination-cidr-block '0.0.0.0/0'</code></pre>
+
+              <div class="insight info" style="margin-top: 0.8rem;">
+                <strong>Note on evidence:</strong> there is no screenshot of the browser displaying
+                "Hello From Your Web Server!" after the fix. The page was loaded successfully and
+                the timeout disappeared, but the capture was not taken. The fix is documented
+                through the CLI commands above and the absence of further timeouts.
+              </div>
+            </div>
+          </article>
+
+          <!-- ── Issue #2 ── -->
+          <article class="step">
+            <div class="step-num">#2</div>
+            <div>
+              <h3>SSH still fails — even though port 22 is allowed</h3>
+              <p style="color:#cbd5e1; margin-bottom: 0.8rem;">
+                EC2 Instance Connect to the Cafe Web Server returns
+                <em>"Failed to connect to your instance"</em>. The Security Group is correct, the
+                route table is now correct, the instance is running. Only one layer left to check.
+              </p>
+
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/01-ssh-failed-banner.png"
+                       alt="EC2 Instance Connect red banner: Failed to connect to your instance"
+                       loading="lazy" />
+                  <figcaption>EC2 Instance Connect: red banner reporting the SSH connection failure to the web server</figcaption>
+                </figure>
+              </div>
+
+              <div class="tshoot" style="margin-top: 1rem;">
+                <div class="tshoot-cell symptom">
+                  <span class="label">Síntoma</span>
+                  <p>EC2 Instance Connect: <em>"Error establishing SSH connection to your instance."</em>
+                    SG inbound allows 22, route table is now correct.</p>
+                </div>
+                <div class="tshoot-cell diagnosis">
+                  <span class="label">Diagnóstico</span>
+                  <p><code>describe-network-acls</code> on the public subnet shows an ingress rule
+                    with <code>RuleNumber: 40</code> denying TCP traffic.</p>
+                </div>
+                <div class="tshoot-cell cause">
+                  <span class="label">Causa raíz</span>
+                  <p>NACLs are <em>stateless</em> and processed by rule number in ascending order.
+                    The DENY at #40 fires before any later ALLOW, killing SSH at the subnet edge.</p>
+                </div>
+                <div class="tshoot-cell fix">
+                  <span class="label">Fix</span>
+                  <p>Delete entry #40 with <code>delete-network-acl-entry --ingress</code>. The
+                    next SSH attempt succeeds and <code>hostname</code> returns <code>web-server</code>.</p>
+                </div>
+              </div>
+
+<pre><code><span class="cmd-comment"># Dump every NACL entry attached to the public subnet</span>
+aws ec2 describe-network-acls \
+  --filter "Name=association.subnet-id,Values='VPC1PublicSubnetID'" \
+  --query 'NetworkAcls[*].[NetworkAclId,Entries]'
+
+<span class="cmd-comment"># Fix — remove the offending ingress rule (rule-number 40)</span>
+aws ec2 delete-network-acl-entry \
+  --network-acl-id 'acl-id' \
+  --ingress \
+  --rule-number 40
+
+<span class="cmd-comment"># Confirm by reconnecting via EC2 Instance Connect, then:</span>
+hostname
+<span class="cmd-out">web-server</span></code></pre>
+
+              <div class="screenshot-gallery" style="margin-top: 1rem;">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/02-ssh-after-nacl-fix.png"
+                       alt="SSH terminal showing Amazon Linux 2 banner and ec2-user@web-server prompt"
+                       loading="lazy" />
+                  <figcaption>SSH after the NACL rule removal: Amazon Linux 2 banner + <code>[ec2-user@web-server ~]$</code> prompt confirms the fix landed on the correct instance</figcaption>
+                </figure>
+              </div>
+
+              <div class="insight" style="margin-top: 1rem;">
+                <strong>Layer order for VPC connectivity bugs:</strong> instance state →
+                Security Group → Route Table / IGW / NAT → Network ACL. Stop at the first layer
+                that fails the check. NACLs are last because they are silent and rarely the
+                default suspect, but they will override any SG decision.
+              </div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════ FLOW LOG ANALYSIS ══════ -->
+    <section id="analysis">
+      <div class="container">
+        <h2 class="section-title">Analyzing the Captured Flow Logs</h2>
+        <p class="section-subtitle">
+          The flow log captured every packet rejected during the broken window. Downloaded the
+          files from S3, decompressed them, and used <code>grep</code> to count and filter.
+        </p>
+
+        <div class="timeline">
+          <article class="step">
+            <div class="step-num">DL</div>
+            <div>
+              <h3>Download and decompress from S3</h3>
+<pre><code>mkdir flowlogs &amp;&amp; cd flowlogs
+
+<span class="cmd-comment"># Recursively copy every flow log object from the bucket</span>
+aws s3 cp s3://flowlog######/ . --recursive
+
+<span class="cmd-comment"># Files land under: AWSLogs/&lt;AccountId&gt;/vpcflowlogs/&lt;region&gt;/yyyy/mm/dd/</span>
+cd AWSLogs/&lt;AccountID&gt;/vpcflowlogs/us-west-2/yyyy/mm/dd/
+
+<span class="cmd-comment"># All files are gzipped — decompress in place</span>
+gunzip *.gz
+ls</code></pre>
+            </div>
+          </article>
+
+          <article class="step">
+            <div class="step-num">FMT</div>
+            <div>
+              <h3>VPC Flow Log Record structure</h3>
+              <p>The header row of each file documents the column order. The columns that
+                actually mattered for this analysis:</p>
+
+              <table class="cols-table">
+                <thead>
+                  <tr>
+                    <th>Col</th>
+                    <th>Field</th>
+                    <th>Used for</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><td>4</td><td>srcaddr</td><td>Filtering by the analyst's home public IP (the source of the failed SSH attempts).</td></tr>
+                  <tr><td>5</td><td>dstaddr</td><td>The web server's ENI private address.</td></tr>
+                  <tr><td>7</td><td>dstport</td><td>Filtering to <code>22</code> to isolate SSH traffic.</td></tr>
+                  <tr><td>10</td><td>start (Unix epoch)</td><td>Translatable with <code>date -d @&lt;ts&gt;</code>.</td></tr>
+                  <tr><td>11</td><td>end (Unix epoch)</td><td>Same — to get a human-readable window.</td></tr>
+                  <tr><td>13</td><td>action</td><td><code>ACCEPT</code> or <code>REJECT</code> — the grep target.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </article>
+
+          <article class="step">
+            <div class="step-num">CNT</div>
+            <div>
+              <h3>Counting and filtering the rejected traffic</h3>
+              <p>From the broadest count to the most specific filter, narrowing down to the
+                exact failed SSH attempts:</p>
+
+<pre><code><span class="cmd-comment"># Total REJECT records captured during the broken window</span>
+grep -rn REJECT . | wc -l
+<span class="cmd-out">2229</span>
+
+<span class="cmd-comment"># Narrow to anything mentioning port 22 that was REJECTed</span>
+grep -rn 22 . | grep REJECT
+
+<span class="cmd-comment"># Final filter — only my home IP's failed SSH attempts</span>
+grep -rn 22 . | grep REJECT | grep &lt;my-public-ip&gt;
+
+<span class="cmd-comment"># Cross-check the ENI ID seen in the log matches the web server's NIC</span>
+aws ec2 describe-network-interfaces \
+  --filters "Name=association.public-ip,Values='&lt;WebServerIP&gt;'" \
+  --query 'NetworkInterfaces[*].[NetworkInterfaceId,Association.PublicIp]'
+
+<span class="cmd-comment"># Convert Unix timestamps to local time</span>
+date -d @1554496931
+date</code></pre>
+
+              <div class="screenshot-gallery" style="margin-top: 1rem;">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/03-flowlogs-reject-count.png"
+                       alt="Terminal showing grep REJECT output ending with wc -l result of 2229"
+                       loading="lazy" />
+                  <figcaption>CLI Host: <code>grep -rn REJECT . | wc -l</code> returns <strong>2229</strong> — every packet the broken NACL + missing route dropped during the lab</figcaption>
+                </figure>
+              </div>
+
+              <div class="insight info" style="margin-top: 1rem;">
+                <strong>Why this matters:</strong> the same pipeline (<code>grep | wc</code>) gave a
+                fast, account-wide audit of how much traffic was being silently dropped. In a
+                real environment this scales poorly — the lab points to <strong>Amazon Athena</strong>
+                as the next step: ingest the same S3 prefix as a table and run SQL over it.
+              </div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════ COMMAND REFERENCE ══════ -->
+    <section id="commands">
+      <div class="container">
+        <h2 class="section-title">Command Reference</h2>
+        <p class="section-subtitle">Every AWS CLI / shell call used in the lab, in one block.</p>
+
+        <div class="timeline">
+          <article class="step">
+            <div class="step-num" style="font-size:0.85rem;">vpc</div>
+            <div>
+              <h3>VPC and Flow Logs</h3>
+              <ul>
+                <li><code>aws ec2 describe-vpcs --filters "Name=tag:Name,Values='VPC1'"</code> — find a VPC by tag.</li>
+                <li><code>aws ec2 create-flow-logs --resource-type VPC --traffic-type ALL ...</code> — start capturing.</li>
+                <li><code>aws ec2 describe-flow-logs</code> — check status (<code>ACTIVE</code>).</li>
+              </ul>
+            </div>
+          </article>
+
+          <article class="step">
+            <div class="step-num" style="font-size:0.85rem;">net</div>
+            <div>
+              <h3>Networking diagnosis</h3>
+              <ul>
+                <li><code>aws ec2 describe-instances --filter "Name=ip-address,Values='&lt;IP&gt;'"</code> — find the instance behind a public IP.</li>
+                <li><code>aws ec2 describe-security-groups --group-ids '&lt;sg-id&gt;'</code> — inspect SG rules.</li>
+                <li><code>aws ec2 describe-route-tables --filter "Name=association.subnet-id,Values='&lt;subnet-id&gt;'"</code> — see which route table a subnet uses and its routes.</li>
+                <li><code>aws ec2 describe-network-acls --filter "Name=association.subnet-id,Values='&lt;subnet-id&gt;'"</code> — list every NACL rule on a subnet.</li>
+                <li><code>aws ec2 describe-network-interfaces --filters "Name=association.public-ip,Values='&lt;IP&gt;'"</code> — map a public IP back to an ENI ID.</li>
+              </ul>
+            </div>
+          </article>
+
+          <article class="step">
+            <div class="step-num" style="font-size:0.85rem;">fix</div>
+            <div>
+              <h3>Mutating fixes</h3>
+              <ul>
+                <li><code>aws ec2 create-route --route-table-id &lt;rt&gt; --gateway-id &lt;igw&gt; --destination-cidr-block '0.0.0.0/0'</code> — add default route to the IGW.</li>
+                <li><code>aws ec2 delete-network-acl-entry --network-acl-id &lt;acl&gt; --ingress --rule-number 40</code> — drop a blocking NACL ingress rule.</li>
+              </ul>
+            </div>
+          </article>
+
+          <article class="step">
+            <div class="step-num" style="font-size:0.85rem;">log</div>
+            <div>
+              <h3>Flow log shell pipeline</h3>
+              <ul>
+                <li><code>aws s3 cp s3://&lt;bucket&gt;/ . --recursive</code> — pull every object from the bucket.</li>
+                <li><code>gunzip *.gz</code> — decompress in place.</li>
+                <li><code>grep -rn REJECT . | wc -l</code> — count dropped packets.</li>
+                <li><code>grep -rn 22 . | grep REJECT | grep &lt;ip&gt;</code> — isolate failed SSH for a specific source.</li>
+                <li><code>date -d @&lt;unix-ts&gt;</code> — convert epoch timestamps to local time.</li>
+                <li><code>sudo yum install -y nmap</code> + <code>nmap &lt;ip&gt;</code> — quick reachability probe.</li>
+              </ul>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════ LEARNINGS ══════ -->
+    <section id="learnings">
+      <div class="container">
+        <h2 class="section-title">Key Learnings</h2>
+        <div class="grid-2">
+          <div class="card">
+            <h3>What was actually learned</h3>
+            <div class="checklist">
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>The deterministic order for diagnosing VPC connectivity:
+                  <strong>instance state → SG → Route Table → NACL</strong>.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>Network ACLs are <strong>stateless</strong> and processed in
+                  <strong>ascending rule-number order</strong>; a low-numbered DENY overrides any
+                  later ALLOW.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>A subnet labeled "public" is not actually public until its route table has a
+                  <code>0.0.0.0/0</code> entry pointing at an Internet Gateway.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>VPC Flow Logs with <code>--traffic-type ALL</code> + S3 destination is a
+                  zero-instrumentation way to get a packet-level audit trail for any VPC.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>Flow log files are gzipped, partitioned by date under
+                  <code>AWSLogs/&lt;account&gt;/vpcflowlogs/&lt;region&gt;/yyyy/mm/dd/</code> in S3,
+                  and queryable with plain <code>grep</code> for small windows.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Technical conclusion</h3>
+            <p>
+              The lab forces an honest CLI-only diagnostic on a deliberately broken VPC. The
+              productive pattern is to stop guessing at the console and instead query each layer
+              of the network stack with <code>describe-*</code> calls — the answer is always in
+              one of them, and the symptom alone (timeout vs. connection refused vs. SSH banner
+              failure) usually points to which layer is responsible.
+            </p>
+            <p style="margin-top: 1rem;">
+              Flow Logs close the loop: every assumption made during the fix can be retroactively
+              confirmed by counting REJECTs in the bucket. For larger volumes the same data lands
+              cleanly in Athena, turning the log into a SQL-queryable table — but for a 2229-line
+              window, <code>grep | wc -l</code> is enough.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      Lab report documenting Lab 181 — Troubleshooting a VPC · AWS re/Start Program
+    </div>
+  </footer>
+</body>
+
+</html>

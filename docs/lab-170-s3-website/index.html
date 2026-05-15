@@ -1,0 +1,1060 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lab Report: Creating a Website on S3</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --bg-soft: #111827;
+      --card: rgba(255, 255, 255, 0.08);
+      --card-strong: rgba(255, 255, 255, 0.12);
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --accent: #ff9900;
+      --accent-2: #38bdf8;
+      --ok: #22c55e;
+      --warn: #f59e0b;
+      --danger: #f87171;
+      --border: rgba(255, 255, 255, 0.12);
+      --shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+      --radius: 22px;
+      --max: 1120px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(255, 153, 0, 0.16), transparent 28%),
+        radial-gradient(circle at top right, rgba(56, 189, 248, 0.14), transparent 24%),
+        linear-gradient(180deg, #020617 0%, #0f172a 48%, #111827 100%);
+      color: var(--text);
+      line-height: 1.65;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .container {
+      width: min(var(--max), calc(100% - 2rem));
+      margin: 0 auto;
+    }
+
+    /* ── Nav ── */
+    .nav {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      backdrop-filter: blur(16px);
+      background: rgba(2, 6, 23, 0.72);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .nav-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.9rem 0;
+      gap: 1rem;
+    }
+
+    .brand {
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+    }
+
+    .brand-badge {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, var(--accent), #ffb84d);
+      color: #111827;
+      font-weight: 900;
+      box-shadow: var(--shadow);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .nav-links a:hover {
+      color: var(--text);
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      color: var(--muted);
+      font-size: 0.9rem;
+      transition: color 0.2s;
+    }
+
+    .back-link:hover {
+      color: var(--accent);
+    }
+
+    /* ── Hero ── */
+    .hero {
+      padding: 4.8rem 0 2rem;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 1.5rem;
+      align-items: stretch;
+    }
+
+    .panel {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.05));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .hero-main {
+      padding: 2rem;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.45rem 0.8rem;
+      border-radius: 999px;
+      background: rgba(255, 153, 0, 0.12);
+      color: #ffd28a;
+      border: 1px solid rgba(255, 153, 0, 0.25);
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+    }
+
+    h1,
+    h2,
+    h3 {
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+      margin: 0;
+    }
+
+    h1 {
+      font-size: clamp(2rem, 4vw, 3.7rem);
+      margin-bottom: 0.9rem;
+    }
+
+    .hero-main p {
+      margin: 0;
+      color: #cbd5e1;
+      font-size: 1.05rem;
+      max-width: 65ch;
+    }
+
+    .hero-side {
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .hero-side .callout {
+      padding: 1rem 1.1rem;
+      border-radius: 18px;
+      border: 1px solid rgba(56, 189, 248, 0.18);
+      background: rgba(56, 189, 248, 0.08);
+    }
+
+    .hero-side .callout strong {
+      display: block;
+      margin-bottom: 0.35rem;
+    }
+
+    .tech-stack {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.55rem;
+    }
+
+    .chip {
+      padding: 0.45rem 0.75rem;
+      border-radius: 999px;
+      font-size: 0.88rem;
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #dbeafe;
+    }
+
+    .small {
+      font-size: 0.92rem;
+      color: var(--muted);
+    }
+
+    /* ── Sections ── */
+    section {
+      padding: 1rem 0 0.4rem;
+    }
+
+    .section-title {
+      margin-bottom: 1rem;
+      font-size: clamp(1.5rem, 2vw, 2.2rem);
+    }
+
+    .section-subtitle {
+      color: var(--muted);
+      margin-top: 0.45rem;
+      max-width: 75ch;
+    }
+
+    /* ── Grids ── */
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .card {
+      padding: 1.3rem;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+    }
+
+    .card h3 {
+      font-size: 1.05rem;
+      margin-bottom: 0.6rem;
+    }
+
+    .card p {
+      margin: 0;
+      color: #cbd5e1;
+    }
+
+    /* ── Timeline ── */
+    .timeline {
+      display: grid;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .step {
+      display: grid;
+      grid-template-columns: 90px 1fr;
+      gap: 1rem;
+      align-items: start;
+      padding: 1.25rem;
+      border-radius: 22px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: var(--shadow);
+    }
+
+    .step-num {
+      width: 72px;
+      height: 72px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, rgba(255, 153, 0, 0.18), rgba(56, 189, 248, 0.18));
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      display: grid;
+      place-items: center;
+      font-size: 1.1rem;
+      font-weight: 900;
+      color: #fff;
+    }
+
+    .step h3 {
+      margin-bottom: 0.55rem;
+      font-size: 1.2rem;
+    }
+
+    .step ul {
+      margin: 0.3rem 0 0;
+      padding-left: 1.1rem;
+      color: #dbe4f0;
+    }
+
+    .step li+li {
+      margin-top: 0.4rem;
+    }
+
+    .highlight {
+      color: #ffd28a;
+      font-weight: 700;
+    }
+
+    /* ── Screenshots ── */
+    .screenshot-gallery {
+      display: grid;
+      gap: 0.8rem;
+      margin-top: 1rem;
+    }
+
+    .screenshot-gallery.cols-2 {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .screenshot-fig {
+      margin: 0;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(2, 6, 23, 0.5);
+    }
+
+    .screenshot-fig img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .screenshot-fig figcaption {
+      padding: 0.6rem 0.8rem;
+      color: var(--muted);
+      font-size: 0.84rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    /* ── Callouts ── */
+    .insight {
+      padding: 1.15rem 1.2rem;
+      border-left: 4px solid var(--accent);
+      border-radius: 16px;
+      background: rgba(255, 153, 0, 0.08);
+      color: #fde7c2;
+    }
+
+    .info {
+      border-left-color: var(--accent-2);
+      background: rgba(56, 189, 248, 0.08);
+      color: #d8f3ff;
+    }
+
+    .danger {
+      border-left: 4px solid var(--danger);
+      background: rgba(248, 113, 113, 0.08);
+      color: #fecaca;
+    }
+
+    /* ── Checklist ── */
+    .checklist {
+      display: grid;
+      gap: 0.7rem;
+      margin-top: 1rem;
+    }
+
+    .check {
+      display: flex;
+      gap: 0.75rem;
+      align-items: flex-start;
+      padding: 0.9rem 1rem;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+    }
+
+    .check-mark {
+      flex: 0 0 auto;
+      width: 28px;
+      height: 28px;
+      display: grid;
+      place-items: center;
+      border-radius: 999px;
+      background: rgba(34, 197, 94, 0.15);
+      color: #86efac;
+      font-weight: 800;
+    }
+
+    /* ── Code ── */
+    code {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 0.15rem 0.4rem;
+      border-radius: 6px;
+      font-size: 0.9em;
+      font-family: "Cascadia Code", "Fira Code", monospace;
+    }
+
+    .code-block-wrapper {
+      margin: 1rem 0;
+      background: #020617;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .code-header {
+      background: rgba(255, 255, 255, 0.06);
+      padding: 0.5rem 1rem;
+      font-size: 0.85rem;
+      color: var(--muted);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      font-family: monospace;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .code-header .tag {
+      font-size: 0.72rem;
+      padding: 0.15rem 0.55rem;
+      border-radius: 999px;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+
+    .code-header .tag.bad {
+      background: rgba(248, 113, 113, 0.15);
+      color: #fecaca;
+      border: 1px solid rgba(248, 113, 113, 0.3);
+    }
+
+    .code-header .tag.good {
+      background: rgba(34, 197, 94, 0.15);
+      color: #86efac;
+      border: 1px solid rgba(34, 197, 94, 0.3);
+    }
+
+    pre.code-block {
+      padding: 1.1rem 1.2rem;
+      margin: 0;
+      overflow-x: auto;
+      color: #e2e8f0;
+      font-family: "Cascadia Code", "Fira Code", monospace;
+      font-size: 0.9rem;
+      line-height: 1.55;
+      white-space: pre;
+    }
+
+    pre.code-block code {
+      background: transparent;
+      padding: 0;
+      font-size: inherit;
+    }
+
+    /* Two-column diff layout for the bug section */
+    .diff-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    /* ── Footer ── */
+    .footer {
+      padding: 2.2rem 0 3.5rem;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 920px) {
+
+      .hero-grid,
+      .grid-3,
+      .grid-2,
+      .screenshot-gallery.cols-2,
+      .diff-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 680px) {
+      .nav-inner {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .step {
+        grid-template-columns: 1fr;
+      }
+
+      .step-num {
+        width: 60px;
+        height: 60px;
+        border-radius: 16px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <nav class="nav">
+    <div class="container nav-inner">
+      <div class="brand">
+        <div class="brand-badge">AWS</div>
+        <div>Lab Report · Storage</div>
+      </div>
+      <div class="nav-links">
+        <a href="../index.html" class="back-link">← All Labs</a>
+        <a href="#summary">Summary</a>
+        <a href="#walkthrough">Walkthrough</a>
+        <a href="#shebang-bug">Shebang Bug</a>
+        <a href="#commands">Commands</a>
+        <a href="#learnings">Learnings</a>
+      </div>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <div class="container hero-grid">
+      <div class="panel hero-main">
+        <div class="eyebrow">AWS re/Start Lab · Storage</div>
+        <h1>Creating a Website on S3</h1>
+        <p>
+          Deployed the Café &amp; Bakery static site to an Amazon S3 bucket using the AWS CLI from an
+          EC2 instance. Provisioned a dedicated IAM user with managed S3 access, opened the bucket
+          to public reads via ACLs, and built a small bash script to make subsequent deploys repeatable.
+        </p>
+      </div>
+
+      <aside class="panel hero-side">
+        <div class="callout">
+          <strong>Lab Objective</strong>
+          Use AWS CLI from EC2 to provision an S3 bucket, scope an IAM user, and host a static site.
+        </div>
+
+        <div>
+          <div class="small" style="margin-bottom:0.7rem;">Tools &amp; Concepts</div>
+          <div class="tech-stack">
+            <span class="chip">Amazon S3</span>
+            <span class="chip">AWS CLI</span>
+            <span class="chip">IAM</span>
+            <span class="chip">EC2 + SSM</span>
+            <span class="chip">Bash</span>
+            <span class="chip">Static hosting</span>
+          </div>
+        </div>
+
+        <div class="callout" style="border-color: rgba(248, 113, 113, 0.25); background: rgba(248, 113, 113, 0.08);">
+          <strong>Key Detail</strong>
+          The deploy script first failed because the <code>#!/bin/bash</code> shebang and the
+          <code>aws s3 cp</code> command were written on the same line. See the
+          <a href="#shebang-bug" style="text-decoration: underline;">Shebang Bug</a> section.
+        </div>
+      </aside>
+    </div>
+  </header>
+
+  <main>
+    <section id="summary">
+      <div class="container">
+        <h2 class="section-title">Lab Summary</h2>
+        <p class="section-subtitle">
+          Connected to an Amazon Linux EC2 instance through <span class="highlight">SSM Session Manager</span>,
+          configured the AWS CLI, and created an S3 bucket named <code>quijanolab</code> in
+          <code>us-west-2</code>. Created an IAM user (<code>awsS3user</code>), attached the
+          <code>AmazonS3FullAccess</code> managed policy, and re-logged in as that user. Enabled ACLs on
+          the bucket, uploaded the static site with <code>aws s3 cp --acl public-read</code>, and turned the
+          bucket into a website endpoint with <code>aws s3 website</code>. Finished by automating the
+          deploy with a one-line bash script — which hit a shebang bug on the first try.
+        </p>
+
+        <div class="grid-3" style="margin-top:1rem;">
+          <article class="card">
+            <h3>Bucket &amp; Region</h3>
+            <p>Bucket <code>quijanolab</code> created in <code>us-west-2</code> with explicit
+              <code>LocationConstraint</code>, which is required for every region other than
+              <code>us-east-1</code>.</p>
+          </article>
+          <article class="card">
+            <h3>IAM Scoping</h3>
+            <p>Dedicated user <code>awsS3user</code> with the AWS managed policy
+              <code>AmazonS3FullAccess</code>. The user signs in with the account ID and password
+              <code>Training123!</code>.</p>
+          </article>
+          <article class="card">
+            <h3>Public Hosting</h3>
+            <p>Public access unblocked, Object Ownership set to <strong>ACLs enabled</strong> so that
+              <code>--acl public-read</code> on upload would actually apply to the objects.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="walkthrough">
+      <div class="container">
+        <h2 class="section-title">Walkthrough</h2>
+        <p class="section-subtitle">
+          The lab fits on a single linear path: connect, configure, provision, secure, deploy, automate.
+        </p>
+
+        <div class="timeline">
+
+          <!-- TASK 1 -->
+          <article class="step">
+            <div class="step-num">01</div>
+            <div>
+              <h3>Connect to EC2 via SSM and configure the AWS CLI</h3>
+              <ul>
+                <li>Opened the <strong>InstanceSessionUrl</strong> in a new tab to reach the EC2 instance through
+                  AWS Systems Manager. SSM avoids needing an SSH key or open port 22.</li>
+                <li>Switched from <code>ssm-user</code> to <code>ec2-user</code> with
+                  <code>sudo su -l ec2-user</code> so subsequent file operations land under
+                  <code>/home/ec2-user</code>.</li>
+                <li>Ran <code>aws configure</code> and pasted the lab's access key, secret key, region
+                  <code>us-west-2</code> and output format <code>json</code>.</li>
+              </ul>
+
+              <div class="insight info" style="margin-top:1rem;">
+                <strong>Why <code>us-west-2</code>:</strong> the lab fixes the region. Picking anything
+                else would have made the bucket creation fail because the credentials are issued for that
+                region only.
+              </div>
+            </div>
+          </article>
+
+          <!-- TASK 2 -->
+          <article class="step">
+            <div class="step-num">02</div>
+            <div>
+              <h3>Create the S3 bucket</h3>
+              <ul>
+                <li>Picked the bucket name <code>quijanolab</code> — must be globally unique across all
+                  AWS accounts.</li>
+                <li>Created the bucket with the explicit <code>LocationConstraint</code>:</li>
+              </ul>
+
+              <div class="code-block-wrapper">
+                <div class="code-header"><span>aws-cli</span><span class="tag good">success</span></div>
+                <pre class="code-block"><code>aws s3api create-bucket \
+  --bucket quijanolab \
+  --region us-west-2 \
+  --create-bucket-configuration LocationConstraint=us-west-2</code></pre>
+              </div>
+
+              <p style="color:#cbd5e1; margin: 0.6rem 0 0;">Response:</p>
+              <div class="code-block-wrapper">
+                <div class="code-header"><span>response.json</span></div>
+                <pre class="code-block"><code>{
+    "Location": "http://quijanolab.s3.amazonaws.com/"
+}</code></pre>
+              </div>
+
+              <div class="insight info" style="margin-top:1rem;">
+                <strong>Gotcha:</strong> outside <code>us-east-1</code>, omitting
+                <code>--create-bucket-configuration LocationConstraint=&lt;region&gt;</code> returns
+                <code>IllegalLocationConstraintException</code>. <code>us-east-1</code> is the only
+                region that <em>rejects</em> the flag.
+              </div>
+            </div>
+          </article>
+
+          <!-- TASK 3 -->
+          <article class="step">
+            <div class="step-num">03</div>
+            <div>
+              <h3>Create the IAM user and attach the S3 policy</h3>
+              <ul>
+                <li>Created the user and a console login profile:</li>
+              </ul>
+
+              <div class="code-block-wrapper">
+                <div class="code-header"><span>aws-cli</span></div>
+                <pre class="code-block"><code>aws iam create-user --user-name awsS3user
+aws iam create-login-profile --user-name awsS3user --password Training123!</code></pre>
+              </div>
+
+              <ul>
+                <li>Listed AWS managed policies filtered by name to find the right one without guessing
+                  the ARN:</li>
+              </ul>
+
+              <div class="code-block-wrapper">
+                <div class="code-header"><span>aws-cli</span></div>
+                <pre class="code-block"><code>aws iam list-policies --query "Policies[?contains(PolicyName,'S3')]"</code></pre>
+              </div>
+
+              <p style="color:#cbd5e1; margin: 0.6rem 0 0;">
+                The output included <code>AmazonS3FullAccess</code> with ARN
+                <code>arn:aws:iam::aws:policy/AmazonS3FullAccess</code>. That is the policy attached:
+              </p>
+
+              <div class="code-block-wrapper">
+                <div class="code-header"><span>aws-cli</span></div>
+                <pre class="code-block"><code>aws iam attach-user-policy \
+  --policy-arn arn:aws:iam::aws:policy/AmazonS3FullAccess \
+  --user-name awsS3user</code></pre>
+              </div>
+
+              <ul style="margin-top: 0.8rem;">
+                <li>Copied the 12-digit Account ID from the console, signed out of the lab user, and
+                  re-signed in as <strong>awsS3user</strong> with password <code>Training123!</code>.</li>
+              </ul>
+
+              <div class="screenshot-gallery cols-2">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/01-cli-configure-bucket-iam.png"
+                    alt="SSM terminal with aws configure, create-bucket and create-user commands" loading="lazy" />
+                  <figcaption>Terminal: <code>aws configure</code>, bucket creation with
+                    <code>Location</code> response, and the IAM user / login profile being created.
+                    Sign-out dialog visible in the foreground.</figcaption>
+                </figure>
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/02-s3-policy-search.png"
+                    alt="aws iam list-policies showing AmazonS3FullAccess and its ARN" loading="lazy" />
+                  <figcaption><code>list-policies</code> filtered by <code>PolicyName</code> — the
+                    <strong>AmazonS3FullAccess</strong> entry is what gets attached to
+                    <code>awsS3user</code>.</figcaption>
+                </figure>
+              </div>
+
+              <div class="insight info" style="margin-top:1rem;">
+                <strong>Why a managed policy:</strong> for a scoped, well-known permission like "full
+                S3 access", AWS managed policies remove guesswork. They are versioned, auditable, and
+                attach by ARN with no JSON authoring.
+              </div>
+            </div>
+          </article>
+
+          <!-- TASK 4 -->
+          <article class="step">
+            <div class="step-num">04</div>
+            <div>
+              <h3>Open the bucket for public reads (Block public access + ACLs)</h3>
+              <ul>
+                <li>Under <strong>Permissions → Block public access</strong>, unchecked
+                  <strong>Block all public access</strong> and confirmed.</li>
+                <li>Under <strong>Permissions → Object Ownership</strong>, switched from the default
+                  <em>ACLs disabled</em> to <strong>ACLs enabled</strong> and acknowledged that the
+                  bucket-owner-enforced setting would be turned off.</li>
+              </ul>
+
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/03-bucket-acls-enabled.png"
+                    alt="S3 Object Ownership panel with ACLs enabled and acknowledgement checked"
+                    loading="lazy" />
+                  <figcaption>S3 console: <strong>ACLs enabled</strong> with the
+                    "I acknowledge that ACLs will be restored" checkbox.</figcaption>
+                </figure>
+              </div>
+
+              <div class="insight info" style="margin-top:1rem;">
+                <strong>Why ACLs matter here:</strong> the upload command in the next step uses
+                <code>--acl public-read</code>. That flag only takes effect when Object Ownership is
+                set to <strong>ACLs enabled</strong>. Without it, every object request would 403,
+                even with public access unblocked at the bucket level.
+              </div>
+            </div>
+          </article>
+
+          <!-- TASK 5 -->
+          <article class="step">
+            <div class="step-num">05</div>
+            <div>
+              <h3>Extract the site, enable static hosting, and upload</h3>
+              <ul>
+                <li>Extracted the lab's archive and entered the resulting directory:</li>
+              </ul>
+
+              <div class="code-block-wrapper">
+                <div class="code-header"><span>bash</span></div>
+                <pre class="code-block"><code>cd ~/sysops-activity-files
+tar xvzf static-website-v2.tar.gz
+cd static-website
+ls   # css/  images/  index.html</code></pre>
+              </div>
+
+              <ul style="margin-top: 0.8rem;">
+                <li>Turned the bucket into a static website endpoint and defined the index document:</li>
+              </ul>
+
+              <div class="code-block-wrapper">
+                <div class="code-header"><span>aws-cli</span></div>
+                <pre class="code-block"><code>aws s3 website s3://quijanolab/ --index-document index.html</code></pre>
+              </div>
+
+              <ul style="margin-top: 0.8rem;">
+                <li>Uploaded the whole site recursively with the canned ACL <code>public-read</code>:</li>
+              </ul>
+
+              <div class="code-block-wrapper">
+                <div class="code-header"><span>aws-cli</span></div>
+                <pre class="code-block"><code>aws s3 cp /home/ec2-user/sysops-activity-files/static-website/ \
+  s3://quijanolab/ \
+  --recursive --acl public-read
+
+aws s3 ls quijanolab   # verify objects</code></pre>
+              </div>
+
+              <div class="screenshot-gallery">
+                <figure class="screenshot-fig">
+                  <img src="assets/screenshots/05-deployed-website.png"
+                    alt="Café and Bakery static site rendered in the browser" loading="lazy" />
+                  <figcaption>Bucket website endpoint serving the Café &amp; Bakery static site —
+                    proof that <code>aws s3 website</code> enabled hosting and that the ACL on the
+                    objects allows unauthenticated reads.</figcaption>
+                </figure>
+              </div>
+            </div>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════ STAR SECTION: THE SHEBANG BUG ══════ -->
+    <section id="shebang-bug">
+      <div class="container">
+        <h2 class="section-title">The Shebang Bug</h2>
+        <p class="section-subtitle">
+          Task 8 asked for a small bash script to re-run the deploy after editing the local files.
+          The first attempt failed twice with the same error. The cause was a single missing newline.
+        </p>
+
+        <div class="insight danger" style="margin-top: 1rem;">
+          <strong>Symptom:</strong> <code>./update-website.sh</code> printed
+          <code>/bin/bash: aws s3 cp /home/ec2-user/sysops-activity-files/static-website/ s3://quijanolab/ --recursive --acl public-read: No such file or directory</code>
+          and the script exited without uploading anything.
+        </div>
+
+        <div class="diff-grid">
+          <div>
+            <div class="code-block-wrapper">
+              <div class="code-header">
+                <span>update-website.sh — first attempt</span>
+                <span class="tag bad">broken</span>
+              </div>
+              <pre class="code-block"><code>#!/bin/bash aws s3 cp /home/ec2-user/sysops-activity-files/static-website/ s3://quijanolab/ --recursive --acl public-read</code></pre>
+            </div>
+            <p class="small" style="margin: 0.4rem 0 0;">
+              Everything is on one line. Bash never gets to see the <code>aws</code> command.
+            </p>
+          </div>
+
+          <div>
+            <div class="code-block-wrapper">
+              <div class="code-header">
+                <span>update-website.sh — fixed</span>
+                <span class="tag good">works</span>
+              </div>
+              <pre class="code-block"><code>#!/bin/bash
+aws s3 cp /home/ec2-user/sysops-activity-files/static-website/ s3://quijanolab/ --recursive --acl public-read</code></pre>
+            </div>
+            <p class="small" style="margin: 0.4rem 0 0;">
+              Shebang on its own line. The command starts on the next line as a normal bash statement.
+            </p>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top: 1.2rem;">
+          <h3>Why the broken version fails</h3>
+          <p>
+            The shebang line has a very specific shape: <code>#!</code> followed by the
+            <strong>absolute path of an interpreter</strong>, and then <strong>at most one</strong>
+            literal argument string. The kernel parses that first line when it executes the script and
+            does roughly:
+          </p>
+          <p style="margin-top: 0.6rem;">
+            <code>execve("/bin/bash", ["/bin/bash", "&lt;everything after the first space&gt;", "./update-website.sh"], envp)</code>
+          </p>
+          <p style="margin-top: 0.6rem;">
+            So in the broken file, <code>/bin/bash</code> was being invoked with the single argument
+            <code>"aws s3 cp /home/ec2-user/sysops-activity-files/static-website/ s3://quijanolab/ --recursive --acl public-read"</code>.
+            Bash treated that whole string as the path to a script to run — and there is no file with
+            that absurdly long name, hence <strong>No such file or directory</strong>. The
+            <code>aws</code> binary was never reached.
+          </p>
+          <p style="margin-top: 0.6rem;">
+            Splitting the shebang onto its own line makes the kernel invoke
+            <code>/bin/bash ./update-website.sh</code>, and bash then reads the script line by line
+            like any other source file. The second line becomes a normal command and runs as
+            expected.
+          </p>
+        </div>
+
+        <p style="color:#cbd5e1; margin: 1.2rem 0 0.5rem;">After fixing the script:</p>
+
+        <div class="code-block-wrapper">
+          <div class="code-header"><span>bash</span></div>
+          <pre class="code-block"><code>chmod +x update-website.sh
+./update-website.sh</code></pre>
+        </div>
+
+        <div class="screenshot-gallery" style="margin-top: 1rem;">
+          <figure class="screenshot-fig">
+            <img src="assets/screenshots/04-script-shebang-bug-and-fix.png"
+              alt="Terminal showing two 'No such file or directory' errors followed by successful s3 uploads" loading="lazy" />
+            <figcaption>Terminal history: the two failed runs of the broken script (
+              <code>No such file or directory</code> ), the <code>vi update-website.sh</code> edit, and
+              the final run that streams <code>upload: ...</code> lines for every file in
+              <code>static-website/</code>.</figcaption>
+          </figure>
+        </div>
+
+        <div class="insight" style="margin-top: 1rem;">
+          <strong>Takeaway:</strong> shebangs are not bash syntax — they are a kernel-level loader
+          convention. Bash itself would happily run a script with the shebang merged onto one line,
+          because to bash the <code>#!...</code> is just a comment. The kernel is the one that cares,
+          and it only looks at that very first line before <code>exec</code>'ing the interpreter.
+        </div>
+      </div>
+    </section>
+
+    <section id="commands">
+      <div class="container">
+        <h2 class="section-title">Command Reference</h2>
+        <p class="section-subtitle">The CLI commands that drove this lab, grouped by purpose.</p>
+
+        <div class="timeline">
+
+          <article class="step">
+            <div class="step-num" style="font-size:0.85rem;">s3api</div>
+            <div>
+              <h3>Bucket lifecycle</h3>
+              <ul>
+                <li><code>aws s3api create-bucket --bucket &lt;name&gt; --region us-west-2
+                    --create-bucket-configuration LocationConstraint=us-west-2</code>
+                  : creates a bucket. Outside <code>us-east-1</code>, the
+                  <code>LocationConstraint</code> is mandatory.</li>
+              </ul>
+            </div>
+          </article>
+
+          <article class="step">
+            <div class="step-num" style="font-size:0.85rem;">s3</div>
+            <div>
+              <h3>Static hosting + uploads</h3>
+              <ul>
+                <li><code>aws s3 website s3://&lt;bucket&gt;/ --index-document index.html</code>
+                  : turns on static website hosting and points the endpoint at <code>index.html</code>.</li>
+                <li><code>aws s3 cp &lt;local&gt; s3://&lt;bucket&gt;/ --recursive --acl public-read</code>
+                  : recursive upload, applying the canned ACL <code>public-read</code> to every object.</li>
+                <li><code>aws s3 ls &lt;bucket&gt;</code> : quick verification that objects landed.</li>
+              </ul>
+            </div>
+          </article>
+
+          <article class="step">
+            <div class="step-num" style="font-size:0.85rem;">iam</div>
+            <div>
+              <h3>IAM user provisioning</h3>
+              <ul>
+                <li><code>aws iam create-user --user-name &lt;name&gt;</code> : creates the IAM identity.</li>
+                <li><code>aws iam create-login-profile --user-name &lt;name&gt; --password &lt;pwd&gt;</code>
+                  : enables console sign-in.</li>
+                <li><code>aws iam list-policies --query "Policies[?contains(PolicyName,'S3')]"</code>
+                  : finds managed policies by name using JMESPath, no need to memorize ARNs.</li>
+                <li><code>aws iam attach-user-policy --policy-arn &lt;arn&gt; --user-name &lt;name&gt;</code>
+                  : attaches a managed policy to the user.</li>
+              </ul>
+            </div>
+          </article>
+
+          <article class="step">
+            <div class="step-num" style="font-size:0.85rem;">bash</div>
+            <div>
+              <h3>Deploy automation</h3>
+              <ul>
+                <li>Final <code>update-website.sh</code>:</li>
+              </ul>
+              <div class="code-block-wrapper" style="margin-top: 0.4rem;">
+                <div class="code-header"><span>update-website.sh</span></div>
+                <pre class="code-block"><code>#!/bin/bash
+aws s3 cp /home/ec2-user/sysops-activity-files/static-website/ s3://quijanolab/ --recursive --acl public-read</code></pre>
+              </div>
+              <ul style="margin-top: 0.6rem;">
+                <li><code>chmod +x update-website.sh</code> : make it executable.</li>
+                <li><code>./update-website.sh</code> : push the local changes to S3 in one step.</li>
+              </ul>
+            </div>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+    <section id="learnings">
+      <div class="container">
+        <h2 class="section-title">Key Learnings</h2>
+        <div class="grid-2">
+          <div class="card">
+            <h3>What Was Actually Learned</h3>
+            <div class="checklist">
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>How to host a fully public static site on S3 using only the AWS CLI from EC2.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div><code>LocationConstraint</code> is required everywhere except
+                  <strong>us-east-1</strong>.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>Object Ownership has to be set to <strong>ACLs enabled</strong> for
+                  <code>--acl public-read</code> to take effect; unblocking public access alone is not enough.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>Scoping an IAM user by attaching a managed policy (<strong>AmazonS3FullAccess</strong>)
+                  via ARN is faster than writing inline JSON for a well-known permission set.</div>
+              </div>
+              <div class="check">
+                <div class="check-mark">✓</div>
+                <div>The shebang is a <strong>kernel</strong> convention, not bash syntax. Everything
+                  after the interpreter path is passed as a single argument, which is why
+                  <code>#!/bin/bash &lt;cmd&gt;</code> on one line breaks.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Technical Conclusion</h3>
+            <p>
+              S3 static hosting is one of the cheapest "deploy a website" paths AWS offers: no compute,
+              no load balancer, just a bucket configured for web requests. The lab also reinforces that
+              public access on S3 is a layered problem — bucket-level Block Public Access, Object
+              Ownership, and per-object ACLs all have to align before unauthenticated reads succeed.
+            </p>
+            <p style="margin-top: 0.8rem;">
+              The deploy automation step was deceptively simple but produced the most valuable lesson
+              of the lab: a misplaced newline turned a one-line script into a kernel-level error. That
+              detail is the kind of thing only debugging by hand teaches.
+            </p>
+            <p style="margin-top: 0.8rem; color: var(--muted); font-size: 0.92rem;">
+              The optional <code>aws s3 sync</code> challenge was not completed — the base lab is the
+              verified deliverable here.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      Lab report documenting the Creating a Website on S3 lab · AWS re/Start Program
+    </div>
+  </footer>
+</body>
+
+</html>
