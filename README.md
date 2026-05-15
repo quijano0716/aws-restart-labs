@@ -73,8 +73,8 @@ Technical documentation of hands-on labs completed during the **AWS re/Start** p
 | 273 | Organizing Data                                               | Completed |
 | 160 | Build Your DB Server and Interact With Your DB Using an App   | Completed |
 | 162 | Challenge Lab: Build Your DB Server and Interact With Your DB | Completed |
-| 274 | Introducción a Amazon Aurora                                  | Completed |
-| 275 | Introducción a Amazon DynamoDB                                | Completed |
+| 274 | Introduction to Amazon Aurora                                 | Completed |
+| 275 | Introduction to Amazon DynamoDB                               | Completed |
 
 ### JAWS
 
